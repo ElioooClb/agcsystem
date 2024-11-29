@@ -1,0 +1,569 @@
+a {
+    text-decoration: none !important;
+}
+
+.is-primary:hover {
+    color: rgb(234, 54, 22);
+}
+
+/* Style de la boîte modale */
+.modalCh {
+    display: none;
+    /* Masque la boîte modale par défaut */
+    position: fixed;
+    /* Position fixe pour que la boîte modale soit centrée sur l'écran */
+    z-index: 15;
+    /* Met la boîte modale au-dessus de tout le contenu */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    /* Ajoute un défilement si le contenu de la boîte modale est trop grand */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Fait un fond noir semi-transparent */
+}
+
+/* Style du contenu de la boîte modale */
+.modalCh-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* Centrer le contenu de la boîte modale */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;
+    position: relative;
+}
+
+/* Style du bouton pour fermer la boîte modale */
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.nav-hiden {
+    display: block !important;
+}
+
+/* menu navigation dashboard */
+
+.data_nav,
+.menu_nav,
+.flex_nav,
+.btn_choise_nav {
+    display: flex;
+}
+
+.menu_nav {
+    margin-top: 26px;
+}
+
+.nav-hiden {
+    padding: 16px;
+}
+
+.nav-hiden a {
+    margin: 8px;
+}
+
+.btn_nav_profile {
+    width: 20px;
+}
+
+.btn_profile {
+    margin-top: -5px;
+}
+
+/* template des pages*/
+
+.py-12 {
+    margin: 5%;
+}
+
+/* data_table*/
+
+.page-wrapper {
+    margin-left: 0 !important;
+    background: #fff !important;
+}
+
+
+/* bouton connexion*/
+
+.btn_log {
+    background-color: black !important;
+}
+
+.center_block {
+    justify-content: center;
+}
+
+/*page planning pour le role utilisateur*/
+
+.title_page {
+    text-align: center;
+    padding: 22px;
+    margin-top: -1px;
+    font-size: 25px;
+}
+
+/*page gestion users admin*/
+
+.btn_sub {
+    background: black;
+}
+
+.btn_sub:hover {
+    color: yellow;
+}
+
+/* message mode demo*/
+
+/* ---------------------------- */
+/* Défilement de droite à gauche */
+.marquee-rtl {
+    overflow: hidden;
+    /* important */
+    width: 1700px;
+    color: red;
+    box-shadow: 3px 16px 47px -22px black;
+}
+
+.marquee-rtl>div {
+    display: inline-block;
+    /* important */
+    white-space: nowrap;
+    /* important */
+    animation: defilement-rtl 15s infinite linear;
+    /* défilement */
+    cursor: pointer;
+    padding: 10px 2em 10px 100%;
+}
+
+.marquee-rtl:hover>div {
+    animation-play-state: paused;
+    /* met en pause le défilement */
+}
+
+/* .marquee-rtl > div:first-letter {
+  font-weight: 700;
+  color: #f00;
+} */
+@keyframes defilement-rtl {
+    0% {
+        -webkit-transform: translate(0);
+        transform: translate(0);
+    }
+
+    100% {
+        -webkit-transform: translate(-100%);
+        transform: translate(-100%);
+    }
+}
+
+/* ---------------------------- */
+/* texte sur plusieurs lignes automatiquement */
+.marquee-multi-lignes>div {
+    width: 90%;
+    white-space: normal;
+    /* important */
+}
+
+/* ---------------------------- */
+/* déco */
+h2,
+p {
+    text-align: center;
+}
+
+.marquee-rtl {
+    margin: 2em auto;
+    border: 2px solid #f0f0ff;
+    /* box-shadow: 0 0.25em 0.5em #ccc, inset 0 0 1em 0.25em #ccc; */
+    background: #e1e0e0;
+}
+
+.marquee-rtl>div {
+    font-size: 1.5em;
+}
+
+/*style menu nav*/
+
+.logo a {
+    margin-right: -178px;
+    margin-top: -12px;
+}
+
+.shadow {
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, 0) !important;
+}
+
+.logo_nav {
+    width: 50%;
+}
+
+/* dashboard*/
+
+.max-w-7xl {
+    max-width: 130rem;
+}
+
+.card {
+    margin-bottom: 27px;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+    text-decoration: underline;
+}
+
+.corps {
+    min-height: 100vh
+}
+
+.breadcrumb {
+    display: none !important;
+}
+
+/* footer */
+
+footer {
+    background: black;
+    padding: 35px;
+    position: relative;
+    clear: both;
+}
+
+.copyright {
+    color: #fff;
+    text-align: center;
+}
+
+/* boite modale planning */
+.title_info {
+    font-size: 2.125rem !important;
+    text-align: center;
+}
+
+.modalInfo p {
+    text-align: unset;
+}
+
+.listeteckos {
+    display: flex;
+}
+
+.ulListeTeck {
+    margin-top: 18px;
+}
+
+.assignedUser {
+    margin-left: 5px;
+    margin-right: 15px;
+}
+
+hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 0;
+    border-top: 1px solid #7f7373;
+    border-bottom: 1px solid #1f1209;
+}
+
+form {
+    display: grid;
+    place-content: center;
+    /* min-height: 100vh; */
+}
+
+.form-control {
+    font-family: system-ui, sans-serif;
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1.1;
+    display: grid;
+    grid-template-columns: 1em auto;
+    gap: 0.5em;
+    width: 30%;
+}
+
+.form-control+.form-control {
+    margin-top: 1em;
+}
+
+.form-control--disabled {
+    color: var(--form-control-disabled);
+    cursor: not-allowed;
+}
+
+input[type="checkbox"] {
+    /* Add if not using autoprefixer */
+    -webkit-appearance: none;
+    /* Remove most all native input styles */
+    appearance: none;
+    /* For iOS < 15 */
+    background-color: var(--form-background);
+    /* Not removed via appearance */
+    margin: 0;
+
+    font: inherit;
+    color: currentColor;
+    width: 1.15em;
+    height: 1.15em;
+    border: 0.15em solid currentColor;
+    border-radius: 0.15em;
+    transform: translateY(-0.075em);
+
+    display: grid;
+    place-content: center;
+}
+
+input[type="checkbox"]::before {
+    /* content: ""; */
+    width: 0.65em;
+    height: 0.65em;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    transform: scale(0);
+    transform-origin: bottom left;
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em var(--form-control-color);
+    /* Windows High Contrast Mode */
+    background-color: CanvasText;
+}
+
+input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+input[type="checkbox"]:focus {
+    outline: max(2px, 0.15em) solid currentColor;
+    outline-offset: max(2px, 0.15em);
+}
+
+input[type="checkbox"]:disabled {
+    --form-control-color: var(--form-control-disabled);
+
+    color: var(--form-control-disabled);
+    cursor: not-allowed;
+}
+
+.green {
+    background: rgb(17, 185, 17);
+}
+
+.text_decoration {
+    text-decoration: underline;
+}
+
+.obs {
+    margin-bottom: 61px
+}
+
+.title_info {
+    border: 1px solid black;
+    padding: 14px;
+    box-shadow: 5px 11px 18px -12px;
+    border-radius: 6px;
+    margin-bottom: 40px !important;
+}
+
+/*modal admin*/
+
+.modal_admin p {
+    text-align: unset;
+}
+
+.input_admin {
+    font-size: 14px;
+}
+
+.deleteAssignedUser {
+    margin-top: -5px;
+}
+
+.montant {
+    display: flex;
+}
+
+.montant p {
+    font-size: 14px;
+    margin-left: 9px;
+    margin-top: 3px;
+}
+
+.bi-trash {
+    margin-left: 7px;
+}
+
+/*page creation de chantier*/
+.form_create {
+    width: 100% !important;
+}
+
+.py_create {
+    margin: 0% !important;
+}
+
+/* boite modal user role2 */
+.obs-teckos {
+    color: red;
+}
+
+/* page modif profil */
+
+.btn_delete {
+    background: red;
+}
+
+/*autre*/
+
+/* Début [SPECGT4] ajout syle checkbox "details" */
+.archive,
+.details {
+    display: flex;
+}
+
+.archive p,
+.details label {
+    margin-left: 11px;
+    margin-top: -4px
+}
+/* Fin [SPECGT4] ajout syle checkbox "details" */
+
+/* media querie responsive */
+@media all and (min-width: 350px) and (max-width: 774px) {
+    .form-control {
+        width: 100%;
+    }
+
+    footer {
+        min-height: 99px;
+    }
+
+    .nav_max {
+        display: none !important;
+        z-index: 1111 !important;
+        position: absolute !important;
+    }
+
+    .menu_absolute {
+        position: relative;
+        z-index: 11111;
+        border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+        background: #fff;
+        width: 178%;
+        display: flex;
+        flex-wrap: wrap;
+        box-shadow: 5px 16px 14px -13px;
+        margin-top: -3px;
+    }
+
+    .menu_profil {
+        position: sticky;
+        z-index: 111;
+        background: #fff;
+        border: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+        margin-top: -3px;
+        margin-left: 25px;
+    }
+
+    .logo_nav {
+        width: 244px;
+        margin-top: -65px;
+        position: absolute;
+    }
+
+    .nav_min {
+        margin-top: 78px;
+    }
+
+    .btn_profile {
+        margin-top: 77px;
+        margin-left: -11px;
+    }
+
+    #calendar {
+        grid-column: 1 !important;
+        height: 700px;
+        width: 330px !important;
+    }
+
+    .dropEvent {
+        margin-bottom: 5px !important;
+        font-size: 9px !important;
+    }
+
+    .btn_chantier {
+        font-size: 9px !important;
+        margin-left: 20px;
+    }
+
+    #events {
+        margin-bottom: 15px !important;
+        min-width: 330px !important;
+    }
+
+    .fc-toolbar-chunk .fc-button-group .fc-dayGridMonth-button {
+        font-size: 9px !important;
+    }
+
+    .fc-toolbar-chunk .fc-button-group .fc-listWeek-button {
+        font-size: 9px !important;
+    }
+
+    .fc-direction-ltr .fc-toolbar>*>:not(:first-child) {
+        display: none;
+    }
+
+    .fc-toolbar-chunk .fc-button-group .fc-next-button {
+        font-size: 10px !important;
+    }
+
+    .fc-toolbar-chunk .fc-button-group .fc-prev-button {
+        font-size: 10px !important;
+    }
+
+    .boite_modal_heure {
+        width: 300px;
+    }
+
+    .modalCh-content {
+        width: 80%;
+    }
+}
+
+
+@media all and (min-width: 775px) {
+    .nav_min {
+        display: none !important;
+    }
+}
+
+.fc-col-header-cell-cushion,
+.fc-daygrid-day-number {
+    font-weight: 600;
+}
+
+
+.boite_modal_heure {
+    width: 500px;
+}
+
+.input_user {
+    width: 100%;
+}
+
+.fc .fc-daygrid-body-unbalanced .fc-daygrid-day-events {
+    position: relative;
+    min-height: 5em;
+}
