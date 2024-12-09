@@ -89,10 +89,10 @@
         {{-- Static worksites stats --}}
         <table class='m-3 border border-dark'>
             <thead class="text-white border-b border-black bg-slate-600">
-                <th class="px-4 py-2 text-center align-middle bg-slate-600"></th>
                 <th class="px-4 py-2 text-center align-middle">Chantiers</th>
                 <th class="px-4 py-2 text-center align-middle">Total fournitures</th>
                 <th class="px-4 py-2 text-center align-middle">Total main d'oeuvres</th>
+                <th class="px-4 py-2 text-center align-middle">Total heures prévues</th>
                 <th class="px-4 py-2 text-center align-middle">Total chantiers</th>
             </thead>
             <tbody>
