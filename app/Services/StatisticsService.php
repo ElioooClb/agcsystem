@@ -200,7 +200,7 @@ class StatisticsService
      */
     private function mountProgressAndMoe(): void
     {
-        foreach($this->worksites as $worksite) {
+        foreach ($this->worksites as $worksite) {
             $progress = 0;
             $consumedhours = $worksite->periodProductiveHours;
             if ($worksite->revised_hours && $worksite->revised_hours > 0) {
@@ -277,11 +277,9 @@ class StatisticsService
      */
     private function getCoefficient(): int|float
     {
-        $coef = 0;
-        foreach ($this->users as $user) {
-            $coef += $user->coef_prod / 100;
-        }
-        return $coef;
+        return $this->users->sum(function ($user) {
+            return $user->coef_prod / 100;
+        });
     }
 
     /**
