@@ -47,6 +47,11 @@ class Stats extends Component
         $this->fetchAndDispatchStatistics();
     }
 
+    public function handleGenerateStats()
+    {
+        $this->fetchAndDispatchStatistics();
+    }
+
     public function updatedStart($value)
     {
         $this->startObject = new DateTime($value);
