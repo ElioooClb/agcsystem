@@ -4,6 +4,7 @@ import { flashAlert } from "../utils/flashAlert";
 document.addEventListener("livewire:load", function () {
     const hoursCells = document.querySelectorAll(".hoursCell");
     const serviceAmountCells = document.querySelectorAll(".serviceAmountCell");
+    const averageHourlyRateCell = document.querySelector("#tdAvgHourlyRate");
 
     hoursCells.forEach((cell) => {
         cell.removeEventListener("click", handleHoursClick);
@@ -14,11 +15,15 @@ document.addEventListener("livewire:load", function () {
         cell.removeEventListener("click", handleServiceAmount);
         cell.addEventListener("click", handleServiceAmount);
     });
+
+    averageHourlyRateCell.removeEventListener("click", handleAvgHourlyRate);
+    averageHourlyRateCell.addEventListener("click", handleAvgHourlyRate);
 });
 
 document.addEventListener("livewire:update", function () {
     const hoursCells = document.querySelectorAll(".hoursCell");
     const serviceAmountCells = document.querySelectorAll(".serviceAmountCell");
+    const averageHourlyRateCell = document.querySelector("#tdAvgHourlyRate");
 
     hoursCells.forEach((cell) => {
         cell.removeEventListener("click", handleHoursClick);
@@ -29,6 +34,9 @@ document.addEventListener("livewire:update", function () {
         cell.removeEventListener("click", handleServiceAmount);
         cell.addEventListener("click", handleServiceAmount);
     });
+
+    averageHourlyRateCell.removeEventListener("click", handleAvgHourlyRate);
+    averageHourlyRateCell.addEventListener("click", handleAvgHourlyRate);
 });
 
 function handleHoursClick(event) {
@@ -46,6 +54,11 @@ function handleServiceAmount(event) {
     const cell = event.target;
     const worksiteID = cell.getAttribute("id");
     fireDialog(cell, worksiteID, "updateServiceAmount", "serviceAmountUpdated");
+}
+
+function handleAvgHourlyRate(event) {
+    const cell = event.target;
+    fireDialog(cell, 0, "updateAvgHourlyRate", "avgHourlyRateUpdated");
 }
 
 function fireDialog(cell, worksiteID, emitTarget, onTarget) {
