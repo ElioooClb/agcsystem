@@ -1,5 +1,5 @@
 <div>
-    <div class="grid grid-cols-2 ml-[20px]">dd(
+    <div class="grid grid-cols-2 ml-[20px]">
         <aside class="float-left max-w-[60%]">
             <!-- Début [SPECGT11] - Ajout de la recherche par id -->
             <div class="items-center gap-3 order d-flex sm:flex-column lg:flex-row">
@@ -14,7 +14,6 @@
             <!-- Fin [SPECGT11] - Ajout de la recherche par id -->
             <!-- Bouton pour afficher la fenêtre modale -->
             <menu class="grid grid-cols-1 gap-4 mt-4 justify-items-start">
-                <button class="btn btn-info btn_chantier w-[125px]" id="openPopupButton">Statistiques</button>
                 <button>
                     <a class="w-auto btn btn-primary btn_chantier" href="{{ route('chantier.create') }}">Creer un
                         nouveau chantier</a>
@@ -65,145 +64,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Fenêtre modale -->
-    <div id="popupContainer" class="popupContainer">
-        <div class="popupContent">
-            <div class="my-5 d-flex justify-content-center">
-                <div class="w-auto">
-                    <table class="table table-striped table-bordered">
-                        <thead class="thead-dark">
-                            <th colspan="2" class="text-center">Chiffres Globaux (avec archives)</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Taux horaire :</td>
-                                <td><strong>{{ $totalHourlyRate }}</strong> € par heure</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- Contenu de la fenêtre modale avec les 4 sommes -->
-            <div class="my-5 d-flex justify-content-center">
-                <div class="w-auto">
-                    <table class="table table-striped table-bordered">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th colspan="8" class="text-center">Montants Totaux (sans les archives)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="2"></td>
-                                <td>Estimation au taux global</td>
-                                <td>Estimation au taux "à facturer"</td>
-                                <td>Estimation au taux "Prévisionnels"</td>
-                            </tr>
-                            <tr>
-                                <td>Fournitures :</td>
-                                <td><strong>{{ $totalMaterialAmount }}</strong> €</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>Mains d'Oeuvres :</td>
-                                <td><strong>{{ $totalServiceAmount }}</strong> €</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>Heures Prévues :</td>
-                                <td><strong>{{ $totalHoursScheduled }}</strong> heures</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>Heures Affectées :</td>
-                                <td><strong>{{ $totalHoursDone }}</strong> heures</td>
-                                <td><strong>{{ $totalAmountFromHoursDone }}</strong> €</td>
-                                <td><strong>{{ $totalAmountFromToBillHourlyRate }}</strong> €</td>
-                                <td><strong>{{ $totalAmountFromUpcomingHourlyRate }}</strong> €</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Début [SPECGT10][V2.1] - Affichage des totaux par statut dans un tableau -->
-            <div class="my-5 d-flex justify-content-center">
-                <div class="w-auto">
-                    <table class="table table-striped table-bordered">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>Chantiers</th>
-                                <th>Total Fournitures</th>
-                                <th>Total Main d'Oeuvres</th>
-                                <th>Total Heures Prévues</th>
-                                <th>Nombre de chantiers</th>
-                                <th>Taux horaire</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                // Définition des types de chantier et des données associées
-                                $workSitesData = [
-                                    'Démarrés' => [
-                                        'totals' => $startedWorkSitesTotals,
-                                        'count' => count($startedWorkSites),
-                                    ],
-                                    'Prévisionnels' => [
-                                        'totals' => $upcomingWorkSitesTotals,
-                                        'count' => count($upcomingWorkSites),
-                                    ],
-                                    'À facturer' => [
-                                        'totals' => $toBillWorkSitesTotals,
-                                        'count' => count($toBillWorkSites),
-                                    ],
-                                ];
-                            @endphp
-
-                            <!-- Boucle sur les différents statuts de chantier -->
-                            @foreach ($workSitesData as $status => $data)
-                                <tr>
-                                    <td>{{ $status }}</td>
-                                    <td>{{ !empty($data['totals']['totalMaterialAmount']) ? $data['totals']['totalMaterialAmount'] . ' €' : '-' }}
-                                    </td>
-                                    <td>{{ !empty($data['totals']['totalServiceAmount']) ? $data['totals']['totalServiceAmount'] . ' €' : '-' }}
-                                    </td>
-                                    <td>{{ !empty($data['totals']['totalHoursScheduled']) ? $data['totals']['totalHoursScheduled'] . ' heures' : '-' }}
-                                    </td>
-                                    <td>{{ $data['count'] }}</td>
-                                    {{-- <td>
-                                        {{ $status === 'À facturer' && $averageToBillHourlyRate.' € / heure' }}
-                                        {{ $status === 'Prévisionnels' && $averageUpcomingHourlyRate.' € / heure' }}
-                                        {{ $status === 'Démarrés' && $averageStartedHourlyRate.' € / heure' }}
-                                    </td> --}}
-                                    <td>
-                                        @if ($status === 'À facturer')
-                                            {{ $averageToBillHourlyRate . ' € / heure' }}
-                                        @elseif ($status === 'Prévisionnels')
-                                            {{ $averageUpcomingHourlyRate . ' € / heure' }}
-                                        @elseif ($status === 'Démarrés')
-                                            {{ $averageStartedHourlyRate . ' € / heure' }}
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- Fin [SPECGT10][V2.1] - Affichage des totaux par statut dans un tableau -->
-
-            <!-- Fermeture de la fenêtre modale -->
-            <button id="closePopupButton" style="text-align: center;">Fermer</button>
-        </div>
-    </div>
-    <!--FIN [SPECGT10]-->
 
     <!--[SPECGT10] - prévisionnel de charge -> calcul des sommes -->
     <div id="calendar-container" wire:ignore>

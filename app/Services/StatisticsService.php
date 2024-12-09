@@ -277,11 +277,9 @@ class StatisticsService
      */
     private function getCoefficient(): int|float
     {
-        $coef = 0;
-        foreach ($this->users as $user) {
-            $coef += $user->coef_prod / 100;
-        }
-        return $coef;
+        return $this->users->sum(function ($user) {
+            return $user->coef_prod / 100;
+        });
     }
 
     /**

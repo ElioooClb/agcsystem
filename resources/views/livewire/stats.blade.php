@@ -14,19 +14,21 @@
         </button>
     </section>
     <hr class="mt-10 mb-10">
-    {{-- small table --}}
+    {{-- small tables --}}
     <section class="flex justify-center mb-3">
+        {{-- Potentiels and Real --}}
         <table class='my-3 border border-dark'>
-            <thead class="border-b border-black">
+            <thead class="border-b border-black bg-slate-600">
                 <tr>
-                    <th colspan="1" class="bg-gray-400 !border !border-dark"></th>
-                    <th class="text-center align-middle border y-2 textpx-4 border-dark">Taux horaire</th>
-                    <th class="px-4 py-2 text-center align-middle border border-dark">Chiffre d'affaire</th>
-                    <th class="px-4 py-2 text-center align-middle border border-dark">Heures de production</th>
+                    <th colspan="1" class="!border !border-dark"></th>
+                    <th class="px-4 py-2 text-center text-white align-middle border border-dark">Taux horaire</th>
+                    <th class="px-4 py-2 text-center text-white align-middle border border-dark">Chiffre d'affaire</th>
+                    <th class="px-4 py-2 text-center text-white align-middle border border-dark">Heures de production
+                    </th>
                 </tr>
             </thead>
             <tbody>
-                <tr class="">
+                <tr class="bg-blue-100">
                     <td class="!text-blue-500 border border-dark px-4 py-2 text-center align-middle">Chiffres Potentiels
                     </td>
                     <td id="tdAvgHourlyRate" class='text-center align-middle !text-blue-500 border border-dark'>
@@ -39,19 +41,98 @@
                 <tr>
                     <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Chiffres au réel
                     </td>
-                    <td class='text-center align-middle !text-red-500 border border-dark'>{{ round($this->totalRevenue / $this->periodConsumedHours) }}
+                    <td class='text-center align-middle !text-red-500 border border-dark'>
+                        {{ round($this->totalRevenue / $this->periodConsumedHours) }}
                     </td>
                     <td class='text-center align-middle !text-red-500 border border-dark'>{{ $this->totalRevenue }}</td>
                     <td class='text-center align-middle !text-red-500 border border-dark'>
                         {{ $this->periodConsumedHours }}</td>
                 </tr>
-                <tr>
-                    <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Total des heures travaillées</td>
+                <tr class="bg-blue-100">
+                    <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Total des heures
+                        travaillées</td>
                     <td colspan="2" class="bg-gray-400"></td>
                     <td colspan="1" class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">
                         {{ $this->periodHours }}
                     </td>
                 </tr>
+            </tbody>
+        </table>
+        {{-- Static global stats --}}
+        <table class='m-3 border border-dark'>
+            <thead class="text-white border-b border-black bg-slate-600">
+                <th colspan="2" class="px-4 py-2 text-center align-middle">Montants totaux (sans les archives)</th>
+            </thead>
+            <tbody>
+                <tr class="bg-blue-100">
+                    <td class="text-center align-middle border border-dark">Fournitures</td>
+                    <td class="text-center align-middle border border-dark"><strong>{{ $totalMaterialAmount }}</strong>
+                        €</td>
+                </tr>
+                <tr>
+                    <td class="text-center align-middle border border-dark">Mains d'oeuvres</td>
+                    <td class="text-center align-middle border border-dark"><strong>{{ $totalServiceAmount }}</strong> €
+                    </td>
+                </tr>
+                <tr class="bg-blue-100">
+                    <td class="text-center align-middle border border-dark">Heures prévues</td>
+                    <td class="text-center align-middle border border-dark"><strong>{{ $totalHoursScheduled }}</strong>
+                        heures</td>
+                </tr>
+                <tr>
+                    <td class="text-center align-middle border border-dark">Heures affectées</td>
+                    <td class="text-center align-middle border border-dark"><strong>{{ $totalHoursDone }}</strong>
+                        heures</td>
+                </tr>
+            </tbody>
+        </table>
+        {{-- Static worksites stats --}}
+        <table class='m-3 border border-dark'>
+            <thead class="text-white border-b border-black bg-slate-600">
+                <th class="px-4 py-2 text-center align-middle bg-slate-600"></th>
+                <th class="px-4 py-2 text-center align-middle">Chantiers</th>
+                <th class="px-4 py-2 text-center align-middle">Total fournitures</th>
+                <th class="px-4 py-2 text-center align-middle">Total main d'oeuvres</th>
+                <th class="px-4 py-2 text-center align-middle">Total chantiers</th>
+            </thead>
+            <tbody>
+                @php
+                    // Définition des types de chantier et des données associées
+                    $workSitesData = [
+                        'Démarrés' => [
+                            'totals' => $startedWorkSitesTotals,
+                            'count' => count($startedWorkSites),
+                        ],
+                        'Prévisionnels' => [
+                            'totals' => $upcomingWorkSitesTotals,
+                            'count' => count($upcomingWorkSites),
+                        ],
+                        'À facturer' => [
+                            'totals' => $toBillWorkSitesTotals,
+                            'count' => count($toBillWorkSites),
+                        ],
+                    ];
+                @endphp
+                @foreach ($workSitesData as $status => $data)
+                    <tr class="{{ $loop->index % 2 == 0 ? 'bg-blue-100' : '' }}">
+                        <td class="text-center align-middle border border-dark"><strong>{{ $status }}</strong>
+                        </td>
+                        <td class="text-center align-middle border border-dark">
+                            {{ !empty($data['totals']['totalMaterialAmount']) ? $data['totals']['totalMaterialAmount'] . ' €' : '-' }}
+                        </td>
+                        <td class="text-center align-middle border border-dark">
+                            {{ !empty($data['totals']['totalServiceAmount']) ? $data['totals']['totalServiceAmount'] . ' €' : '-' }}
+                        </td>
+                        <td class="text-center align-middle border border-dark">
+                            {!! !empty($data['totals']['totalHoursScheduled'])
+                                ? ($status == 'À facturer'
+                                    ? '<strong>' . $data['totals']['totalHoursScheduled'] . '</strong>' . ' heures'
+                                    : $data['totals']['totalHoursScheduled'] . ' heures')
+                                : '-' !!}
+                        </td>
+                        <td class="text-center align-middle border border-dark">{{ $data['count'] }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
     </section>
@@ -103,7 +184,8 @@
                         <td class="px-4 py-2 text-red-500 border border-dark">{{ $worksite->periodProductiveHours }}
                         </td>
                         <td class="px-4 py-2 text-red-500 border border-dark">{{ intval($worksite->moe) }}</td>
-                        <td class="px-4 py-2 text-red-500 border border-dark">{{ round(intval($worksite->moe) / $worksite->periodProductiveHours) }}</td>
+                        <td class="px-4 py-2 text-red-500 border border-dark">
+                            {{ round(intval($worksite->moe) / $worksite->periodProductiveHours) }}</td>
                         <td></td>
                         <td class="px-4 py-2 border border-dark">{{ $worksite->progress }}</td>
                         <td class="px-4 py-2 border border-dark">{{ $worksite->totalConsumedHours }}</td>
