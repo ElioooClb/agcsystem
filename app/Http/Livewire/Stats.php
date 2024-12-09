@@ -6,9 +6,7 @@ use App\Services\StatisticsService;
 use Livewire\Component;
 use DateTime;
 use App\Models\Chantier;
-use App\Models\Event;
 use App\Models\User;
-use App\Models\Message;
 use App\Models\Time;
 
 /**
