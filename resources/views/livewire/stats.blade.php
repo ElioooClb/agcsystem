@@ -46,7 +46,7 @@
                         {{ $this->periodConsumedHours }}</td>
                 </tr>
                 <tr>
-                    <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Saisies</td>
+                    <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Total des heures travaillées</td>
                     <td colspan="2" class="bg-gray-400"></td>
                     <td colspan="1" class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">
                         {{ $this->periodHours }}
