@@ -2,161 +2,76 @@
 
 namespace App\Http\Livewire;
 
-use Illuminate\Support\Facades\Log;
 use App\Services\StatisticsService;
 use Livewire\Component;
 use DateTime;
 use App\Models\Chantier;
 
 /**
- * Class Stats extends component
+ * Class Stats
  * @package App\Http\Livewire
- * @version 1.0 [SPECMBA06]
  */
 class Stats extends Component
 {
     protected StatisticsService $statisticsService;
+
     public string $start = '';
     public string $end = '';
     public DateTime $startObject;
     public DateTime $endObject;
-    public $worksites;
-    // Global
-    public $globalUnproductiveHours; // Sum of the unproductive hours on the worksites for all users
-    // Period
-    public $periodConsumedHours; // Sum of the hours worked on the worksites between the two dates
-    public $periodUnproductiveHours; // Sum of the unproductive hours on the worksites between the two dates
-    public $periodHours; // Sum of the estimated hours of the worksites between the two dates
-    // Potential
+
+    public $worksites = [];
+    public $globalUnproductiveHours = 0;
+    public $periodConsumedHours = 0;
+    public $periodUnproductiveHours = 0;
+    public $periodHours = 0;
     public string $averageHourlyRate = '99';
-    public $potentialHours; // Sum of the estimated hours of the worksites
-    public int $potentialCA; // Calculated potential revenue
-    // Consumed
-    public $totalConsumedHours; // Sum of the hours worked on the worksites
-    public $totalRevenue; // Sum of the estimated amount of the worksites
-    public $realHourlyRate; // Calculated real hourly rate
+    public $potentialHours = 0;
+    public int $potentialCA = 0;
+    public $totalConsumedHours = 0;
+    public $totalRevenue = 0;
+    public $realHourlyRate = 0;
+
     protected $listeners = ['updateHoursEstimation' => 'handleHoursEstimation', 'updateServiceAmount' => 'handleServiceAmount'];
-
-    /**
-     * Update the start date
-     * @param $value
-     * @version 1.0 [SPECMBA06]
-     */
-    public function updatedStart($value)
-    {
-        $this->startObject = new DateTime($value);
-        $this->resetData();
-        $this->statisticsService->initData($this->startObject, $this->endObject);
-        $this->dispatchData();
-    }
-
-    /**
-     * Update the end date
-     * @param $value
-     * @version 1.0 [SPECMBA06]
-     */
-    public function updatedEnd($value)
-    {
-        $this->endObject = new DateTime($value);
-        $this->resetData();
-        $this->statisticsService->initData($this->startObject, $this->endObject);
-        $this->dispatchData();
-    }
 
     public function mount(StatisticsService $statisticsService)
     {
         $this->statisticsService = $statisticsService;
-        $this->worksites = [];
-        $this->periodConsumedHours = 0;
-        $this->periodUnproductiveHours = 0;
-        $this->periodHours = 0;
-        $this->potentialHours = 0;
-        $this->totalConsumedHours = 0;
-        $this->totalRevenue = 0;
-        $this->realHourlyRate = 0;
-
-        // Créer un objet DateTime pour la date actuelle
-        $now = new DateTime();
-
-        // Obtenir la date du début de la semaine précédente
-        // $startOfLastWeek = clone $now;
-        // $startOfLastWeek->modify('last Sunday')->modify('-1 week'); // Début de la semaine précédente (dimanche précédent)
-        $startOfLastWeek = new DateTime('2024-10-01');
-        $this->startObject = $startOfLastWeek;
-
-        // Obtenir la date de la fin de la semaine précédente
-        // $endOfLastWeek = clone $startOfLastWeek;
-        // $endOfLastWeek->modify('next Saturday'); // Fin de la semaine précédente (samedi suivant)
-        $endOfLastWeek = new DateTime('2024-10-31');
-        $this->endObject = $endOfLastWeek;
-
-        $this->statisticsService->initData($startOfLastWeek, $endOfLastWeek);
-        $this->dispatchData();
+        $this->initializeDates();
+        $this->fetchAndDispatchStatistics();
     }
 
     public function hydrate()
     {
-        $this->resetData();
         $this->statisticsService = $this->getStatisticsService();
-        $this->statisticsService->initData($this->startObject, $this->endObject);
-        $this->dispatchData();
+        $this->fetchAndDispatchStatistics();
+    }
+
+    public function updatedStart($value)
+    {
+        $this->startObject = new DateTime($value);
+        $this->fetchAndDispatchStatistics();
+    }
+
+    public function updatedEnd($value)
+    {
+        $this->endObject = new DateTime($value);
+        $this->fetchAndDispatchStatistics();
     }
 
     public function handleHoursEstimation($data)
     {
-        try {
-            $worksiteID = intval($data['id']);
-            $newValue = floatval($data['newValue']);
-            $worksite = Chantier::find($worksiteID);
-            $worksite->update(['revised_hours' => $newValue]);
-            $worksite->refresh();
-            $this->hydrate();
-            $this->emit('hoursEstimationUpdated', 'Heures estimées mises à jour');
-        } catch (\Exception $e) {
-            $this->emit('error', 'Erreur lors de la mise à jour des heures estimées');
-        }
+        $this->updateWorksite($data, 'revised_hours', 'hoursEstimationUpdated', 'Erreur lors de la mise à jour des heures estimées');
     }
 
     public function handleServiceAmount($data)
     {
-        try {
-            $worksiteID = intval($data['id']);
-            $newValue = floatval($data['newValue']);
-            $worksite = Chantier::find($worksiteID);
-            $worksite->update(['serviceamount' => $newValue]);
-            $worksite->refresh();
-            $this->hydrate();
-            $this->emit('serviceAmountUpdated', 'Montant estimé mis à jour');
-        } catch (\Exception $e) {
-            $this->emit('error', 'Erreur lors de la mise à jour du montant estimé');
-        }
+        $this->updateWorksite($data, 'serviceamount', 'serviceAmountUpdated', 'Erreur lors de la mise à jour du montant estimé');
     }
 
-    /**
-     * Handling the statistics of the worksites between two dates
-     * @return array
-     * @version 1.0 [SPECMBA06]
-     */
-    public function handleGenerateStats()
-    {
-        $this->resetData();
-        $this->statisticsService = $this->getStatisticsService();
-        $this->statisticsService->initData($this->startObject, $this->endObject);
-        $this->dispatchData();
-    }
-
-    /**
-     * Edit the average hourly rate
-     * @return array
-     * @version 1.0 [SPECMBA06]
-     */
     public function handleAverageHourlyRate($data)
     {
-        $th = $data['averageTH'];
-        if ($th < 0) {
-            $th = 0;
-        }
-        $this->averageHourlyRate = $th;
+        $this->averageHourlyRate = max(0, floatval($data['averageTH']));
     }
 
     public function render()
@@ -164,7 +79,32 @@ class Stats extends Component
         return view('livewire.stats');
     }
 
-    private function resetData()
+    private function initializeDates()
+    {
+        $now = new DateTime();
+        $this->startObject = (clone $now)->modify('last Monday');
+        $this->endObject = (clone $this->startObject)->modify('+6 days');
+        $this->start = $this->startObject->format('Y-m-d');
+        $this->end = $this->endObject->format('Y-m-d');
+    }
+
+    private function fetchAndDispatchStatistics()
+    {
+        $this->resetStatistics();
+        $this->statisticsService->initData($this->startObject, $this->endObject);
+        $this->worksites = $this->statisticsService->getWorksites();
+        $this->globalUnproductiveHours = $this->statisticsService->calculAllUsersPeriodUnproductiveHours();
+        $this->periodConsumedHours = max(1, $this->statisticsService->calculPeriodProductiveHours());
+        $this->periodUnproductiveHours = $this->statisticsService->calculPeriodUnproductiveHours();
+        $this->potentialHours = $this->statisticsService->calculPotentialHours();
+        $this->totalConsumedHours = $this->statisticsService->calculTotalproductiveHours();
+        $this->totalRevenue = $this->statisticsService->calculTotalRevenue();
+        $this->realHourlyRate = $this->totalConsumedHours > 0 ? round($this->totalRevenue / $this->totalConsumedHours, 0) : 0;
+        $this->potentialCA = $this->potentialHours * intval($this->averageHourlyRate);
+        $this->periodHours = $this->periodConsumedHours + $this->globalUnproductiveHours;
+    }
+
+    private function resetStatistics()
     {
         $this->worksites = [];
         $this->globalUnproductiveHours = 0;
@@ -178,20 +118,18 @@ class Stats extends Component
         $this->periodHours = 0;
     }
 
-    private function dispatchData()
+    private function updateWorksite($data, $field, $successEvent, $errorMessage)
     {
-        $this->worksites = $this->statisticsService->getWorksites();
-        $this->globalUnproductiveHours = $this->statisticsService->calculAllUsersPeriodUnproductiveHours();
-        $this->periodConsumedHours = $this->statisticsService->calculPeriodProductiveHours();
-        $this->periodUnproductiveHours = $this->statisticsService->calculPeriodUnproductiveHours();
-        $this->potentialHours = $this->statisticsService->calculPotentialHours();
-        $this->totalConsumedHours = $this->statisticsService->calculTotalproductiveHours();
-        $this->totalRevenue = $this->statisticsService->calculTotalRevenue();
-        if ($this->totalConsumedHours > 0) {
-            $this->realHourlyRate =  round($this->totalRevenue / $this->totalConsumedHours, 0);
+        try {
+            $worksiteID = intval($data['id']);
+            $newValue = floatval($data['newValue']);
+            $worksite = Chantier::findOrFail($worksiteID);
+            $worksite->update([$field => $newValue]);
+            $this->fetchAndDispatchStatistics();
+            $this->emit($successEvent, ucfirst(str_replace('_', ' ', $field)) . ' mis à jour');
+        } catch (\Exception $e) {
+            $this->emit('error', $errorMessage);
         }
-        $this->potentialCA = $this->potentialHours * intval($this->averageHourlyRate);
-        $this->periodHours = $this->periodConsumedHours + $this->periodUnproductiveHours;
     }
 
     private function getStatisticsService()
