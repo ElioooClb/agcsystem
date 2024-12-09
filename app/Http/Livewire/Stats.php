@@ -44,7 +44,7 @@ class Stats extends Component
 
     protected $listeners = ['updateHoursEstimation' => 'handleHoursEstimation', 'updateServiceAmount' => 'handleServiceAmount', 'updateAvgHourlyRate' => 'handleAverageHourlyRate'];
 
-    public function mount(StatisticsService $statisticsService)
+    public function handleGenerateStats()
     {
         $this->statisticsService = $statisticsService;
         $this->initializeDates();

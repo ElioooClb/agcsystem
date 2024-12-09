@@ -200,7 +200,7 @@ class StatisticsService
      */
     private function mountProgressAndMoe(): void
     {
-        foreach ($this->worksites as $worksite) {
+        foreach($this->worksites as $worksite) {
             $progress = 0;
             $consumedhours = $worksite->periodProductiveHours;
             if ($worksite->revised_hours && $worksite->revised_hours > 0) {
