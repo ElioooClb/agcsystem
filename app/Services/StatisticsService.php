@@ -200,20 +200,13 @@ class StatisticsService
      */
     private function mountProgressAndMoe(): void
     {
-        foreach ($this->worksites as $worksite) {
+        foreach($this->worksites as $worksite) {
             $progress = 0;
-            $consumedHours = 0;
-            foreach ($worksite->times as $time) {
-                if ($time->state == null && $time->oncall_duty == null) {
-                    $consumedHours += $time->hours_day + $time->hours_night + $time->hours_travel;
-                    if ($worksite->revised_hours && $worksite->revised_hours > 0) {
-                        $progress = round(($consumedHours / $worksite->revised_hours), 2);
-                    }
-                    // $progress = ($consumedHours / $worksite->hours);
-                }
+            $consumedhours = $worksite->periodProductiveHours;
+            if ($worksite->revised_hours && $worksite->revised_hours > 0) {
+                $progress = round(($consumedhours / $worksite->revised_hours), 2);
             }
             $worksite->progress = $progress;
-            // FIXME: vérifier si il faut additionner le prix matériel
             $worksite->moe = $progress * $worksite->serviceamount;
         }
     }
