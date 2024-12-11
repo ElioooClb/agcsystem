@@ -12,9 +12,11 @@
                     <div
                         class="inline-block w-full max-w-lg p-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
                         <!-- Titre -->
-                        <div class="flex">
+                        <div class="flex flex-col mb-3">
                             <span class="absolute top-0 right-0 p-4 cursor-pointer close" id="closeModal">&times;</span>
                             <h2 class="m-4 text-3xl font-bold text-center b-6" id="title"></h2>
+                            <p class="block my-auto font-bold text-gray-700 border shadow border-dark" id="idAff">
+                            </p>
                         </div>
                         <form method="post" action="{{ route('time.store') }}" enctype="multipart/form-data"
                             id="timeForm" class="w-full">
@@ -41,7 +43,7 @@
                             <section id='hoursSelectSection' class="flex flex-col mb-6">
                                 <label for="hoursSelect" class="block mb-3 font-bold text-gray-700">Choisissez une
                                     option :</label>
-                                <select id="hoursSelect" name="hours"
+                                <select id="hoursSelect" name="type"
                                     class="w-full px-4 py-2 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray">
                                     <option value='0'>Heure non productive</option>
                                     <option value='1'>Astreinte</option>
@@ -91,16 +93,15 @@
                             <input id="worksiteId" type="hidden" name="worksiteId" value="">
 
                             <!-- Boutons -->
-                            <div class="flex items-center justify-between">
-                                <p class="block my-auto font-bold text-gray-700" id="idAff"></p>
-                                <div class="flex flex-col gap-2">
-                                    <button type="submit" id="validate"
-                                        class="w-auto p-1 font-bold text-center text-white bg-blue-500 rounded hover:bg-blue-700">
-                                        Valider
-                                    </button>
+                            <div class="flex items-center justify-center mb-3">
+                                <div class="flex flex-row gap-2">
                                     <button type="button" id="delete"
-                                        class="w-auto p-1 font-bold text-center text-white bg-red-500 rounded hover:bg-red-700">
+                                        class="w-auto px-4 py-2 font-bold text-center text-white bg-red-500 rounded hover:bg-red-700">
                                         Supprimer
+                                    </button>
+                                    <button type="submit" id="validate"
+                                        class="w-auto px-4 py-2 font-bold text-center text-white bg-blue-500 rounded hover:bg-blue-700">
+                                        Valider
                                     </button>
                                 </div>
                             </div>
@@ -132,8 +133,8 @@
                         const hasUserEnteredHour = Boolean(timeForEvent);
 
                         // Ajout de la classe si nécessaire
-                        const classNames = hasUserEnteredHour ? ['idChantierEvent' + idChantier] : [
-                            'idChantierEvent' + idChantier, 'bg-gray-500'
+                        const classNames = hasUserEnteredHour ? ['idChantierEvent' + idChantier, 'text-center'] : [
+                            'idChantierEvent' + idChantier, 'bg-gray-500', 'text-center'
                         ];
 
                         return {
@@ -144,6 +145,7 @@
                             hours_travel: hasUserEnteredHour ? timeForEvent.hours_travel : 0,
                             isWorksiteEvent: true,
                             originalTitle: event.title,
+                            editable: true,
                         };
                     });
                 })).then(eventsData => {
@@ -183,7 +185,8 @@
                         const cellDate = arg.date;
                         const times = @json($times);
 
-                        const createHoursInfo = (timeForCellDate, title, backgroundColor, editable = false) => {
+                        const createHoursInfo = (timeForCellDate, title, backgroundColor, type,
+                            editable = false) => {
                             if (timeForCellDate) {
                                 const existingEvent = calendar.getEvents().find(event =>
                                     event.start.toDateString() === cellDate
@@ -198,84 +201,66 @@
                                         textColor: '#FFF',
                                         editable: editable,
                                         isWorksiteEvent: false,
-                                        classNames: ['ps-3'],
+                                        classNames: ['text-center'],
                                         originalTitle: title,
+                                        hours: convertToTimeFormat(timeForCellDate
+                                            .hours_day),
+                                        type: type,
+                                        timeID: timeForCellDate.id,
                                     };
                                     calendar.addEvent(event);
                                 }
                             }
                         }
 
-                        const timeForCellDate = times.find(time => new Date(time.date)
-                            .toDateString() === cellDate.toDateString() && time.user_id ===
-                            userId && time.chantier_id === null && !time.state && !time
-                            .oncall_duty && !time.on_business_trip);
-
-                        if (timeForCellDate) {
-                            console.log(timeForCellDate);
-                            createHoursInfo(timeForCellDate, convertToTimeFormat(timeForCellDate
-                                .hours_day) + ' heures', '#FF99FF');
-                        }
-
-
-                        // Find the total productive and non-productive hours for the current date
-                        const stateTimeForCellDate = times.find(time => new Date(time.date)
-                            .toDateString() === cellDate.toDateString() && time.user_id ===
-                            userId && time.chantier_id === null && time.state && !time
-                            .on_business_trip);
-
-                        // Create a separate hour info element for the non-productive hours
-                        switch (stateTimeForCellDate?.state) {
-                            case 1:
-                                createHoursInfo(stateTimeForCellDate, 'Congé Payé', '#22C55E');
-                                break;
-                            case 2:
-                                createHoursInfo(stateTimeForCellDate, 'Récup.', '#EAB308');
-                                break;
-                            case 3:
-                                createHoursInfo(stateTimeForCellDate, 'Arrêt', '#3B82F6');
-                                break;
-                            case 4:
-                                createHoursInfo(stateTimeForCellDate, 'Absence', '#A855F7');
-                                break;
-                            case 5:
-                                createHoursInfo(stateTimeForCellDate, 'Férié', '#a0aec0');
-                                break;
-                        }
-
-                        // Create a separate hour info element for the oncall duty hours
-                        const oncallDutyTimeForCellDate = times.find(time => new Date(time.date)
-                            .toDateString() === cellDate.toDateString() && time.user_id ===
-                            userId && time.chantier_id === null && time.oncall_duty && !time
-                            .on_business_trip);
-                        if (oncallDutyTimeForCellDate) {
-                            // Check if an oncall duty event already exists
-                            const existingOncallDutyEvent = calendar.getEvents().find(event =>
-                                event.start.toDateString() === cellDate.toDateString() &&
-                                event.title === 'Astreinte');
-                            // If an oncall duty event does not exist, create a new one
-                            if (!existingOncallDutyEvent) {
-                                createHoursInfo(oncallDutyTimeForCellDate, 'Astreinte',
-                                    '#ed8936', true);
-                            }
-                        }
-
-                        // Create a separate hour info element for the business trip hours
-                        const onBusinessTripTimeForCellDate = times.find(time => new Date(time
-                                .date).toDateString() === cellDate.toDateString() && time
-                            .user_id === userId && time.chantier_id === null && !time
-                            .oncall_duty && time.on_business_trip);
-                        if (onBusinessTripTimeForCellDate) {
-                            // Check if an oncall duty event already exists
-                            const existingOnBusinessTripEvent = calendar.getEvents().find(
-                                event =>
-                                event.start.toDateString() === cellDate.toDateString() &&
-                                event.title === 'Grand Trajet');
-                            // If an oncall duty event does not exist, create a new one
-                            if (!existingOnBusinessTripEvent) {
-                                createHoursInfo(onBusinessTripTimeForCellDate, 'Grand Trajet',
-                                    '#46755b');
-                            }
+                        if (times) {
+                            times.forEach(time => {
+                                if (time.user_id === userId && time.date === cellDate
+                                    .toISOString().split('T')[0] &&
+                                    time.chantier_id === null) {
+                                    if (time.oncall_duty) {
+                                        createHoursInfo(time, 'Astreinte', '#ed8936', 1,
+                                            true);
+                                    } else if (time.on_business_trip) {
+                                        createHoursInfo(time, 'Grand Trajet', '#46755b',
+                                            2,
+                                            true);
+                                    } else if (time.unbillable) {
+                                        createHoursInfo(time, convertToTimeFormat(time
+                                                .hours_day) +
+                                            ' Intervention non facturée', '#9c23a1',
+                                            3,
+                                            true);
+                                    } else if (time.state) {
+                                        switch (time.state) {
+                                            case 1:
+                                                createHoursInfo(time, 'Congé Payé',
+                                                    '#22C55E', 10);
+                                                break;
+                                            case 2:
+                                                createHoursInfo(time, 'Récup.',
+                                                    '#EAB308', 10);
+                                                break;
+                                            case 3:
+                                                createHoursInfo(time, 'Arrêt',
+                                                    '#3B82F6', 10);
+                                                break;
+                                            case 4:
+                                                createHoursInfo(time, 'Absence',
+                                                    '#A855F7', 10);
+                                                break;
+                                            case 5:
+                                                createHoursInfo(time, 'Férié',
+                                                    '#a0aec0', 10);
+                                                break;
+                                        }
+                                    } else {
+                                        createHoursInfo(time, convertToTimeFormat(time
+                                                .hours_day) + ' heures',
+                                            '#FF99FF', 0, true);
+                                    }
+                                }
+                            });
                         }
 
                         // Calculate the total productive and non-productive hours for the current date
@@ -367,16 +352,24 @@
                                 }
                             });
                         } else if (info.event.backgroundColor === '#FF99FF') {
+                            // Hors productions
+                            console.log(info.event.extendedProps);
                             handleModal(info, info.event.start.toISOString().split('T')[0],
                                 times);
-                        } else if (info.event.backgroundColor ===
-                            '#ed8936') {
+                        } else if (info.event.backgroundColor === '#ed8936') {
+                            // On Call Duty
                             handleModal(info, info.event.start.toISOString().split('T')[0],
                                 times, true);
                         } else if (info.event.backgroundColor === '#46755b') {
+                            // Business Trip
                             handleModal(info, info.event.start.toISOString().split('T')[0],
                                 times, false, true);
+                        } else if (info.event.backgroundColor === '#9c23a1') {
+                            // Unbillable
+                            handleModal(info, info.event.start.toISOString().split('T')[0],
+                                times);
                         } else {
+                            // Others
                             info.jsEvent.preventDefault();
                         }
                     },
@@ -419,16 +412,14 @@
             const deleteButton = document.querySelector("#delete");
             const selectEl = document.querySelector('#hoursSelect');
             const hoursEl = document.querySelector('#dHours');
+            const form = document.querySelector('#timeForm');
 
             selectEl.addEventListener('change', function() {
                 const selectedValue = selectEl.value;
-                console.log(selectedValue);
                 const numericValue = parseInt(selectedValue, 10);
                 switch (numericValue) {
                     case 1:
-                        console.log('Astreinte');
                         hoursEl.value = '07:00';
-                        console.log(hoursEl.value);
                         hoursEl.readOnly = true;
                         hoursEl.classList.add('bg-gray-300');
                         break;
@@ -460,9 +451,10 @@
                             const userId = document.querySelector("#userId").value;
                             const dateInput = document.querySelector("#date");
                             const selectedDate = new Date(dateInput.value);
-                            const isOncallDutyEvent = document.querySelector("#odHours").checked;
-                            const onBusinessTrip = document.querySelector('#obtHours').checked;
                             const worksiteId = document.querySelector("#worksiteId").value;
+                            const selectedValue = selectEl.value;
+                            const isOncallDutyEvent = selectedValue === '1';
+                            const onBusinessTrip = selectedValue === '2';
 
                             if (isOncallDutyEvent || onBusinessTrip) {
                                 // Create an array to store all promises
@@ -532,10 +524,22 @@
                         }
                     });
             });
+
+            form.addEventListener('submit', (event) => {
+                // Prevent the form from submitting
+                event.preventDefault();
+
+                // Get the selected value
+                selectEl.disabled = false;
+
+                // Submit the form
+                form.submit();
+            });
+
         });
 
         /**
-         * Function to show the modal
+         * Function to show the modal for worksite events
          * @param modalInfo
          * @param titleText
          * @param dateValue
@@ -587,65 +591,55 @@
          */
         function handleModal(info, dateStr, times, isOncallDutyEvent = false, onBusinessTrip = false) {
             var modalInfo = document.getElementById('actionsModal');
-            showModal(modalInfo, "Déclaration d'heures hors production affectée", dateStr);
-
+            // Update the modal title & subtitle
             document.querySelector('label[for="dHours"]').textContent = 'Heures :';
+            // const subtitle = document.querySelector('#idAff');
 
+            // Hide the delete button by default unless an event exist
             const deleteButton = document.querySelector('#delete');
-            deleteButton.classList.add('hidden');
+            info.event ? deleteButton.classList.remove('hidden') : deleteButton.classList.add('hidden');
 
-            const dHours = document.querySelector('#dHours');
+            // select options value
+            const selectEl = document.querySelector('#hoursSelect');
+            selectEl.classList.remove('hidden');
+            info.event ? selectEl.value = info.event.extendedProps?.type : selectEl.value = '0';
+            info.event ? selectEl.disabled = true : selectEl.disabled = false;
+            info.event ? selectEl.classList.add('bg-gray-300') : selectEl.classList.remove('bg-gray-300');
+
+            // Hide the productive hours div by default
             const prodHoursDiv = document.querySelector('#prodHoursDiv');
             prodHoursDiv.classList.add('hidden');
-            dHours.value = '00:00';
-            dHours.readOnly = false;
 
-            const selectEl = document.querySelector('#hoursSelectSection');
-            selectEl.classList.remove('hidden');
+            // Show the event hours
+            const dHours = document.querySelector('#dHours');
+            info.event ? dHours.value = info.event.extendedProps?.hours : dHours.value = '00:00';
+            
+            if (info.event && info.event.extendedProps?.type && info.event.extendedProps?.type !== 3) { // If type equal 0 it will not trigger this condition
+                console.log('readonly');
+                dHours.readOnly = true;
+                dHours.classList.add('bg-gray-300');
+            }else{
+                dHours.readOnly = false;
+                dHours.classList.remove('bg-gray-300');
+            }
 
-            const noteDiv = document.querySelector('#noteDiv');
-            noteDiv.classList.remove('hidden');
-            const note = document.querySelector('#note');
-            note.value = '';
-
-            // Add the image next to the label of the input 'note'
+            // Add Tippy tooltip to the info image | Add the image next to the label of the input 'note'
             const infoImage = document.querySelector('#infoImage');
-
-            // Add Tippy tooltip to the info image
             tippy(infoImage, {
                 content: "Utiliser cette boite pour signaler une note de frais, des vêtements de travail, etc...",
             });
 
-            times.forEach(time => {
-                // Check if the time is non-productive before displaying it
-                const eventDate = info.event ? info.event.start.toISOString().split('T')[0] : dateStr;
-                if (eventDate === time.date && time.chantier_id === null) {
-                    if (isOncallDutyEvent && time.oncall_duty) {
-                        // If the event is an oncall duty event, set the checkbox and input to their default values
-                        oncallDutyHours.checked = true;
-                        dHours.value = '07:00';
-                        dHours.readOnly = true;
-                        deleteButton.classList.remove('hidden'); // Show the delete button for oncall duty hours
-                    } else if (onBusinessTrip && time.on_business_trip) {
-                        onBusinessTripCheckbox.checked = true;
-                        deleteButton.classList.remove('hidden');
-                    } else if (!isOncallDutyEvent && !time.oncall_duty && !time
-                        .state) { // Check if the time has a state
-                        dHours.value = convertToTimeFormat(time.hours_day);
-                        dHours.readOnly = false;
-                        deleteButton.classList.remove('hidden');
-                    }
-                    note.value = time.note;
-                }
-            });
+            // Show the note section
+            const noteDiv = document.querySelector('#noteDiv');
+            noteDiv.classList.remove('hidden');
 
-            // Vérifiez si des heures d'astreinte ont été enregistrées pour le jour sélectionné
-            const oncallDutyTimeForDate = times.find(time => new Date(time.date).toDateString() === dateStr && time
-                .user_id === userId && time.oncall_duty);
-            // Si des heures d'astreinte ont été enregistrées, cachez le bouton de suppression
-            if (oncallDutyTimeForDate) {
-                deleteButton.classList.add('hidden');
-            }
+            // Populate the note section with the note of the event
+            const note = document.querySelector('#note');
+            const time = times.find(time => time.id === info.event?.extendedProps?.timeID);
+            note.value = time?.note ? time.note : '';
+
+            // Show the modal
+            showModal(modalInfo, "Déclaration d'heures hors production affectée", dateStr);
         }
 
         async function findChantierByIdLocal(idChantier) {
@@ -675,11 +669,6 @@
             const day = date.getDay();
             const diff = date.getDate() - day + (day == 0 ? -6 : 1);
             return new Date(date.setDate(diff));
-        }
-
-        function showDeleteButton() {
-            const deleteButton = document.querySelector('#delete');
-            deleteButton.classList.remove('hidden');
         }
     </script>
     @vite('resources/js/heures/scheduleModalHandler.js')

@@ -30,31 +30,26 @@ class TimeController extends Controller
         $userId = $request->input('userId');
         $worksiteId = $request->input('worksiteId');
         $note = $request->input('note');
-        $type = $request->input('hours');
+        $type = $request->input('type');
+        // dd($type);
         switch ($type) {
             case '1': // Astreinte
-                // Logique pour astreinte
                 Log::info('Option sélectionnée : Astreinte');
-                $today = Carbon::today();  // Obtenir la date du jour actuel
-                $startOfWeek = $today->startOfWeek();  // Récupère le lundi de la semaine en cours
-                $endOfWeek = $today->endOfWeek();  // Récupère le dimanche de la semaine en cours
-                
-                // Afficher les jours de la semaine
+                $currentDate = Carbon::parse($date);
+                $startOfWeek = $currentDate->copy()->startOfWeek(Carbon::MONDAY);  // Récupère le lundi de la semaine en cours
+
                 $weekDays = [];
                 for ($i = 0; $i < 7; $i++) {
-                    $weekDays[] = $startOfWeek->addDays(1)->toDateString();  // Ajouter chaque jour de la semaine
+                    $weekDays[] = $startOfWeek->copy()->addDays($i)->toDateString();
                 }
-                
-                // Log des jours de la semaine
-                Log::info('Jours de la semaine : ', $weekDays);
-                // Exemple : Utilisation des jours pour créer des événements
+
                 foreach ($weekDays as $day) {
                     // Logique pour créer des événements pour chaque jour de la semaine
                     $entry = Time::where('date', $day)->where('user_id', $userId)->first();
                     if ($entry) {
                         // Mettre à jour l'événement
                         $entry->update([
-                            'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
+                            'hours_day' => 7.00,
                             'oncall_duty' => 1,
                             'note' => $note,
                         ]);
@@ -64,6 +59,7 @@ class TimeController extends Controller
                         $time->user_id = $userId;
                         $time->date = $day;
                         $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                        $time->hours_night = 0.00;
                         $time->oncall_duty = 1;
                         $time->note = $note;
                         $time->save();
@@ -72,17 +68,13 @@ class TimeController extends Controller
                 break;
 
             case '2': // Grand trajet
-                // Logique pour grand trajet
-                Log::info('Option sélectionnée : Grand trajet');
                 $entry = Time::where('date', $date)
                     ->where('user_id', $userId)
                     ->where('on_business_trip', 1)
                     ->first();
                 if ($entry) {
                     $entry->update([
-                        'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
-                        'hours_night' => (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60,
-                        'hours_travel' => (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60,
+                        'hours_day' => 0.00,
                         'on_business_trip' => 1,
                         'note' => $note,
                     ]);
@@ -92,6 +84,7 @@ class TimeController extends Controller
                     $time->user_id = $userId;
                     $time->date = $date;
                     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                    $time->hours_night = 0.00;
                     $time->on_business_trip = 1;
                     $time->note = $note;
                     $time->save();
@@ -99,8 +92,6 @@ class TimeController extends Controller
                 break;
 
             case '3': // Intervention non facturée
-                // Logique pour intervention non facturée
-                Log::info('Option sélectionnée : Intervention non facturée');
                 $entry = Time::where('date', $date)
                     ->where('user_id', $userId)
                     ->where('unbillable', 1)
@@ -119,15 +110,14 @@ class TimeController extends Controller
                     $time->user_id = $userId;
                     $time->date = $date;
                     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                    $time->hours_night = 0.00;
                     $time->unbillable = 1;
                     $time->note = $note;
                     $time->save();
                 }
                 break;
 
-            default:
-                // Si aucune option ou 0 (aucune sélection)
-                Log::info('Aucune option sélectionnée');
+            default: // Heure hors production
                 $entry = Time::where('date', $date)
                     ->where('user_id', $userId)
                     ->where('chantier_id', $worksiteId)
@@ -153,49 +143,6 @@ class TimeController extends Controller
                 }
                 break;
         }
-        // // Check if a Time entry already exists for the given date, user, worksite and oncall duty status
-        // if (Time::where('date', $date)
-        //     ->where('user_id', $userId)
-        //     ->where('chantier_id', $worksiteId)
-        //     ->whereNull('state')
-        //     ->where('oncall_duty', $isOncallDuty)
-        //     ->where('unbillable', $isBillable)
-        //     ->exists()
-        // ) {
-        //     // If an entry exists, retrieve it
-        //     $time = Time::where('date', $date)
-        //         ->where('user_id', $userId)
-        //         ->where('chantier_id', $worksiteId)
-        //         ->whereNull('state')
-        //         ->where('oncall_duty', $isOncallDuty)
-        //         ->first();
-
-        //     // Update the hours and note of the entry
-        //     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
-        //     $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
-        //     $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
-        //     $time->unbillable = $isBillable;
-        //     $time->note = $note;
-
-        //     // Save the updated entry
-        //     $time->save();
-        // } else if ($dayHours != "00:00" || $nightHours != "00:00") {
-        //     // If no entry exists and the day or night hours are not zero, create a new entry
-        //     $time = new Time;
-        //     $time->date = $date;
-        //     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
-        //     $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
-        //     $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
-        //     $time->chantier_id = $worksiteId;
-        //     $time->user_id = $userId;
-        //     $time->note = $note;
-        //     $time->oncall_duty = $isOncallDuty;
-        //     $time->unbillable = $isBillable;
-
-        //     // Save the new entry
-        //     $time->save();
-        // }
-
         // // Redirect to the 'time.shows' route with a success message
         return redirect()->route('time.shows', $userId)->withStatus('Le chantier a bien été créé !');
     }
