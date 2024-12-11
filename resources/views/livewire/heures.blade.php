@@ -48,7 +48,7 @@
                                     <option value='0'>Heure non productive</option>
                                     <option value='1'>Astreinte</option>
                                     <option value='2'>Grand trajet</option>
-                                    @if ($user->fonction == 'Président')
+                                    @if ($user->fonction == 'Bureau étude' || $user->fonction == 'Président')
                                         <option value='3'>Intervention non facturée</option>
                                     @endif
                                 </select>
