@@ -132,14 +132,6 @@ class Calendar extends Component
         ];
     }
 
-    private function calculateConsummedHours(Chantier $worksite): int
-    {
-        $id = $worksite->id;
-        $allTimes = Time::where('chantier_id', $id)->get();
-        $times = $allTimes->sum('hours_day') + $allTimes->sum('hours_night') + $allTimes->sum('hours_travel');
-        return $times;
-    }
-
     public function render()
     {
         $this->events = json_encode(Event::with(['user', 'chantier'])->get());

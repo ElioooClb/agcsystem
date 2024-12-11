@@ -112,6 +112,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/supprimer-heure-astreinte/{userId}/{date}', [TimeController::class, 'deleteOncallDutyTime']);
     Route::post('/ajouter-heure-business-trip', [TimeController::class, 'addBusinessTripTime']);
     Route::delete('/supprimer-heure-business-trip/{userId}/{date}', [TimeController::class, 'deleteBusinessTripTime']);
+    Route::post('/ajouter-heure-non-facturee', [TimeController::class, 'addUnbilledInterventionTime']);
+    Route::delete('/supprimer-heure-non-facturee/{date}', [TimeController::class, 'deleteUnbilledInterventionTime']);
 
     Route::get('/parametres/emails', [EmailTemplateController::class, 'emailSettings'])->name('email-settings');
     Route::put('/parametres/emails', [EmailTemplateController::class, 'update'])->name('email-settings.update');

@@ -18,6 +18,7 @@ class Time extends Model
         'hours_night',
         'user_id',
         'chantier_id',
+        'note',
     ];
 
     // DEBUT [SPECGT20] - Ajout d'attributs compilés
