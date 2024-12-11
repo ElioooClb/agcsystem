@@ -47,13 +47,15 @@ class Heures extends Component
 
     public function render()
     {
+        $user = auth()->user();
         return view('livewire.heures', [
             'chantiers' => json_encode($this->chantiers),
             'chantierIds' => json_encode($this->chantierIds),
             'times' => json_encode($this->times),
             'events' => json_encode($this->events),
             'productiveHours' => $this->productiveHours,
-            'nonProductiveHours' => $this->nonProductiveHours
+            'nonProductiveHours' => $this->nonProductiveHours,
+            'user' => $user
         ]);
     }
 }

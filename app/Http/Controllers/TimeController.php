@@ -6,6 +6,9 @@ use App\Models\Time;
 use App\Models\User;
 use App\Services\CalculOnHoursService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class TimeController extends Controller
 {
@@ -27,55 +30,183 @@ class TimeController extends Controller
         $userId = $request->input('userId');
         $worksiteId = $request->input('worksiteId');
         $note = $request->input('note');
-        $isOncallDuty = $request->input('odHours') ? true : false; // Determine if the hours are oncall duty hours
+        $type = $request->input('hours');
+        switch ($type) {
+            case '1': // Astreinte
+                // Logique pour astreinte
+                Log::info('Option sélectionnée : Astreinte');
+                $today = Carbon::today();  // Obtenir la date du jour actuel
+                $startOfWeek = $today->startOfWeek();  // Récupère le lundi de la semaine en cours
+                $endOfWeek = $today->endOfWeek();  // Récupère le dimanche de la semaine en cours
+                
+                // Afficher les jours de la semaine
+                $weekDays = [];
+                for ($i = 0; $i < 7; $i++) {
+                    $weekDays[] = $startOfWeek->addDays(1)->toDateString();  // Ajouter chaque jour de la semaine
+                }
+                
+                // Log des jours de la semaine
+                Log::info('Jours de la semaine : ', $weekDays);
+                // Exemple : Utilisation des jours pour créer des événements
+                foreach ($weekDays as $day) {
+                    // Logique pour créer des événements pour chaque jour de la semaine
+                    $entry = Time::where('date', $day)->where('user_id', $userId)->first();
+                    if ($entry) {
+                        // Mettre à jour l'événement
+                        $entry->update([
+                            'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
+                            'oncall_duty' => 1,
+                            'note' => $note,
+                        ]);
+                    } else {
+                        // Créer un nouvel événement
+                        $time = new Time;
+                        $time->user_id = $userId;
+                        $time->date = $day;
+                        $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                        $time->oncall_duty = 1;
+                        $time->note = $note;
+                        $time->save();
+                    }
+                }
+                break;
 
-        // Check if a Time entry already exists for the given date, user, worksite and oncall duty status
-        if (Time::where('date', $date)
-            ->where('user_id', $userId)
-            ->where('chantier_id', $worksiteId)
-            ->whereNull('state')
-            ->where('oncall_duty', $isOncallDuty)
-            ->exists()
-        ) {
-            // If an entry exists, retrieve it
-            $time = Time::where('date', $date)
-                ->where('user_id', $userId)
-                ->where('chantier_id', $worksiteId)
-                ->whereNull('state')
-                ->where('oncall_duty', $isOncallDuty)
-                ->first();
+            case '2': // Grand trajet
+                // Logique pour grand trajet
+                Log::info('Option sélectionnée : Grand trajet');
+                $entry = Time::where('date', $date)
+                    ->where('user_id', $userId)
+                    ->where('on_business_trip', 1)
+                    ->first();
+                if ($entry) {
+                    $entry->update([
+                        'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
+                        'hours_night' => (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60,
+                        'hours_travel' => (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60,
+                        'on_business_trip' => 1,
+                        'note' => $note,
+                    ]);
+                    return redirect()->route('time.shows', $userId)->withStatus('Le grand tajet a bien été mise à jour !');
+                } else {
+                    $time = new Time;
+                    $time->user_id = $userId;
+                    $time->date = $date;
+                    $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                    $time->on_business_trip = 1;
+                    $time->note = $note;
+                    $time->save();
+                }
+                break;
 
-            // Update the hours and note of the entry
-            $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
-            $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
-            $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
-            $time->note = $note;
+            case '3': // Intervention non facturée
+                // Logique pour intervention non facturée
+                Log::info('Option sélectionnée : Intervention non facturée');
+                $entry = Time::where('date', $date)
+                    ->where('user_id', $userId)
+                    ->where('unbillable', 1)
+                    ->first();
+                if ($entry) {
+                    $entry->update([
+                        'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
+                        'hours_night' => (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60,
+                        'hours_travel' => (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60,
+                        'unbillable' => 1,
+                        'note' => $note,
+                    ]);
+                    return redirect()->route('time.shows', $userId)->withStatus('L\'heure non facturée a bien été mise à jour !');
+                } else {
+                    $time = new Time;
+                    $time->user_id = $userId;
+                    $time->date = $date;
+                    $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                    $time->unbillable = 1;
+                    $time->note = $note;
+                    $time->save();
+                }
+                break;
 
-            // Save the updated entry
-            $time->save();
-        } else if ($dayHours != "00:00" || $nightHours != "00:00") {
-            // If no entry exists and the day or night hours are not zero, create a new entry
-            $time = new Time;
-            $time->date = $date;
-            $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
-            $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
-            $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
-            $time->chantier_id = $worksiteId;
-            $time->user_id = $userId;
-            $time->note = $note;
-            $time->oncall_duty = $isOncallDuty;
-
-            // Save the new entry
-            $time->save();
+            default:
+                // Si aucune option ou 0 (aucune sélection)
+                Log::info('Aucune option sélectionnée');
+                $entry = Time::where('date', $date)
+                    ->where('user_id', $userId)
+                    ->where('chantier_id', $worksiteId)
+                    ->whereNull('state')
+                    ->where('oncall_duty', 0)
+                    ->where('unbillable', 0)
+                    ->first();
+                if ($entry) {
+                    $entry->update([
+                        'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
+                        'note' => $note,
+                    ]);
+                    return redirect()->route('time.shows', $userId)->withStatus('L\'heure hors production a bien été mise à jour !');
+                } else {
+                    $time = new Time;
+                    $time->user_id = $userId;
+                    $time->date = $date;
+                    $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                    $time->hours_night = 0.00;
+                    $time->chantier_id = $worksiteId;
+                    $time->note = $note;
+                    $time->save();
+                }
+                break;
         }
+        // // Check if a Time entry already exists for the given date, user, worksite and oncall duty status
+        // if (Time::where('date', $date)
+        //     ->where('user_id', $userId)
+        //     ->where('chantier_id', $worksiteId)
+        //     ->whereNull('state')
+        //     ->where('oncall_duty', $isOncallDuty)
+        //     ->where('unbillable', $isBillable)
+        //     ->exists()
+        // ) {
+        //     // If an entry exists, retrieve it
+        //     $time = Time::where('date', $date)
+        //         ->where('user_id', $userId)
+        //         ->where('chantier_id', $worksiteId)
+        //         ->whereNull('state')
+        //         ->where('oncall_duty', $isOncallDuty)
+        //         ->first();
 
-        // Redirect to the 'time.shows' route with a success message
+        //     // Update the hours and note of the entry
+        //     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+        //     $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
+        //     $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
+        //     $time->unbillable = $isBillable;
+        //     $time->note = $note;
+
+        //     // Save the updated entry
+        //     $time->save();
+        // } else if ($dayHours != "00:00" || $nightHours != "00:00") {
+        //     // If no entry exists and the day or night hours are not zero, create a new entry
+        //     $time = new Time;
+        //     $time->date = $date;
+        //     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+        //     $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
+        //     $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
+        //     $time->chantier_id = $worksiteId;
+        //     $time->user_id = $userId;
+        //     $time->note = $note;
+        //     $time->oncall_duty = $isOncallDuty;
+        //     $time->unbillable = $isBillable;
+
+        //     // Save the new entry
+        //     $time->save();
+        // }
+
+        // // Redirect to the 'time.shows' route with a success message
         return redirect()->route('time.shows', $userId)->withStatus('Le chantier a bien été créé !');
     }
-    // Fin [SPECGT28], [SPECGT24], [SPECGT25] - Modification des noms des inputs + renommage dans la suite du code + ajout heures trajet + ajout heures astreinte
 
-    // Début [SPECGT28] - Modification de la méthode showHeure pour afficher les totaux d'heures par jour
-    // Voir le planning d'un utilsateur pour mettre à jour ses heures avec ces chantiers
+    /**
+     * Affiche le planning d'un utilisateur pour mettre à jour ses heures avec ses chantiers
+     * [SPECGT28] - Modification de la méthode showHeure pour afficher les totaux d'heures par jour
+     * @param User $user
+     * @return \Illuminate\Contracts\View\View
+     * @throws \Exception
+     */
     public function showHeure(User $user)
     {
         $user = User::find($user->id);
@@ -109,7 +240,6 @@ class TimeController extends Controller
             'nonProductiveHours' => $nonProductiveHours
         ]);
     }
-    // Fin [SPECGT28] - Modification de la méthode showHeure pour afficher les totaux d'heures par jour
 
     // Voir le planning d'un utilsateur pour mettre à jour ses heures avec ces chantiers
     public function tekosTimeAll()
@@ -159,7 +289,15 @@ class TimeController extends Controller
         }
     }
 
-    // Début [SPECGT28] - Modification de la méthode deleteTimeChantier et deleteTime
+    /**
+     * Delete the time of a user for a specific date and chantier
+     * [SPECGT28] - Modification de la méthode deleteTimeChantier et deleteTime
+     * @param number $userId
+     * @param date $date
+     * @param number $chantierId
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function deleteTimeChantier($userId, $date, $chantierId)
     {
         if (Time::where('date', $date)
@@ -183,6 +321,14 @@ class TimeController extends Controller
         return response()->json(['error' => 'Time not found'], 404);
     }
 
+    /**
+     * Delete the time of a user for a specific date
+     * [SPECGT28] - Modification de la méthode deleteTimeChantier et deleteTime
+     * @param number $userId
+     * @param date $date
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function deleteTime($userId, $date)
     {
         if (Time::where('date', $date)
@@ -209,9 +355,15 @@ class TimeController extends Controller
         // If the time does not exist, return an error message
         return response()->json(['error' => 'Time not found'], 404);
     }
-    // Fin [SPECGT28] - Modification de la méthode deleteTimeChantier et deleteTime
 
-    // Début [SPECGT25] - Méthode de suppression des heures d'astreinte
+    /**
+     * Delete the time of a user for a specific date
+     * [SPECGT25] - Méthode de suppression des heures d'astreinte
+     * @param number $userId
+     * @param date $date
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
     public function deleteOncallDutyTime($userId, $date)
     {
         if (Time::where('date', $date)
@@ -236,8 +388,6 @@ class TimeController extends Controller
         // If the time does not exist, return an error message
         return response()->json(['error' => 'Time not found'], 404);
     }
-
-    // Fin [SPECGT25] - Méthode de suppression des heures d'astreinte
 
     public function findTime($timeId)
     {
@@ -291,33 +441,33 @@ class TimeController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function addBusinessTripTime(Request $request) 
+    public function addBusinessTripTime(Request $request)
     {
-         // Retrieve the input values from the request
-         $date = $request->input('date');
-         $userId = $request->input('userId');
- 
-         // Check if an oncall duty Time entry already exists for the given date and user
-         if (Time::where('date', $date)
-             ->where('user_id', $userId)
-             ->where('on_business_trip', 1)
-             ->exists()
-         ) {
-             // If an entry exists, return a response indicating that an oncall duty entry already exists for this day
-             return response()->json(['success' => false, 'message' => 'Une entrée de grand tajet existe déjà pour ce jour.']);
-         }
- 
-         // If no entry exists, create a new oncall duty Time entry
-         $time = new Time;
-         $time->date = $date;
-         $time->user_id = $userId;
-         $time->hours_day = 0;
-         $time->hours_night = 0;
-         $time->hours_travel = 0;
-         $time->on_business_trip = 1; // on_business_trip is true
-         $time->save();
- 
-         return response()->json(['success' => true]);
+        // Retrieve the input values from the request
+        $date = $request->input('date');
+        $userId = $request->input('userId');
+
+        // Check if an oncall duty Time entry already exists for the given date and user
+        if (Time::where('date', $date)
+            ->where('user_id', $userId)
+            ->where('on_business_trip', 1)
+            ->exists()
+        ) {
+            // If an entry exists, return a response indicating that an oncall duty entry already exists for this day
+            return response()->json(['success' => false, 'message' => 'Une entrée de grand tajet existe déjà pour ce jour.']);
+        }
+
+        // If no entry exists, create a new oncall duty Time entry
+        $time = new Time;
+        $time->date = $date;
+        $time->user_id = $userId;
+        $time->hours_day = 0;
+        $time->hours_night = 0;
+        $time->hours_travel = 0;
+        $time->on_business_trip = 1; // on_business_trip is true
+        $time->save();
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -327,26 +477,79 @@ class TimeController extends Controller
      */
     public function deleteBusinessTripTime($userId, $date)
     {
-        if (Time::where('date', $date)
+        $user = Auth::user();
+        $entry = Time::where('date', $date)
             ->where('user_id', $userId)
-            ->whereNull('state')
-            ->whereNull('chantier_id')
             ->where('on_business_trip', 1)
-            ->exists()
-        ) {
-            $time = Time::where('user_id', $userId)
-                ->where('date', $date)
-                ->whereNull('state')
-                ->whereNull('chantier_id')
-                ->where('on_business_trip', 1)
-                ->first();
-            $time->delete();
+            ->first();
 
-            // Return a valid JSON response
+        if ($entry) {
+            $entry->delete();
             return response()->json(['success' => true]);
         }
+        return response()->json(['success' => false, 'error' => 'Time not found'], 404);
+    }
 
-        // If the time does not exist, return an error message
-        return response()->json(['error' => 'Time not found'], 404);
+    /**
+     * Add unbilled intervention time
+     * [SPECMBA08] - Ajout d'une intervention non facturée
+     * @param Request $request
+     */
+    public function addUnbilledInterventionTime(Request $request)
+    {
+        $user = Auth::user();
+        $date = $request->input('date');
+        $hours = $request->input('hours');
+
+        $entry = Time::where('date', $date)
+            ->where('user_id', $user->id)
+            ->where('unbillable', 1)
+            ->first();
+
+        if ($entry) {
+            $entry->update([
+                'hours_day' => $this->convertTimeToDecimal($hours),
+            ]);
+        } else {
+            $time = new Time;
+            $time->user_id = $user->id;
+            $time->date = $date;
+            $time->hours_day = $this->convertTimeToDecimal($hours);
+            $time->hours_night = 0;
+            $time->hours_travel = 0;
+            $time->unbillable = 1;
+            $time->save();
+        }
+    }
+
+    private function convertTimeToDecimal($time)
+    {
+        // Séparer l'heure et les minutes
+        list($hours, $minutes) = explode(':', $time);
+
+        // Convertir les minutes en fraction d'heure
+        $decimal = $hours + ($minutes / 60);
+
+        // Retourner la valeur en double avec 2 décimales
+        return number_format($decimal, 2, '.', '');
+    }
+
+    /**
+     * Delete unbilled intervention time
+     * [SPECMBA08] - Suppression d'une intervention non facturée
+     */
+    public function deleteUnbilledInterventionTime($date)
+    {
+        $user = Auth::user();
+        $entry = Time::where('date', $date)
+            ->where('user_id', $user->id)
+            ->where('unbillable', 1)
+            ->first();
+
+        if ($entry) {
+            $entry->delete();
+            return response()->json(['success' => true]);
+        }
+        return response()->json(['success' => false, 'error' => 'Time not found'], 404);
     }
 }

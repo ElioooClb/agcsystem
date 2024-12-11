@@ -1,3 +1,4 @@
+{{-- Début [SPECGT28] - Refonte de la page déclaration d'heures --}}
 <div class="m-6">
     <div wire:ignore>
         <div class="mb-6" id="calendar"></div>
@@ -37,21 +38,34 @@
                                     class="w-full px-4 py-2 mb-3 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray">
                             </div>
 
-                            <!-- Heures hors production -->
-                            <section id='hoursSelectSection' class="flex flex-col mb-6">
-                                <label for="hoursSelect" class="block mb-3 font-bold text-gray-700">Choisissez une
-                                    option :</label>
-                                <select id="hoursSelect" name="hours"
-                                    class="w-full px-4 py-2 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray">
-                                    <option value='0'>Heure non productive</option>
-                                    <option value='1'>Astreinte</option>
-                                    <option value='2'>Grand trajet</option>
-                                    @if ($user->fonction == 'Président')
-                                        <option value='3'>Intervention non facturée</option>
-                                    @endif
-                                </select>
+                            {{-- Début [SPECGT25] - Ajout de l'input pour les heures d'astreinte --}}
+                            <!-- Heures d'Astreinte -->
+                            <section class="flex flex-col mb-6 space-y-4">
+                                <!-- Astreinte -->
+                                <div id="oncallDutyHoursDiv" class="flex items-center">
+                                    <input id="odHours" type="checkbox" name="hours" class="mr-2">
+                                    <label for="odHours" class="font-bold text-gray-700">Astreinte</label>
+                                </div>
+
+                                <!-- Grand trajet -->
+                                <div id="businessTripDiv" class="flex items-center">
+                                    <input id="obtHours" type="checkbox" name="hours" class="mr-2">
+                                    <label for="obtHours" class="font-bold text-gray-700">Grand trajet</label>
+                                </div>
+
+                                <!-- Intervention non facturée (conditionnelle) -->
+                                {{-- @if ($user->fonction == 'bureau étude') --}}
+                                @if ($user->fonction == 'Président')
+                                    <div id="unbilledInterventionDiv" class="flex items-center">
+                                        <input id="unbilledHours" type="checkbox" name="hours" class="mr-2">
+                                        <label for="unbilledHours" class="font-bold text-gray-700">Intervention non
+                                            facturée</label>
+                                    </div>
+                                @endif
                             </section>
 
+                            {{-- Début [SPECGT25] - Ajout de l'input pour les heures d'astreinte --}}
+                            {{-- Début [SPECGT24] - AJout de l'input pHours --}}
                             <div id="prodHoursDiv">
                                 <!-- Heures de Nuit -->
                                 <div class="mb-6">
@@ -71,6 +85,7 @@
                                         class="w-full px-4 py-2 mb-3 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray">
                                 </div>
                             </div>
+                            {{-- Fin [SPECGT24] - AJout de l'input pHours --}}
 
                             <!-- Note -->
                             <div class="mb-6" id="noteDiv">
@@ -91,16 +106,17 @@
                             <input id="worksiteId" type="hidden" name="worksiteId" value="">
 
                             <!-- Boutons -->
-                            <div class="flex items-center justify-between">
-                                <p class="block my-auto font-bold text-gray-700" id="idAff"></p>
-                                <div class="flex flex-col gap-2">
-                                    <button type="submit" id="validate"
-                                        class="w-auto p-1 font-bold text-center text-white bg-blue-500 rounded hover:bg-blue-700">
-                                        Valider
-                                    </button>
+                            <div class="flex flex-wrap items-center justify-center">
+                                <p class="font-bold text-gray-700" id="idAff"></p>
+                                <div
+                                    class="flex flex-col justify-center w-full gap-2 mt-2 sm:flex-row sm:mt-0 sm:justify-start sm:w-auto">
                                     <button type="button" id="delete"
-                                        class="w-auto p-1 font-bold text-center text-white bg-red-500 rounded hover:bg-red-700">
+                                        class="w-full px-4 py-2 font-bold text-white bg-red-500 rounded sm:w-auto hover:bg-red-700">
                                         Supprimer
+                                    </button>
+                                    <button type="submit" id="validate"
+                                        class="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded sm:w-auto hover:bg-blue-700">
+                                        Valider
                                     </button>
                                 </div>
                             </div>
@@ -179,11 +195,13 @@
                     selectable: false,
                     locale: 'fr',
                     timeZone: 'Europe/paris',
+
+                    // Début [SPECGT25] - Modification de l'affichage des heures pour intégrer les astreintes
                     dayCellDidMount: function(arg) {
                         const cellDate = arg.date;
                         const times = @json($times);
 
-                        const createHoursInfo = (timeForCellDate, title, backgroundColor, editable = false) => {
+                        const createHoursInfo = (timeForCellDate, title, backgroundColor) => {
                             if (timeForCellDate) {
                                 const existingEvent = calendar.getEvents().find(event =>
                                     event.start.toDateString() === cellDate
@@ -196,27 +214,25 @@
                                         allDay: true,
                                         backgroundColor: backgroundColor,
                                         textColor: '#FFF',
-                                        editable: editable,
+                                        editable: false,
                                         isWorksiteEvent: false,
-                                        classNames: ['ps-3'],
+                                        classNames: ['center-text'],
                                         originalTitle: title,
                                     };
                                     calendar.addEvent(event);
                                 }
                             }
                         }
-
+                        
                         const timeForCellDate = times.find(time => new Date(time.date)
                             .toDateString() === cellDate.toDateString() && time.user_id ===
                             userId && time.chantier_id === null && !time.state && !time
                             .oncall_duty && !time.on_business_trip);
 
                         if (timeForCellDate) {
-                            console.log(timeForCellDate);
                             createHoursInfo(timeForCellDate, convertToTimeFormat(timeForCellDate
                                 .hours_day) + ' heures', '#FF99FF');
                         }
-
 
                         // Find the total productive and non-productive hours for the current date
                         const stateTimeForCellDate = times.find(time => new Date(time.date)
@@ -256,7 +272,7 @@
                             // If an oncall duty event does not exist, create a new one
                             if (!existingOncallDutyEvent) {
                                 createHoursInfo(oncallDutyTimeForCellDate, 'Astreinte',
-                                    '#ed8936', true);
+                                    '#ed8936');
                             }
                         }
 
@@ -319,6 +335,7 @@
                             });
                         }
                     },
+
                     dateClick: function(info) {
                         handleModal(info, info.dateStr, times);
                     },
@@ -347,9 +364,13 @@
                             nHours.value = '00:00';
                             pHours.value = '00:00';
 
-                            // FIXME
-                            const selectEl = document.querySelector('#hoursSelectSection');
-                            selectEl.classList.add('hidden');
+                            const oncallDutyHoursDiv = document.querySelector(
+                                '#oncallDutyHoursDiv');
+                            oncallDutyHoursDiv.classList.add('hidden');
+
+                            const onBusinessTripCheckbox = document.getElementById(
+                                'businessTripDiv');
+                            onBusinessTripCheckbox.classList.add('hidden');
 
                             const noteDiv = document.querySelector('#noteDiv');
                             noteDiv.classList.add('hidden');
@@ -369,8 +390,7 @@
                         } else if (info.event.backgroundColor === '#FF99FF') {
                             handleModal(info, info.event.start.toISOString().split('T')[0],
                                 times);
-                        } else if (info.event.backgroundColor ===
-                            '#ed8936') {
+                        } else if (info.event.backgroundColor === '#ed8936') {
                             handleModal(info, info.event.start.toISOString().split('T')[0],
                                 times, true);
                         } else if (info.event.backgroundColor === '#46755b') {
@@ -415,40 +435,155 @@
             });
         });
 
+        // Début [SPECGT25] - Modification de l'ajout des heures d'astreinte
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeForm = document.querySelector('#timeForm');
+            const oncallDutyHoursCheckbox = document.querySelector('#odHours');
+            const onBusinessTripCheckbox = document.querySelector('#obtHours');
+            const unbilledInterventionCheckbox = document.querySelector('#unbilledHours');
+            const hoursInput = document.querySelector('#dHours');
+            const submitButton = document.querySelector('#validate');
+
+            oncallDutyHoursCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    hoursInput.value = '07:00';
+                }
+            });
+
+            timeForm.addEventListener('submit', function(event) {
+                // Create an array to store all promises
+                let promises = [];
+                const isDuty = oncallDutyHoursCheckbox.checked;
+                const isTrip = onBusinessTripCheckbox.checked;
+                const isUnbilledIntervention = unbilledInterventionCheckbox.checked;
+                if (isDuty || isTrip || isUnbilledIntervention) {
+                    if (isDuty) {
+                        submitButton.disabled = true;
+                        event.preventDefault();
+                        const dateInput = document.querySelector('#date');
+                        const selectedDate = new Date(dateInput.value);
+                        const startOfWeek = getWeekFromDay(selectedDate).getDate();
+                        const endOfWeek = startOfWeek + 6;
+
+                        for (let i = startOfWeek + 1; i <= endOfWeek + 1; i++) {
+                            const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), i);
+                            const dateString = date.toISOString().split('T')[0];
+
+                            // Add each promise to the array
+                            promises.push(
+                                fetch('/ajouter-heure-astreinte', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector(
+                                            'meta[name="csrf-token"]').getAttribute('content')
+                                    },
+                                    body: JSON.stringify({
+                                        userId: document.querySelector('#userId').value,
+                                        date: dateString
+                                    })
+                                }).then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        flashAlert('success',
+                                            'Les astreintes ont bien été ajoutées.');
+                                    } else {
+                                        // Handle error
+                                        console.error('Error:', data.error);
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error('Error:', error);
+                                })
+                            );
+                        }
+                    }
+                    if (isTrip) {
+                        submitButton.disabled = true;
+                        event.preventDefault();
+                        const dateInput = document.querySelector('#date');
+                        const selectedDate = new Date(dateInput.value);
+                        const dateString = selectedDate.toISOString().split('T')[0];
+                        const hours = document.querySelector('#dHours').value;
+                        promises.push(fetch('/ajouter-heure-business-trip', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector(
+                                        'meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({
+                                    userId: document.querySelector('#userId').value,
+                                    date: dateString
+                                })
+                            })
+                            .then(data => {
+                                if (data.ok) {
+                                    flashAlert('success', 'Le grand trajet a été ajouté');
+                                } else {
+                                    // Handle error
+                                    console.error('Error:', data.error);
+                                }
+                            })
+                            .catch((error) => {
+                                console.error('Error:', error);
+                            })
+                        );
+                    }
+                    if (isUnbilledIntervention) {
+                        submitButton.disabled = true;
+                        event.preventDefault();
+
+                        if (hoursInput.value === '00:00') {
+                            submitButton.disabled = false;
+                            flashAlert('error', 'Veuillez saisir un nombre d\'heures valide');
+                            return;
+                        }
+
+                        const dateInput = document.querySelector('#date');
+                        const selectedDate = new Date(dateInput.value);
+                        const dateString = selectedDate.toISOString().split('T')[0];
+                        const hours = document.querySelector('#dHours').value;
+                        promises.push(fetch('/ajouter-heure-non-facturee', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector(
+                                        'meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({
+                                    date: dateString,
+                                    hours: hours
+                                })
+                            })
+                            .then(data => {
+                                if (data.ok) {
+                                    console.log(data);
+                                    flashAlert('success', 'L\'intervention non facturée a été ajoutée');
+                                } else {
+                                    // Handle error
+                                    console.error('Error:', data.error);
+                                }
+                            })
+                            .catch((error) => {
+                                console.error('Error:', error);
+                            })
+                        );
+                    }
+                    // Wait for all promises to be resolved before reloading the page
+                    Promise.all(promises).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    submitButton.disabled = true; // Désactivez le bouton de soumission
+                    timeForm.submit();
+                }
+            });
+        });
+        // Fin [SPECGT25] - Modification de l'ajout des heures d'astreinte
+
         document.addEventListener('DOMContentLoaded', function() {
             const deleteButton = document.querySelector("#delete");
-            const selectEl = document.querySelector('#hoursSelect');
-            const hoursEl = document.querySelector('#dHours');
-
-            selectEl.addEventListener('change', function() {
-                const selectedValue = selectEl.value;
-                console.log(selectedValue);
-                const numericValue = parseInt(selectedValue, 10);
-                switch (numericValue) {
-                    case 1:
-                        console.log('Astreinte');
-                        hoursEl.value = '07:00';
-                        console.log(hoursEl.value);
-                        hoursEl.readOnly = true;
-                        hoursEl.classList.add('bg-gray-300');
-                        break;
-                    case 2:
-                        hoursEl.value = '00:00';
-                        hoursEl.readOnly = true;
-                        hoursEl.classList.add('bg-gray-300');
-                        break;
-                    case 3:
-                        hoursEl.value = '00:00';
-                        hoursEl.readOnly = false;
-                        hoursEl.classList.remove('bg-gray-300');
-                        break;
-                    default:
-                        hoursEl.value = '00:00';
-                        hoursEl.readOnly = false;
-                        hoursEl.classList.remove('bg-gray-300');
-                        break;
-                }
-            })
 
             deleteButton.addEventListener("click", function(event) {
                 event.preventDefault();
@@ -600,8 +735,16 @@
             dHours.value = '00:00';
             dHours.readOnly = false;
 
-            const selectEl = document.querySelector('#hoursSelectSection');
-            selectEl.classList.remove('hidden');
+            const oncallDutyHoursDiv = document.querySelector('#oncallDutyHoursDiv');
+            oncallDutyHoursDiv.classList.remove('hidden');
+            const onBusinessTripDiv = document.querySelector('#businessTripDiv');
+            onBusinessTripDiv.classList.remove('hidden');
+            const oncallDutyHours = document.querySelector('#odHours');
+            oncallDutyHours.checked = false;
+            const onBusinessTripCheckbox = document.querySelector('#obtHours');
+            onBusinessTripCheckbox.checked = false;
+            const unbilledInterventionCheckbox = document.querySelector('#unbilledHours');
+            unbilledInterventionCheckbox.checked = false;
 
             const noteDiv = document.querySelector('#noteDiv');
             noteDiv.classList.remove('hidden');
@@ -676,11 +819,7 @@
             const diff = date.getDate() - day + (day == 0 ? -6 : 1);
             return new Date(date.setDate(diff));
         }
-
-        function showDeleteButton() {
-            const deleteButton = document.querySelector('#delete');
-            deleteButton.classList.remove('hidden');
-        }
     </script>
     @vite('resources/js/heures/scheduleModalHandler.js')
 @endpush
+{{-- Fin [SPECGT28] - Refonte de la page déclaration d'heures --}}
