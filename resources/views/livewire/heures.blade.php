@@ -600,7 +600,9 @@
             info.event ? deleteButton.classList.remove('hidden') : deleteButton.classList.add('hidden');
 
             // select options value
+            const selectSection = document.querySelector('#hoursSelectSection');
             const selectEl = document.querySelector('#hoursSelect');
+            selectSection.classList.remove('hidden');
             selectEl.classList.remove('hidden');
             info.event ? selectEl.value = info.event.extendedProps?.type : selectEl.value = '0';
             info.event ? selectEl.disabled = true : selectEl.disabled = false;
