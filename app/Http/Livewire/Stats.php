@@ -187,12 +187,13 @@ class Stats extends Component
         $this->globalUnproductiveHours = 0;
         $this->periodConsumedHours = 0;
         $this->periodUnproductiveHours = 0;
+        $this->periodHours = 0;
         $this->potentialHours = 0;
+        $this->potentialCA = 0;
         $this->totalConsumedHours = 0;
         $this->totalRevenue = 0;
         $this->realHourlyRate = 0;
-        $this->potentialCA = 0;
-        $this->periodHours = 0;
+
         // Static stats
         $this->totalMaterialAmount = 0;
         $this->totalServiceAmount = 0;
