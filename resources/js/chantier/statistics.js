@@ -107,7 +107,7 @@ function handleBusinessClick(event) {
         } else if (iconStatus === "toBill") {
             iconElement.className = "text-red-500 fas fa-file-invoice-dollar";
         } else if (iconStatus === "archived") {
-            iconElement.className = "text-slate-500 fas fa-archive";
+            iconElement.className = "text-white fas fa-archive";
         }
 
         // Trier les lignes selon le status

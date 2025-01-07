@@ -78,7 +78,7 @@
     "src": "resources/js/chantier/create.js"
   },
   "resources/js/chantier/statistics.js": {
-    "file": "assets/statistics-0de108c6.js",
+    "file": "assets/statistics-a9514cf1.js",
     "imports": [
       "_sweetalert2.esm.all-509645c6.js",
       "_flashAlert-c8019654.js"
