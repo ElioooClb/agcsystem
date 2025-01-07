@@ -142,7 +142,15 @@
         <table class="w-full m-0 border border-collapse table-auto border-dark">
             <thead class="sticky top-0 z-10 bg-white">
                 <tr>
-                    <th colspan="11" class="text-center align-middle">
+                    <th>
+                        <div class="flex items-center m-1 space-x-2">
+                            <input type="checkbox" id="toggleArchived" class="w-5 h-5 text-blue-500 form-checkbox" />
+                            <label for="toggleArchived" class="m-0 text-sm font-medium leading-none text-gray-700 ps-2">
+                                Cacher les chantiers archivés
+                            </label>
+                        </div>
+                    </th>
+                    <th colspan="10" class="text-center align-middle">
                         <strong>
                             Début {{ $this->startObject->format('d/m/Y') }} - Fin
                             {{ $this->endObject->format('d/m/Y') }}
@@ -177,8 +185,22 @@
             <tbody class='overflow-auto'>
                 @foreach ($this->worksites as $worksite)
                     <tr wire:key='worksite-{{ $worksite->id }}'
-                        class="text-center {{ $loop->index % 2 == 0 ? 'bg-blue-100' : '' }}">
-                        <td class="py-2 border border-dark">{{ $worksite->title }}</td>
+                        class="text-center {{ $loop->index % 2 == 0 ? 'bg-blue-100' : '' }}"
+                        data-status="{{ $worksite->states->status }}">
+                        <td class="py-2 border border-dark">
+                            <div class="flex items-center justify-between gap-2 mx-2">
+                                @if ($worksite->states->status_group === 'archived')
+                                    <i class="text-gray-500 fas fa-archive"></i>
+                                @elseif ($worksite->states->status_group === 'inProgress')
+                                    <i class="text-green-500 fas fa-sync-alt"></i>
+                                @elseif ($worksite->states->status_group === 'toBill')
+                                    <i class="text-red-500 fas fa-file-invoice-dollar"></i>
+                                @else
+                                    <i class="text-blue-500 fas fa-calendar-day"></i>
+                                @endif
+                                <span>{{ $worksite->title }}</span>
+                            </div>
+                        </td>
                         <td class="px-4 py-2 border border-dark">{{ $worksite->id }}</td>
                         <td></td>
                         <td class="px-4 py-2 text-red-500 border border-dark">{{ $worksite->periodProductiveHours }}

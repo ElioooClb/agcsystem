@@ -2,29 +2,20 @@ import Swal from "sweetalert2";
 import { flashAlert } from "../utils/flashAlert";
 
 document.addEventListener("livewire:load", function () {
-    const hoursCells = document.querySelectorAll(".hoursCell");
-    const serviceAmountCells = document.querySelectorAll(".serviceAmountCell");
-    const averageHourlyRateCell = document.querySelector("#tdAvgHourlyRate");
-
-    hoursCells.forEach((cell) => {
-        cell.removeEventListener("click", handleHoursClick);
-        cell.addEventListener("click", handleHoursClick);
-    });
-
-    serviceAmountCells.forEach((cell) => {
-        cell.removeEventListener("click", handleServiceAmount);
-        cell.addEventListener("click", handleServiceAmount);
-    });
-
-    averageHourlyRateCell.removeEventListener("click", handleAvgHourlyRate);
-    averageHourlyRateCell.addEventListener("click", handleAvgHourlyRate);
+    initListeners(); // Initialise les listeners sur les cellules et le checkbox
 });
 
 document.addEventListener("livewire:update", function () {
+    initListeners(); // Réinitialise les listeners après une mise à jour Livewire
+});
+
+function initListeners() {
     const hoursCells = document.querySelectorAll(".hoursCell");
     const serviceAmountCells = document.querySelectorAll(".serviceAmountCell");
     const averageHourlyRateCell = document.querySelector("#tdAvgHourlyRate");
+    const toggleArchivedCheckbox = document.getElementById("toggleArchived");
 
+    // Ajouter les listeners aux cellules
     hoursCells.forEach((cell) => {
         cell.removeEventListener("click", handleHoursClick);
         cell.addEventListener("click", handleHoursClick);
@@ -35,9 +26,17 @@ document.addEventListener("livewire:update", function () {
         cell.addEventListener("click", handleServiceAmount);
     });
 
-    averageHourlyRateCell.removeEventListener("click", handleAvgHourlyRate);
-    averageHourlyRateCell.addEventListener("click", handleAvgHourlyRate);
-});
+    if (averageHourlyRateCell) {
+        averageHourlyRateCell.removeEventListener("click", handleAvgHourlyRate);
+        averageHourlyRateCell.addEventListener("click", handleAvgHourlyRate);
+    }
+
+    // Ajouter le listener pour le checkbox
+    if (toggleArchivedCheckbox) {
+        toggleArchivedCheckbox.removeEventListener("change", handleToggleArchived);
+        toggleArchivedCheckbox.addEventListener("change", handleToggleArchived);
+    }
+}
 
 function handleHoursClick(event) {
     const cell = event.target;
@@ -59,6 +58,17 @@ function handleServiceAmount(event) {
 function handleAvgHourlyRate(event) {
     const cell = event.target;
     fireDialog(cell, 0, "updateAvgHourlyRate", "avgHourlyRateUpdated");
+}
+
+function handleToggleArchived(event) {
+    const showArchived = event.target.checked;
+    const rows = document.querySelectorAll("tr[data-status]");
+
+    rows.forEach((row) => {
+        if (row.dataset.status === "archived") {
+            row.style.display = showArchived ? "none" : "";
+        }
+    });
 }
 
 function fireDialog(cell, worksiteID, emitTarget, onTarget) {

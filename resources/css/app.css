@@ -1,6 +1,7 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+@import "@fortawesome/fontawesome-free/css/all.min.css";
 
 /* DEBUT [SPECGT17] - Ajout d'un scroll css et d'une gestion de l'affichage mobile */
 /*
