@@ -91,6 +91,15 @@ class StatisticsService
     }
 
     /**
+     * Get the total material amount between the given dates
+     * @return int
+     */
+    public function calculTotalMaterialAmount(): int
+    {
+        return $this->worksites->sum('materialamount');
+    }
+
+    /**
      * Get the total revenue between the given dates
      * @return int
      * @version 1.0 [SPECMBA06]
@@ -178,6 +187,17 @@ class StatisticsService
     public function calculPeriodProductiveHours(): int
     {
         return $this->worksites->sum('periodProductiveHours');
+    }
+
+    public function calculUnbillableHours(): int
+    {
+        return Time::whereBetween('date', [$this->start, $this->end])
+            ->whereNull('chantier_id')
+            ->whereNull('state')
+            ->where('oncall_duty', 0)
+            ->where('on_business_trip', 0)
+            ->where('unbillable', 1)
+            ->sum(DB::raw('hours_day + hours_night + hours_travel'));
     }
 
     /**
@@ -302,9 +322,6 @@ class StatisticsService
             ->whereHas('times', function ($query) use ($start, $end) {
                 $query->whereBetween('date', [$start, $end]);
             })
-            // ->with(['times' => function ($query) use ($start, $end) {
-            //     $query->whereBetween('date', [$start, $end]);
-            // }])
             ->get();
     }
 }

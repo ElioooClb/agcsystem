@@ -2,7 +2,8 @@
     "private": true,
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "build:modernizr": "npx modernizr -c modernizr-config.json"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",
@@ -21,6 +22,7 @@
         "datatables.net-dt": "^2.0.5",
         "fullcalendar": "^6.1.15",
         "jquery": "^3.7.1",
+        "modernizr": "^3.13.1",
         "moment": "^2.29.4",
         "sweetalert2": "^11.10.8",
         "tippy.js": "^6.3.7"
