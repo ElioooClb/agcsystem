@@ -24,6 +24,7 @@ class TimeController extends Controller
     {
         // Retrieve the input values from the request
         $date = $request->input('date');
+        // dd($date);
         $dayHours = $request->input('dHours');
         $nightHours = $request->input('nHours');
         $passengerHours = $request->input('pHours');
@@ -45,7 +46,7 @@ class TimeController extends Controller
 
                 foreach ($weekDays as $day) {
                     // Logique pour créer des événements pour chaque jour de la semaine
-                    $entry = Time::where('date', $day)->where('user_id', $userId)->first();
+                    $entry = Time::where('date', $day)->where('user_id', $userId)->where('oncall_duty', 1)->first();
                     if ($entry) {
                         // Mettre à jour l'événement
                         $entry->update([
