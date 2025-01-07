@@ -259,21 +259,21 @@
                         </td>
                         <td class="px-4 py-2 border border-dark">{{ $worksite->id }}</td>
                         <td></td>
-                        <td class="px-4 py-2 text-red-500 border border-dark">{{ $worksite->periodProductiveHours }}
+                        <td class="px-4 py-2 text-red-500 border border-dark">{{ $worksite->periodProductiveHours }} heures
                         </td>
-                        <td class="px-4 py-2 text-red-500 border border-dark">{{ intval($worksite->moe) }}</td>
+                        <td class="px-4 py-2 text-red-500 border border-dark">{{ intval($worksite->moe) }} €</td>
                         <td class="px-4 py-2 text-red-500 border border-dark">
-                            {{ round(intval($worksite->moe) / $worksite->periodProductiveHours) }}</td>
+                            {{ round(intval($worksite->moe) / $worksite->periodProductiveHours) }} €/heures</td>
                         <td></td>
-                        <td class="px-4 py-2 border border-dark">{{ $worksite->progress }}</td>
-                        <td class="px-4 py-2 border border-dark">{{ $worksite->totalConsumedHours }}</td>
+                        <td class="px-4 py-2 border border-dark">{{ $worksite->progress }} %</td>
+                        <td class="px-4 py-2 border border-dark">{{ $worksite->totalConsumedHours }} heures</td>
                         <td id="{{ $worksite->id }}"
                             class="px-4 py-2 border cursor-pointer hoursCell border-dark hover:bg-blue-200">
-                            {{ $worksite->revised_hours }}
+                            {{ $worksite->revised_hours }} heures
                         </td>
                         <td id="{{ $worksite->id }}"
                             class="px-4 py-2 border cursor-pointer serviceAmountCell border-dark hover:bg-blue-200">
-                            {{ intval($worksite->serviceamount) }}
+                            {{ intval($worksite->serviceamount) }} €
                         </td>
                     </tr>
                 @endforeach
