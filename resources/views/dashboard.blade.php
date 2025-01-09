@@ -71,7 +71,7 @@
 
                         </div>
                         <div class='row'>
-                            @if (Auth::user()->fonction === 'Président')
+                            @if (Auth::user()->fonction === 'Président' || Auth::user()->fonction === 'Associé')
                                 <div class="col-sm-6">
                                     <div class="card">
                                         <div class="card-body">

@@ -10,6 +10,7 @@ use DateInterval;
 use DatePeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class StatisticsService
@@ -90,6 +91,15 @@ class StatisticsService
     }
 
     /**
+     * Get the total material amount between the given dates
+     * @return int
+     */
+    public function calculTotalMaterialAmount(): int
+    {
+        return $this->worksites->sum('materialamount');
+    }
+
+    /**
      * Get the total revenue between the given dates
      * @return int
      * @version 1.0 [SPECMBA06]
@@ -110,25 +120,30 @@ class StatisticsService
 
         // Calcultate the number of working days between the start and the end
         $workingDays = $this->getBusinessDays($this->start, $this->end);
+
         // Calculate the user coefficient
         $coef = $this->getCoefficient();
 
         // Calculate the potential hours (working days * 7 hours * users coefficients)
         $potentialHours = (int) round($workingDays * 7 * $coef);
 
+        Log::info('User list : ' . $this->users);
+
         // Substract the hours where the user is not available
         foreach ($this->users as $user) {
-            $numberOfAvailabilities = Time::where('user_id', $user->id)
-                ->whereBetween('date', [$this->start, $this->end])
-                ->where(function ($query) {
-                    $query->where('state', 1)
-                        ->orWhere('state', 3)
-                        ->orWhere('state', 4)
-                        ->orWhere('state', 5);
-                })
-                ->whereRaw('DAYOFWEEK(date) NOT IN (1, 7)') // Exclut dimanche (1) et samedi (7)
-                ->count();
-            $potentialHours -= $numberOfAvailabilities * 7;
+            if ($user->coef_prod > 0) {
+                $numberOfAvailabilities = Time::where('user_id', $user->id)
+                    ->whereBetween('date', [$this->start, $this->end])
+                    ->where(function ($query) {
+                        $query->where('state', 1)
+                            ->orWhere('state', 3)
+                            ->orWhere('state', 4)
+                            ->orWhere('state', 5);
+                    })
+                    ->whereRaw('DAYOFWEEK(date) NOT IN (1, 7)') // Exclut dimanche (1) et samedi (7)
+                    ->count();
+                $potentialHours -= $numberOfAvailabilities * 7;
+            }
         }
         return $potentialHours;
     }
@@ -174,6 +189,17 @@ class StatisticsService
         return $this->worksites->sum('periodProductiveHours');
     }
 
+    public function calculUnbillableHours(): int
+    {
+        return Time::whereBetween('date', [$this->start, $this->end])
+            ->whereNull('chantier_id')
+            ->whereNull('state')
+            ->where('oncall_duty', 0)
+            ->where('on_business_trip', 0)
+            ->where('unbillable', 1)
+            ->sum(DB::raw('hours_day + hours_night + hours_travel'));
+    }
+
     /**
      * Get the total consumed hours for a worksite
      * @return int
@@ -200,7 +226,7 @@ class StatisticsService
      */
     private function mountProgressAndMoe(): void
     {
-        foreach($this->worksites as $worksite) {
+        foreach ($this->worksites as $worksite) {
             $progress = 0;
             $consumedhours = $worksite->periodProductiveHours;
             if ($worksite->revised_hours && $worksite->revised_hours > 0) {
@@ -296,9 +322,6 @@ class StatisticsService
             ->whereHas('times', function ($query) use ($start, $end) {
                 $query->whereBetween('date', [$start, $end]);
             })
-            // ->with(['times' => function ($query) use ($start, $end) {
-            //     $query->whereBetween('date', [$start, $end]);
-            // }])
             ->get();
     }
 }

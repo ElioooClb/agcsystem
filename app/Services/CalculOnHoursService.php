@@ -79,13 +79,20 @@ class CalculOnHoursService
      */
     public function dayNonProductiveHours(string $date): float
     {
-        return Time::where('date', $date)
+        $times = Time::where('date', $date)
             ->where('user_id', $this->user->id)
             ->whereNull('state')
             ->whereNull('chantier_id')
             ->where('oncall_duty', 0)
             ->where('on_business_trip', 0)
-            ->sum(DB::raw('hours_day + hours_night'));
+            ->get();
+
+        // Utiliser la méthode reduce de Laravel pour additionner les heures
+        $total = $times->reduce(function ($carry, $time) {
+            return $carry + $time->hours_day + $time->hours_night;
+        }, 0);
+
+        return $total;
     }
 
     public function dayHoursOnTravel(string $date): float
@@ -205,7 +212,7 @@ class CalculOnHoursService
             ->sum('hours_travel');
     }
 
-        /**
+    /**
      * [SPECMBA03]
      * Get the day where the user has worked travel hours.
      * @param string $date date format 'Y-m-d'
@@ -295,5 +302,5 @@ class CalculOnHoursService
 
         if ($medianMOE - $unproductiveHours < 0) return 0;
         return $medianTime / ($medianMOE - $unproductiveHours);
-    } 
+    }
 }
