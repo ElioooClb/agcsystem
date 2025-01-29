@@ -30,17 +30,18 @@
         <table class='my-3 border border-dark'>
             <thead class="border-b border-black bg-slate-600">
                 <tr>
-                    <th class="px-4 py-2 text-center text-white align-middle border border-dark"><strong>Production
-                            estimée</strong></th>
+                    <th class="px-4 py-2 text-center text-white align-middle border border-dark">
+                        <strong>ESTIMATIONS</strong>
+                    </th>
                     <th class="px-4 py-2 text-center text-white align-middle border border-dark">Taux horaire</th>
                     <th class="px-4 py-2 text-center text-white align-middle border border-dark">Valeur</th>
-                    <th class="px-4 py-2 text-center text-white align-middle border border-dark">H
+                    <th class="px-4 py-2 text-center text-white align-middle border border-dark">H production
                     </th>
                 </tr>
             </thead>
             <tbody>
                 <tr class="bg-blue-100">
-                    <td class="!text-blue-500 border border-dark px-4 py-2 text-center align-middle">Potentiels
+                    <td class="!text-blue-500 border border-dark px-4 py-2 text-center align-middle">Potentiel
                     </td>
                     <td id="tdAvgHourlyRate"
                         class="text-center align-middle !text-blue-500 border border-dark cursor-pointer hover:bg-blue-200">
@@ -53,7 +54,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Réalisée
+                    <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Réalisé
                     </td>
                     <td class='text-center align-middle !text-red-500 border border-dark'>
                         {{ round($this->totalRevenue / $this->periodConsumedHours) }} €/heure
@@ -65,7 +66,7 @@
                 </tr>
                 <tr class="bg-blue-100">
                     <td class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">Total des heures
-                        travaillées</td>
+                        déclarées</td>
                     <td colspan="2" class="bg-gray-400"></td>
                     <td colspan="1" class="!text-red-500 border border-dark px-4 py-2 text-center align-middle">
                         {{ $this->periodHours }} heures
@@ -76,30 +77,40 @@
         {{-- Static global stats --}}
         <table class='m-3 border border-dark'>
             <thead class="text-white border-b border-black bg-slate-600">
-                <th colspan="2" class="px-4 py-2 text-center align-middle">Affaires en cours</th>
+                <th colspan="3" class="px-4 py-2 text-center align-middle"><strong>AFFAIRES EN COURS</strong></th>
             </thead>
             <tbody>
                 <tr class="bg-blue-100">
                     <td class="px-4 text-center align-middle border border-dark">Fournitures</td>
                     <td class="px-4 text-center align-middle border border-dark">
                         <strong>{{ $totalMaterialAmount }}</strong>
-                        €</td>
+                        €
+                    </td>
+                    <td class="px-4 text-center align-middle border border-dark">Restant</td>
                 </tr>
                 <tr>
-                    <td class="px-4 text-center align-middle border border-dark">Mains d'oeuvres</td>
+                    <td class="px-4 text-center align-middle border border-dark">MOE devis</td>
                     <td class="px-4 py-2 text-center align-middle border border-dark">
                         <strong>{{ $totalServiceAmount }}</strong> €
                     </td>
+                    <td class="px-4 py-2 text-center align-middle border border-dark">{{ $restPercentage * 100 }} %</td>
                 </tr>
                 <tr class="bg-blue-100">
                     <td class="px-4 text-center align-middle border border-dark">Stock d'heures</td>
                     <td class="px-4 text-center align-middle border border-dark">
                         <strong>{{ $totalHoursDone * $this->averageHourlyRate }}</strong>
-                        €</td>
+                        €
+                    </td>
+                    <td class="px-4 text-center align-middle border border-dark">
+                        <strong>{{ $restValue }}</strong>
+                        €
+                    </td>
                 </tr>
                 <tr>
-                    <td class="px-4 text-center align-middle border border-dark">Heures affectées</td>
+                    <td class="px-4 text-center align-middle border border-dark">H production</td>
                     <td class="px-4 text-center align-middle border border-dark"><strong>{{ $totalHoursDone }}</strong>
+                        heures</td>
+                    <td class="px-4 text-center align-middle border border-dark"><strong>{{ $rest }}</strong>
                         heures</td>
                 </tr>
             </tbody>
@@ -107,12 +118,11 @@
         {{-- Static worksites stats --}}
         <table class='m-3 border border-dark'>
             <thead class="text-white border-b border-black bg-slate-600">
-                <th class="px-4 py-2 text-center align-middle">Activité</th>
+                <th class="px-4 py-2 text-center align-middle"><strong>ACTIVITE</strong></th>
                 <th class="px-4 py-2 text-center align-middle">Fournitures</th>
                 <th class="px-4 py-2 text-center align-middle">MOE devis</th>
-                <th class="px-4 py-2 text-center align-middle">H prévues</th>
+                <th class="px-4 py-2 text-center align-middle">H production</th>
                 <th class="px-4 py-2 text-center align-middle">Quantité</th>
-                <th class="px-4 py-2 text-center align-middle">Reste (h)</th>
             </thead>
             <tbody>
                 @php
@@ -121,17 +131,14 @@
                         'Démarrés' => [
                             'totals' => $startedWorkSitesTotals,
                             'count' => count($startedWorkSites),
-                            'rest' => $restInProgress,
                         ],
                         'Prévisionnels' => [
                             'totals' => $upcomingWorkSitesTotals,
                             'count' => count($upcomingWorkSites),
-                            'rest' => $restUpcoming,
                         ],
                         'À facturer' => [
                             'totals' => $toBillWorkSitesTotals,
                             'count' => count($toBillWorkSites),
-                            'rest' => $restToBill,
                         ],
                     ];
                 @endphp
@@ -149,17 +156,11 @@
                         <td class="text-center align-middle border border-dark">
                             {!! !empty($data['totals']['totalHoursScheduled'])
                                 ? ($status == 'À facturer'
-                                    ? '<strong>' . $data['totals']['totalHoursScheduled'] . '</strong>' . ' heures'
+                                    ? '<strong>' . $data['totals']['globalHours'] . '</strong>' . ' heures'
                                     : $data['totals']['totalHoursScheduled'] . ' heures')
                                 : '-' !!}
                         </td>
                         <td class="text-center align-middle border border-dark">{{ $data['count'] }}</td>
-                        <td class="text-center align-middle border border-dark">
-                            {!! !empty($data['rest'])
-                                ? ($status == 'À facturer'
-                                    ? '<strong>' . $data['rest'] . '</strong>' . ' heures'
-                                    : $data['rest'] . ' heures')
-                                : '-' !!}
                     </tr>
                 @endforeach
             </tbody>
@@ -171,7 +172,7 @@
         <table id='worksitesTable' class="w-full m-0 border border-collapse table-auto border-dark">
             <thead class="sticky top-0 z-10 bg-white">
                 <tr>
-                    <th>
+                    <th colspan="2" class="flex flex-row gap-2">
                         <div class="flex items-center m-1 space-x-2">
                             <input type="checkbox" id="toggleArchived"
                                 class="w-5 h-5 text-blue-500 cursor-pointer form-checkbox hover:ring-2 hover:ring-blue-300" />
@@ -180,8 +181,16 @@
                                 Cacher les chantiers archivés
                             </label>
                         </div>
+                        <div class="flex items-center m-1 space-x-2">
+                            <input type="checkbox" id="isArchivedCalculated" wire:model="isArchivedCalculated"
+                                class="w-5 h-5 text-blue-500 cursor-pointer form-checkbox hover:ring-2 hover:ring-blue-300" />
+                            <label for="isArchivedCalculated"
+                                class="m-0 text-sm font-medium leading-none text-gray-700 cursor-pointer ps-2 hover:text-blue-500">
+                                Totaux chantiers archivés
+                            </label>
+                        </div>
                     </th>
-                    <th colspan="10" class="text-center align-middle">
+                    <th colspan="9" class="text-center align-middle">
                         <strong>
                             Début {{ $this->startObject->format('d/m/Y') }} - Fin
                             {{ $this->endObject->format('d/m/Y') }}
@@ -196,13 +205,13 @@
                     </th>
                     <th class="py-2 text-center border border-dark">IdAff</th>
                     <th></th>
-                    <th class="py-2 text-center border border-dark">H imputées</th>
+                    <th class="py-2 text-center border border-dark">H déclarées</th>
                     <th class="py-2 text-center border border-dark">Production (euros)</th>
-                    <th class="py-2 text-center border border-dark">Taux horaire</th>
-                    <th></th>
+                    <th class="py-2 text-center border border-dark">KPI Taux horaire</th>
+                    {{-- <th></th> --}}
                     <th class="py-2 text-center border border-dark">% réalisé</th>
-                    <th class="py-2 text-center border border-dark">H totales passées</th>
-                    <th class="py-2 text-center border border-dark">H révisées</th>
+                    <th class="py-2 text-center border border-dark">H réalisées</th>
+                    <th class="py-2 text-center border border-dark">H prévues</th>
                     <th class="py-2 text-center border border-dark">MOE devis</th>
                 </tr>
             </thead>
@@ -211,7 +220,7 @@
                     <td colspan="11" class="bg-gray-400"></td>
                 </tr>
                 <tr class="text-center">
-                    <td colspan="2" class="px-4 py-2 border border-dark">Heures de production non imputées sur
+                    <td colspan="2" class="px-4 py-2 border border-dark">Heures de production non déclarées sur
                         affaire</td>
                     <td></td>
                     <td class="px-4 py-2 border border-dark">{{ $this->periodUnproductiveHours }}</td>
@@ -224,14 +233,15 @@
                     <td colspan="11" class="bg-gray-400"></td>
                 </tr>
                 <tr class="text-center">
-                    <td colspan="2" class="px-4 py-2 border border-dark">Total des heures travaillées hors
+                    <td colspan="2" class="px-4 py-2 border border-dark">Total des heures déclarées hors
                         production</td>
                     <td></td>
                     <td class="px-4 py-2 border border-dark">{{ $this->globalUnproductiveHours }}</td>
                     <td colspan="8" class="px-4 py-2 bg-gray-400 border border-dark"></td>
                 </tr>
                 <tr class="text-center">
-                    <td colspan="2" class="px-4 py-2 border border-dark">Total des fournitures facturées sur la
+                    <td colspan="2" class="px-4 py-2 border border-dark">Total des fournitures facturées
+                        (archivées) sur la
                         période</td>
                     <td></td>
                     <td colspan="1" class="px-4 py-2 bg-gray-400 border border-dark"></td>
@@ -274,15 +284,19 @@
                             <span class="text-red-500">{{ $worksite->periodProductiveHours }}</span> heures
                         </td>
                         <td class="px-4 py-2 border border-dark">
-                            <span class="text-red-500">{{ intval($worksite->moe) }}</span> €
+                            <span class="text-red-500">
+                                {{ intval($isArchivedCalculated && $worksite->states->status === 'archived' ? $worksite->archivedMoe : $worksite->moe) }}
+                            </span> €
                         </td>
                         <td class="px-4 py-2 border border-dark">
-                            <span
-                                class="text-red-500">{{ round(intval($worksite->moe) / $worksite->periodProductiveHours) }}</span>
-                            €/heures
+                            <span class="text-red-500">
+                                {{ round(intval($isArchivedCalculated && $worksite->states->status === 'archived' ? $worksite->archivedKpi : $worksite->kpi)) }}
+                            </span> €/heures
                         </td>
-                        <td></td>
-                        <td class="px-4 py-2 border border-dark">{{ $worksite->progress }} %</td>
+                        <td class="px-4 py-2 border border-dark">
+                            {{ ($isArchivedCalculated && $worksite->states->status === 'archived' ? $worksite->archivedProgress : $worksite->progress) * 100 }}
+                            %
+                        </td>
                         <td class="px-4 py-2 border border-dark">{{ $worksite->totalConsumedHours }} heures</td>
                         <td id="{{ $worksite->id }}"
                             class="px-4 py-2 border cursor-pointer hoursCell border-dark hover:bg-blue-200">
