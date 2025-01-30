@@ -96,22 +96,10 @@ class StatisticsService
      */
     public function calculTotalMaterialAmount(): int
     {
-        return $this->worksites->filter(function ($worksite) {
-            return $worksite->states->status !== 'archived';
-        })->sum('materialamount');
-    }
-
-    /**
-     * Get the total material amount for the worksites that are archived
-     * @return int
-     */
-    public function calculTotalMaterialAmountForArchvied(): int
-    {
-        return $this->worksites
-            ->filter(function ($worksite) {
-                return $worksite->states->status === 'archived';
-            })
-            ->sum('materialamount');
+        // return $this->worksites->filter(function ($worksite) {
+        //     return $worksite->states->status === 'archived';
+        // })->sum('materialamount');
+        return $this->worksites->sum('materialamount');
     }
 
     /**
@@ -252,6 +240,9 @@ class StatisticsService
 
             // Calcul de la progression
             $progress = ($revisedHours > 0) ? round($consumedHours / $revisedHours, 2) : 0;
+
+            // Calcul de la progression sur la totalité des heures consommées
+            $worksite->totalProgression = round($worksite->totalConsumedHours / $revisedHours, 2);
 
             // Mise à jour des propriétés
             $worksite->progress = $progress;

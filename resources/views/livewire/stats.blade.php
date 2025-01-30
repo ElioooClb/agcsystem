@@ -127,22 +127,22 @@
             <tbody>
                 @php
                     // Définition des types de chantier et des données associées
-                    $workSitesData = [
+                    $worksitesData = [
                         'Démarrés' => [
-                            'totals' => $startedWorkSitesTotals,
-                            'count' => count($startedWorkSites),
+                            'totals' => $this->startedWorksitesTotals,
+                            'count' => count($this->startedWorksites),
                         ],
                         'Prévisionnels' => [
-                            'totals' => $upcomingWorkSitesTotals,
-                            'count' => count($upcomingWorkSites),
+                            'totals' => $this->upcomingWorksitesTotals,
+                            'count' => count($this->upcomingWorksites),
                         ],
                         'À facturer' => [
-                            'totals' => $toBillWorkSitesTotals,
-                            'count' => count($toBillWorkSites),
+                            'totals' => $this->toBillWorksitesTotals,
+                            'count' => count($this->toBillWorksites),
                         ],
                     ];
                 @endphp
-                @foreach ($workSitesData as $status => $data)
+                @foreach ($worksitesData as $status => $data)
                     <tr class="{{ $loop->index % 2 == 0 ? 'bg-blue-100' : '' }}">
                         <td class="px-2 text-center align-middle border border-dark">
                             <strong>{{ $status }}</strong>
@@ -181,14 +181,14 @@
                                 Cacher les chantiers archivés
                             </label>
                         </div>
-                        <div class="flex items-center m-1 space-x-2">
+                        {{-- <div class="flex items-center m-1 space-x-2">
                             <input type="checkbox" id="isArchivedCalculated" wire:model="isArchivedCalculated"
                                 class="w-5 h-5 text-blue-500 cursor-pointer form-checkbox hover:ring-2 hover:ring-blue-300" />
                             <label for="isArchivedCalculated"
                                 class="m-0 text-sm font-medium leading-none text-gray-700 cursor-pointer ps-2 hover:text-blue-500">
                                 Totaux chantiers archivés
                             </label>
-                        </div>
+                        </div> --}}
                     </th>
                     <th colspan="9" class="text-center align-middle">
                         <strong>
@@ -210,8 +210,8 @@
                     <th class="py-2 text-center border border-dark">KPI Taux horaire</th>
                     {{-- <th></th> --}}
                     <th class="py-2 text-center border border-dark">% réalisé</th>
-                    <th class="py-2 text-center border border-dark">H réalisées</th>
-                    <th class="py-2 text-center border border-dark">H prévues</th>
+                    <th class="py-2 text-center border border-dark">H totales passées</th>
+                    <th class="py-2 text-center border border-dark">H révisées</th>
                     <th class="py-2 text-center border border-dark">MOE devis</th>
                 </tr>
             </thead>
@@ -294,7 +294,8 @@
                             </span> €/heures
                         </td>
                         <td class="px-4 py-2 border border-dark">
-                            {{ ($isArchivedCalculated && $worksite->states->status === 'archived' ? $worksite->archivedProgress : $worksite->progress) * 100 }}
+                            {{-- {{ ($isArchivedCalculated && $worksite->states->status === 'archived' ? $worksite->archivedProgress : $worksite->progress) * 100 }} --}}
+                            {{ $worksite->totalProgression * 100 }}
                             %
                         </td>
                         <td class="px-4 py-2 border border-dark">{{ $worksite->totalConsumedHours }} heures</td>
