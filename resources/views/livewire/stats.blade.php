@@ -77,7 +77,8 @@
         {{-- Static global stats --}}
         <table class='m-3 border border-dark'>
             <thead class="text-white border-b border-black bg-slate-600">
-                <th colspan="3" class="px-4 py-2 text-center align-middle"><strong>AFFAIRES EN COURS</strong></th>
+                <th colspan="2" class="px-4 py-2 text-center align-middle"><strong>AFFAIRES EN COURS</strong></th>
+                <th class="px-4 py-2 text-center align-middle">Restant</th>
             </thead>
             <tbody>
                 <tr class="bg-blue-100">
@@ -86,7 +87,7 @@
                         <strong>{{ $totalMaterialAmount }}</strong>
                         €
                     </td>
-                    <td class="px-4 text-center align-middle border border-dark">Restant</td>
+                    <td class="px-4 text-center align-middle border border-dark">{{ $this->restKpi }} €/heures</td>
                 </tr>
                 <tr>
                     <td class="px-4 text-center align-middle border border-dark">MOE devis</td>

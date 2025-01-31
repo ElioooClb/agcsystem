@@ -43,7 +43,7 @@ class Stats extends Component
     public $totalHoursDone = 0;
     public $startedWorksites, $upcomingWorksites, $toBillWorksites, $archivedWorksites;
     public $startedWorksitesTotals, $upcomingWorksitesTotals, $toBillWorksitesTotals, $globalTotals;
-    public $rest, $restPercentage, $restValue;
+    public $rest, $restPercentage, $restValue, $restKpi;
 
     protected $listeners = ['updateHoursEstimation' => 'handleHoursEstimation', 'updateServiceAmount' => 'handleServiceAmount', 'updateAvgHourlyRate' => 'handleAverageHourlyRate'];
 
@@ -140,13 +140,14 @@ class Stats extends Component
         // Calcul du reste des heures restantes (heures planifiées + heures à facturer - heures effectuées)
         $this->rest = $this->startedWorksitesTotals['totalHoursScheduled'] + $this->toBillWorksitesTotals['globalHours'] - $this->totalHoursDone;
 
-        // Calcul du pourcentage des heures restantes (heures restantes / heures planifiées * 100)
-        $this->restPercentage = $notArchivedworksitesTotals['totalHoursScheduled'] > 0
-            ? round($this->rest / $notArchivedworksitesTotals['totalHoursScheduled'], 2)
-            : 0;
+        // Calcul du pourcentage des heures restantes (heures restantes / heures effectuées)
+        $this->restPercentage = round($this->rest / $this->totalHoursDone, 2);
 
-        // Calcul de la valorisation des heures restant à produire
-        $this->restValue = $this->restPercentage * $this->averageHourlyRate * $this->totalHoursDone;
+        // Calcul de la valorisation des heures restant à produire (reste * taux horaire moyen * heures estimées des chantiers démarrés)
+        $this->restValue = $this->restPercentage * $this->averageHourlyRate * $this->startedWorksitesTotals['totalHoursScheduled'];
+
+        // Le KPI du reste est le reste valorisé / reste
+        $this->restKpi = round($this->restValue / $this->rest);
     }
 
     private function initializeDates()
