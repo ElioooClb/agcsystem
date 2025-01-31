@@ -8,6 +8,7 @@ use DateTime;
 use App\Models\Chantier;
 use App\Models\User;
 use App\Models\Time;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Stats
@@ -30,16 +31,19 @@ class Stats extends Component
     public string $averageHourlyRate = '99';
     public $potentialHours = 0;
     public int $potentialCA = 0;
-    public $totalConsumedHours = 0;
     public $totalRevenue = 0;
     public $realHourlyRate = 0;
     public $periodMaterialAmount = 0;
     public $UnbillableHours = 0;
+    public $isArchivedCalculated = false;
 
-    // Static stats
-    public $totalMaterialAmount;
-    public $totalServiceAmount;
-    public $totalHoursDone;
+    // Global stats
+    public $totalMaterialAmount = 0;
+    public $totalServiceAmount = 0;
+    public $totalHoursDone = 0;
+    public $startedWorksites, $upcomingWorksites, $toBillWorksites, $archivedWorksites;
+    public $startedWorksitesTotals, $upcomingWorksitesTotals, $toBillWorksitesTotals, $globalTotals;
+    public $rest, $restPercentage, $restValue, $restKpi;
 
     protected $listeners = ['updateHoursEstimation' => 'handleHoursEstimation', 'updateServiceAmount' => 'handleServiceAmount', 'updateAvgHourlyRate' => 'handleAverageHourlyRate'];
 
@@ -90,74 +94,60 @@ class Stats extends Component
         $this->emit('avgHourlyRateUpdated', 'Taux horaire moyen mis à jour');
     }
 
-    public function render()
+    public function handleGlobalStats()
     {
         $chantiers = Chantier::with(['states', 'times'])->get();
-        $workSitesByState = $chantiers->groupBy(function ($chantier) {
-            return $chantier->states->status_group;
+
+        // On sépare les chantiers ARCHIVED des IN_PROGRESS
+        $this->archivedWorksites = $chantiers->filter(function ($chantier) {
+            return $chantier->state === 'ST_FACT1C';
         });
 
-        $inProgressWorkSites = $workSitesByState['inProgress'] ?? [];
-        list($startedWorkSites, $upcomingWorkSites) = $this->partitionWorkSitesByHoursDone($inProgressWorkSites);
-        $toBillWorkSites = $workSitesByState['toBill'] ?? [];
-        $archivedWorkSites = $workSitesByState['archived'] ?? [];
+        $notArchivedworksites = $chantiers->filter(function ($chantier) {
+            return $chantier->state !== 'ST_FACT1C';
+        });
 
-        // [SPECGT10] Calcul du total des heures affectées
-        $this->totalMaterialAmount = 0;
-        $this->totalServiceAmount = 0;
-        $this->totalServiceAmount = 0;
-        $globalHoursDone = 0;
+        // if ($archivedWorksites->count() + $notArchivedworksites->count() !== $chantiers->count()) dd('errors comptage 00');
 
-        foreach ($chantiers as $chantier) {
-            if (!collect($archivedWorkSites)->contains($chantier)) {
-                //calcul total fournitures
-                $this->totalMaterialAmount += round($chantier->materialamount);
+        // On a séparer les chantiers non démarrés des chantiers en cours
+        $this->upcomingWorksites = $notArchivedworksites->filter(fn($chantier) => $chantier->times->isEmpty());
 
-                //calcul total main d'oeuvre
-                $this->totalServiceAmount += round($chantier->serviceamount);
+        $inProgressWorksites = $notArchivedworksites->filter(function ($chantier) {
+            return $chantier->times->some(function ($time) {
+                return ($time->hours_day ?? 0) > 0 || ($time->hours_night ?? 0) > 0 || ($time->hours_travel ?? 0) > 0;
+            });
+        });
 
-                //calcul total heures affectées
-                $chantiersHours = Time::where('chantier_id', $chantier->id)->get();
-                $totalHours = $chantiersHours->sum('hours_day') + $chantiersHours->sum('hours_night') + $chantiersHours->sum('hours_travel');
-                $this->totalHoursDone += $totalHours;
-                $globalHoursDone += $totalHours;
+        // if ($notArchivedworksites->count() !== ($upcomingWorksites->count() + $inProgressWorksites->count())) dd('errors comptage 01');
 
-                $chantier->userHours = $this->calculateUserHours($chantier);
-            }else{
-                $chantiersHours = Time::where('chantier_id', $chantier->id)->get();
-                $totalHours = $chantiersHours->sum('hours_day') + $chantiersHours->sum('hours_night') + $chantiersHours->sum('hours_travel');
-                $globalHoursDone += $totalHours;
-            }
-        }
+        // On a séparer les chantiers à facturer des chantiers déjà démarrés
+        $this->toBillWorksites = $inProgressWorksites->filter(fn($chantier) => $chantier->states->status_group === 'toBill');
+        $this->startedWorksites = $inProgressWorksites->filter(fn($chantier) => $chantier->states->status_group !== 'toBill');
 
-        // Début [SPECGT10][V2.1] - Calcul des totaux par statut & modification du return
-        $startedWorkSitesTotals = $this->calculateTotalsByStatus($startedWorkSites);
-        $upcomingWorkSitesTotals = $this->calculateTotalsByStatus($upcomingWorkSites);
-        $toBillWorkSitesTotals = $this->calculateTotalsByStatus($toBillWorkSites);
-        $globalTotals = $this->calculateTotalsByStatus($chantiers);
-        
-        // calcul revenu par heure
-        $averageToBillHourlyRate = number_format($toBillWorkSitesTotals['totalServiceAmount'] / $toBillWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
-        $averageUpcomingHourlyRate = number_format($upcomingWorkSitesTotals['totalServiceAmount'] / $upcomingWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
+        // if ($toBillWorksites->count() + $startedWorksites->count() !== $inProgressWorksites->count()) dd('errors comptage 02');
 
-        // calcul du reste des heures
-        $restInProgress = $this->calculateRestByStatus($inProgressWorkSites);
-        $restToBill = $this->calculateRestByStatus($toBillWorkSites);
-        $restUpcoming = $this->calculateRestByStatus($upcomingWorkSites);
+        // Calcul des totaux matériels, service et heures par groupement de chantiers
+        $this->upcomingWorksitesTotals = $this->calculateTotalsByStatus($this->upcomingWorksites);
+        $this->startedWorksitesTotals = $this->calculateTotalsByStatus($this->startedWorksites);
+        $this->toBillWorksitesTotals = $this->calculateTotalsByStatus($this->toBillWorksites);
+        $notArchivedworksitesTotals = $this->calculateTotalsByStatus($notArchivedworksites);
+        $this->globalTotals = $this->calculateTotalsByStatus($chantiers);
 
-        return view('livewire.stats', compact(
-            'startedWorkSites',
-            'upcomingWorkSites',
-            'toBillWorkSites',
-            'archivedWorkSites',
-            'startedWorkSitesTotals',
-            'upcomingWorkSitesTotals',
-            'toBillWorkSitesTotals',
-            'globalTotals',
-            'restInProgress',
-            'restToBill',
-            'restUpcoming',
-        ));
+        $this->totalMaterialAmount = $notArchivedworksitesTotals['totalMaterialAmount'];
+        $this->totalServiceAmount = $notArchivedworksitesTotals['totalServiceAmount'];
+        $this->totalHoursDone = $notArchivedworksitesTotals['globalHours'];
+
+        // Calcul du reste des heures restantes (heures planifiées + heures à facturer - heures effectuées)
+        $this->rest = $this->startedWorksitesTotals['totalHoursScheduled'] + $this->toBillWorksitesTotals['globalHours'] - $this->totalHoursDone;
+
+        // Calcul du pourcentage des heures restantes (heures restantes / heures effectuées)
+        $this->restPercentage = round($this->rest / $this->totalHoursDone, 2);
+
+        // Calcul de la valorisation des heures restant à produire (reste * taux horaire moyen * heures estimées des chantiers démarrés)
+        $this->restValue = $this->restPercentage * $this->averageHourlyRate * $this->startedWorksitesTotals['totalHoursScheduled'];
+
+        // Le KPI du reste est le reste valorisé / reste
+        $this->restKpi = round($this->restValue / $this->rest);
     }
 
     private function initializeDates()
@@ -178,13 +168,14 @@ class Stats extends Component
         $this->periodConsumedHours = max(1, $this->statisticsService->calculPeriodProductiveHours());
         $this->periodUnproductiveHours = $this->statisticsService->calculPeriodUnproductiveHours();
         $this->potentialHours = $this->statisticsService->calculPotentialHours();
-        $this->totalConsumedHours = $this->statisticsService->calculTotalproductiveHours();
         $this->totalRevenue = $this->statisticsService->calculTotalRevenue();
-        $this->realHourlyRate = $this->totalConsumedHours > 0 ? round($this->totalRevenue / $this->totalConsumedHours, 0) : 0;
+        $totalConsumedHours =  $this->statisticsService->calculTotalproductiveHours();
+        $this->realHourlyRate = $totalConsumedHours > 0 ? round($this->totalRevenue / $totalConsumedHours, 0) : 0;
         $this->potentialCA = $this->potentialHours * intval($this->averageHourlyRate);
         $this->periodHours = $this->periodConsumedHours + $this->globalUnproductiveHours;
         $this->periodMaterialAmount = $this->statisticsService->calculTotalMaterialAmount();
         $this->UnbillableHours = $this->statisticsService->calculUnbillableHours();
+        $this->handleGlobalStats();
     }
 
     private function resetStatistics()
@@ -197,7 +188,6 @@ class Stats extends Component
         $this->periodHours = 0;
         $this->potentialHours = 0;
         $this->potentialCA = 0;
-        $this->totalConsumedHours = 0;
         $this->totalRevenue = 0;
         $this->realHourlyRate = 0;
         $this->periodMaterialAmount = 0;
@@ -207,6 +197,17 @@ class Stats extends Component
         $this->totalMaterialAmount = 0;
         $this->totalServiceAmount = 0;
         $this->totalHoursDone = 0;
+        $this->startedWorksites = [];
+        $this->upcomingWorksites = [];
+        $this->toBillWorksites = [];
+        $this->archivedWorksites = [];
+        $this->startedWorksitesTotals = [];
+        $this->upcomingWorksitesTotals = [];
+        $this->toBillWorksitesTotals = [];
+        $this->globalTotals = [];
+        $this->rest = 0;
+        $this->restPercentage = 0;
+        $this->restValue = 0;
     }
 
     private function updateWorksite($data, $field, $successEvent, $errorMessage)
@@ -229,21 +230,6 @@ class Stats extends Component
             $this->statisticsService = app(StatisticsService::class);
         }
         return $this->statisticsService;
-    }
-
-    private function partitionWorkSitesByHoursDone($workSites)
-    {
-        // Convertir le tableau en collection
-        $workSites = collect($workSites);
-
-        return $workSites->partition(function ($chantier) {
-            // Fetch all time entries for the current work site
-            $workSiteHours = Time::where('chantier_id', $chantier->id)->get();
-            // Calculate the total hours (day + night) for the current work site
-            $totalHours = $workSiteHours->sum('hours_day') + $workSiteHours->sum('hours_night') + $workSiteHours->sum('hours_travel');
-            // Return true if total hours is greater than 0, false otherwise
-            return $totalHours > 0;
-        });
     }
 
     /**
@@ -283,41 +269,24 @@ class Stats extends Component
      * @param $workSites
      * @return array
      */
-    public function calculateTotalsByStatus($workSites): array
+    public function calculateTotalsByStatus($worksites): array
     {
-        $totalMaterialAmount = 0;
-        $totalServiceAmount = 0;
-        $totalHoursScheduled = 0;
+        return $worksites->reduce(function ($carry, $worksite) {
+            // Calcul des totaux pour materialamount, serviceamount et hours
+            $carry['totalMaterialAmount'] += round($worksite->materialamount ?? 0);
+            $carry['totalServiceAmount'] += round($worksite->serviceamount ?? 0);
+            $carry['totalHoursScheduled'] += round($worksite->revised_hours ?? 0);
 
-        foreach ($workSites as $workSite) {
-            $totalMaterialAmount += round($workSite->materialamount);
-            $totalServiceAmount += round($workSite->serviceamount);
-            $totalHoursScheduled += round($workSite->hours);
-        }
+            // Calcul des globalHours via la relation 'times'
+            $globalHours = $worksite->times->sum(fn($time) => $time->hours_day + $time->hours_night + $time->hours_travel);
+            $carry['globalHours'] += $globalHours;
 
-        return [
-            'totalMaterialAmount' => $totalMaterialAmount,
-            'totalServiceAmount' => $totalServiceAmount,
-            'totalHoursScheduled' => $totalHoursScheduled,
-        ];
-    }
-
-    /**
-     * Calculate the rest of hours by status
-     * [SPECGT10] Calcul du reste des heures par statut
-     * @param $worksites
-     * @return int
-     */
-    public function calculateRestByStatus($worksites): int
-    {
-        $rest = 0;
-
-        foreach ($worksites as $worksite) {
-            $consummedHours = $worksite->times->sum('hours_day') + $worksite->times->sum('hours_night') + $worksite->times->sum('hours_travel');
-            $rest += $worksite->revised_hours - $consummedHours;
-            // dump(['worksiteID ' => $worksite->id, 'hours ' => $worksite->revised_hours, 'consommation ' => $consummedHours, 'rest ' => $rest]);
-        }
-
-        return $rest;
+            return $carry;
+        }, [
+            'totalMaterialAmount' => 0,
+            'totalServiceAmount' => 0,
+            'totalHoursScheduled' => 0,
+            'globalHours' => 0,
+        ]);
     }
 }

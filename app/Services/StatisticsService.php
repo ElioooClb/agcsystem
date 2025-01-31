@@ -96,6 +96,9 @@ class StatisticsService
      */
     public function calculTotalMaterialAmount(): int
     {
+        // return $this->worksites->filter(function ($worksite) {
+        //     return $worksite->states->status === 'archived';
+        // })->sum('materialamount');
         return $this->worksites->sum('materialamount');
     }
 
@@ -189,6 +192,10 @@ class StatisticsService
         return $this->worksites->sum('periodProductiveHours');
     }
 
+    /**
+     * Get the unbillable hours between the given dates
+     * @return int
+     */
     public function calculUnbillableHours(): int
     {
         return Time::whereBetween('date', [$this->start, $this->end])
@@ -207,7 +214,7 @@ class StatisticsService
      */
     public function calculTotalProductiveHours(): int
     {
-        return $this->worksites->sum('consumedHours');
+        return $this->worksites->sum('totalConsumedHours');
     }
 
     /**
@@ -227,13 +234,29 @@ class StatisticsService
     private function mountProgressAndMoe(): void
     {
         foreach ($this->worksites as $worksite) {
-            $progress = 0;
-            $consumedhours = $worksite->periodProductiveHours;
-            if ($worksite->revised_hours && $worksite->revised_hours > 0) {
-                $progress = round(($consumedhours / $worksite->revised_hours), 2);
-            }
+            $isArchived = $worksite->states->status === 'archived';
+            $revisedHours = $worksite->revised_hours;
+            $consumedHours = $worksite->periodProductiveHours;
+
+            // Calcul de la progression
+            $progress = ($revisedHours > 0) ? round($consumedHours / $revisedHours, 2) : 0;
+
+            // Calcul de la progression sur la totalité des heures consommées
+            $worksite->totalProgression = round($worksite->totalConsumedHours / $revisedHours, 2);
+
+            // Mise à jour des propriétés
             $worksite->progress = $progress;
             $worksite->moe = $progress * $worksite->serviceamount;
+
+            // Calcul du KPI
+            $worksite->kpi = ($consumedHours > 0) ? $worksite->moe / $consumedHours : 0;
+
+            // Calcul sur la base des archives
+            if ($isArchived) {
+                $worksite->archivedProgress = 1.00;
+                $worksite->archivedMoe = $worksite->serviceamount;
+                $worksite->archivedKpi = $worksite->archivedMoe / $worksite->totalConsumedHours;
+            }
         }
     }
 
@@ -254,7 +277,7 @@ class StatisticsService
                 })
                 ->sum(DB::raw('hours_day + hours_night + hours_travel'));
 
-            // TOUT les times depuis son existence
+            // TOUT les times (productive) depuis son existence
             foreach ($worksite->times as $time) {
                 if ($time->state == null && $time->oncall_duty == null && $time->on_business_trip == null) {
                     if ($time->chantier_id != null) {
