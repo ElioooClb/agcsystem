@@ -14,6 +14,7 @@ use function PHPUnit\Framework\isEmpty;
 // DEBUT [SPECGT20] - Mise à jour de la fonctionnalité de suivi des heures
 class UserScheduleManager extends Component
 {
+    public string $hasError = '';
     public User $user;
     protected CalculOnHoursService $calculService;
     public array $events;
@@ -51,10 +52,11 @@ class UserScheduleManager extends Component
      */
     public function getScheduleEvents(): void
     {
-        try{
+        try {
             $this->events = $this->groupEventsByDay($this->user->times);
         } catch (\Exception $e) {
-            $this->events = [];
+            $this->hasError = "Une erreur s'est produite lors de la récupération des événements. Veuillez nettoyer la base de données.";
+            dd($e->getMessage());
         }
     }
 
@@ -182,6 +184,7 @@ class UserScheduleManager extends Component
                 'onBusinessTrip' => false,
                 'nightEvent' => false,
                 'dayViewTitle' => $time->getStateLabel(),
+                'display' => 'block',
             ];
         }
 
@@ -201,13 +204,13 @@ class UserScheduleManager extends Component
                 'onBusinessTrip' => true,
                 'nightEvent' => false,
                 'dayViewTitle' => 'Grand Déplacement',
+                'display' => 'block',
             ];
         }
 
         // Handling work times
         foreach ($workTimes as $time) {
             if (!$time->oncall_duty) {
-
                 $date = $time->date;
                 // Initialise the grouped events for this date if they don't exist yet
                 if (!isset($groupedEvents[$date])) {
@@ -222,26 +225,26 @@ class UserScheduleManager extends Component
                 // Add the work hours to the dayHours and nightHours arrays
                 if ($time->isDayHours()) {
                     $groupedEvents[$date]['dayHours'][] = $time->hours_day;
-                    if (!in_array($time->id, $groupedEvents[$date]['ids'])) {
-                        $groupedEvents[$date]['ids'][] = $time->id;
-                    }
                 }
                 if ($time->isNightHours()) {
                     $groupedEvents[$date]['nightHours'][] = $time->hours_night;
-                    if (!in_array($time->id, $groupedEvents[$date]['ids'])) {
-                        $groupedEvents[$date]['ids'][] = $time->id;
-                    }
                 }
                 if ($time->isTravelHours()) {
                     $groupedEvents[$date]['travelsHours'][] = $time->hours_travel;
-                    if (!in_array($time->id, $groupedEvents[$date]['ids'])) {
-                        $groupedEvents[$date]['ids'][] = $time->id;
-                    }
                 }
 
                 // Add the note to the note array
                 if ($time->note) {
                     $groupedEvents[$date]['note'] .= $time->note . ' ';
+                }
+
+                if (!in_array($time->id, $groupedEvents[$date]['ids'])) {
+                    $groupedEvents[$date]['ids'][] = $time->id;
+                }
+                if (!$time->hours_travel && !$time->hours_day && !$time->hours_night && $time->note) {
+                    $groupedEvents[$date]['display'] = 'none';
+                }else{
+                    $groupedEvents[$date]['display'] = 'block';
                 }
             } else {
                 $finalEvents[] = [
@@ -259,12 +262,14 @@ class UserScheduleManager extends Component
                     'onBusinessTrip' => false,
                     'nightEvent' => false,
                     'dayViewTitle' => 'Astreinte',
+                    'display' => 'block',
                 ];
             }
         }
 
         // Create the final events array
         foreach ($groupedEvents as $date => &$events) {
+
             // Calculate the total day and night hours for this date
             $totalDayHours = isset($events['dayHours']) ? array_sum($events['dayHours']) : 0;
             $totalNightHours = isset($events['nightHours']) ? array_sum($events['nightHours']) : 0;
@@ -296,6 +301,7 @@ class UserScheduleManager extends Component
                     'oncallDuty' => false,
                     'onBusinessTrip' => false,
                     'dayViewTitle' => 'Heures de nuit',
+                    'display' => 'block',
                 ];
             }
 
@@ -306,7 +312,7 @@ class UserScheduleManager extends Component
                 $finalEvents[] = [
                     'title' => 'Heures de trajet',
                     'start' => $ISODate,
-                    'id' => $events['ids'][0] || [],
+                    'id' => $events['ids'][0],
                     'backgroundColor' => '#f8f9a',
                     'allDay' => false,
                     'className' => 'text-center',
@@ -318,6 +324,7 @@ class UserScheduleManager extends Component
                     'oncallDuty' => false,
                     'onBusinessTrip' => false,
                     'dayViewTitle' => 'Heures de trajet',
+                    'display' => 'block',
                 ];
             }
 
@@ -341,11 +348,13 @@ class UserScheduleManager extends Component
                 'onBusinessTrip' => false,
                 'dayViewTitle' => 'Total des heures : ' . Time::formatWorkHours($totalHours),
                 'weekViewTitle' => 'H-jour : ' . Time::formatWorkHours($totalDayHours) . ' | H-nuit : ' . Time::formatWorkHours($totalNightHours) . ' | H-trajet : ' . Time::formatWorkHours($totalTravelHours),
+                'display' => $events['display'],
             ];
             // Delete the dayHours and nightHours arrays to avoid duplicates
             unset($events['dayHours'], $events['nightHours'], $events['travelHours']);
+
+            // dd($finalEvents);
         }
-        
         return $finalEvents;
     }
 
@@ -360,7 +369,7 @@ class UserScheduleManager extends Component
     private function calculAvailability($date, $end, $hours, $stateId): array
     {
         if (isset($end)) {
-            return Time::createUserAvailabilityForMultipleDays($this->user->id, $hours, $date, $end, $stateId);
+            return (array) Time::createUserAvailabilityForMultipleDays($this->user->id, $hours, $date, $end, $stateId);
         } else {
             $time = Time::isAvailabilityDeclared($this->user->id, $date) ?
                 Time::updateUserAvailability($this->user->id, $hours, $date, $stateId)

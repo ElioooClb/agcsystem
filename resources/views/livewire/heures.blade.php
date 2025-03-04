@@ -35,7 +35,7 @@
                                 <label for="dHours" class="block mb-3 font-bold text-gray-700">
                                     Heures de jour :
                                 </label>
-                                <input id="dHours" type="time" name="dHours" value="00:00"
+                                <input id="dHours" type="time" name="dHours" value="00:00" min="00:00"
                                     class="w-full px-4 py-2 mb-3 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray">
                             </div>
 
@@ -529,6 +529,15 @@
                 // Prevent the form from submitting
                 event.preventDefault();
 
+                const dhours = document.getElementById('dHours');
+                const label = document.querySelector('label[for="dHours"]');
+                const select = document.getElementById('hoursSelect');
+
+                if (dhours.value === '00:00' && label.textContent === 'Heures :' && select.value !== '0') {
+                    window.flashAlert('error', 'Veuillez entrer des heures valides');
+                    return;
+                }
+
                 // Get the selected value
                 selectEl.disabled = false;
 
@@ -554,7 +563,7 @@
             };
 
             // Close the modal when clicking on the close button
-            var span = document.getElementById("closeModal");
+            const span = document.getElementById("closeModal");
             span.onclick = function() {
                 modalInfo.classList.add("hidden");
             };

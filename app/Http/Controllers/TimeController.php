@@ -8,6 +8,7 @@ use App\Services\CalculOnHoursService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
 use Carbon\Carbon;
 
 class TimeController extends Controller
