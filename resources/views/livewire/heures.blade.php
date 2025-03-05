@@ -217,12 +217,6 @@
 
                         if (times) {
                             times.forEach(time => {
-                                // if (!time.hours_day && !time.hours_night && time.note) {
-                                //     console.log(time.note);
-                                // }
-                                if (time.note == "tt") {
-                                    console.log(time);
-                                }
                                 if (time.user_id === userId && time.date === cellDate
                                     .toISOString().split('T')[0] &&
                                     time.chantier_id === null) {
@@ -240,9 +234,6 @@
                                             3,
                                             true);
                                     } else if (time.state) {
-                                        if (time.id == 4876) {
-                                            console.log(time);
-                                        }
                                         switch (time.state) {
                                             case 1:
                                                 createHoursInfo(time, 'Congé Payé',
@@ -268,9 +259,6 @@
                                                 break;
                                         }
                                     } else {
-                                        if (time.id == 4876) {
-                                            console.log('else', time);
-                                        }
                                         createHoursInfo(time, convertToTimeFormat(time
                                                 .hours_day) + ' heures',
                                             '#FF99FF', 0, true);
@@ -431,10 +419,6 @@
             const form = document.querySelector('#timeForm');
             const submitButton = document.querySelector('#validate');
 
-            submitButton.addEventListener('click', function() {
-
-            });
-
             selectEl.addEventListener('change', function() {
                 const selectedValue = selectEl.value;
                 const numericValue = parseInt(selectedValue, 10);
@@ -554,9 +538,9 @@
                 const label = document.querySelector('label[for="dHours"]');
                 const select = document.getElementById('hoursSelect');
                 const note = document.getElementById('note');
+                const checkedNote = note.value.trim();
 
-                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' && note
-                    .value === '') {
+                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' && checkedNote === '') {
                     const btn = document.getElementById('validate');
                     window.flashAlert('error', 'Veuillez renseigner les heures ou une note pour valider.');
                     return;
