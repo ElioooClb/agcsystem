@@ -242,7 +242,7 @@ class StatisticsService
             $progress = ($revisedHours > 0) ? round($consumedHours / $revisedHours, 2) : 0;
 
             // Calcul de la progression sur la totalité des heures consommées
-            $worksite->totalProgression = round($worksite->totalConsumedHours / $revisedHours, 2);
+            $worksite->totalProgression = ($revisedHours > 0 ) ? round($worksite->totalConsumedHours / $revisedHours, 2) : 0;
 
             // Mise à jour des propriétés
             $worksite->progress = $progress;

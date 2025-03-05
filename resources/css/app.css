@@ -58,6 +58,15 @@ td:empty {
     background-color: #47404f; /* Couleur de fond pour les cellules vides */
 }
 
+.user-dropdown {
+    display: none;
+}
+
+.user-dropdown.isOpen {
+    display: block;
+}
+
+
 /* FIN [SPECGT9] - FRONT - Mise en page des boutons actions */
 
 /*

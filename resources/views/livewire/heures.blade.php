@@ -35,7 +35,7 @@
                                 <label for="dHours" class="block mb-3 font-bold text-gray-700">
                                     Heures de jour :
                                 </label>
-                                <input id="dHours" type="time" name="dHours" value="00:00"
+                                <input id="dHours" type="time" name="dHours" value="00:00" min="00:00"
                                     class="w-full px-4 py-2 mb-3 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray">
                             </div>
 
@@ -133,7 +133,9 @@
                         const hasUserEnteredHour = Boolean(timeForEvent);
 
                         // Ajout de la classe si nécessaire
-                        const classNames = hasUserEnteredHour ? ['idChantierEvent' + idChantier, 'text-center'] : [
+                        const classNames = hasUserEnteredHour ? ['idChantierEvent' + idChantier,
+                            'text-center'
+                        ] : [
                             'idChantierEvent' + idChantier, 'bg-gray-500', 'text-center'
                         ];
 
@@ -242,6 +244,8 @@
                                                     '#EAB308', 10);
                                                 break;
                                             case 3:
+                                                console.log("Arrêt");
+                                                console.log(time);
                                                 createHoursInfo(time, 'Arrêt',
                                                     '#3B82F6', 10);
                                                 break;
@@ -413,6 +417,7 @@
             const selectEl = document.querySelector('#hoursSelect');
             const hoursEl = document.querySelector('#dHours');
             const form = document.querySelector('#timeForm');
+            const submitButton = document.querySelector('#validate');
 
             selectEl.addEventListener('change', function() {
                 const selectedValue = selectEl.value;
@@ -529,6 +534,18 @@
                 // Prevent the form from submitting
                 event.preventDefault();
 
+                const dhours = document.getElementById('dHours');
+                const label = document.querySelector('label[for="dHours"]');
+                const select = document.getElementById('hoursSelect');
+                const note = document.getElementById('note');
+                const checkedNote = note.value.trim();
+
+                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' && checkedNote === '') {
+                    const btn = document.getElementById('validate');
+                    window.flashAlert('error', 'Veuillez renseigner les heures ou une note pour valider.');
+                    return;
+                }
+
                 // Get the selected value
                 selectEl.disabled = false;
 
@@ -554,7 +571,7 @@
             };
 
             // Close the modal when clicking on the close button
-            var span = document.getElementById("closeModal");
+            const span = document.getElementById("closeModal");
             span.onclick = function() {
                 modalInfo.classList.add("hidden");
             };
@@ -615,12 +632,13 @@
             // Show the event hours
             const dHours = document.querySelector('#dHours');
             info.event ? dHours.value = info.event.extendedProps?.hours : dHours.value = '00:00';
-            
-            if (info.event && info.event.extendedProps?.type && info.event.extendedProps?.type !== 3) { // If type equal 0 it will not trigger this condition
+
+            if (info.event && info.event.extendedProps?.type && info.event.extendedProps?.type !==
+                3) { // If type equal 0 it will not trigger this condition
                 console.log('readonly');
                 dHours.readOnly = true;
                 dHours.classList.add('bg-gray-300');
-            }else{
+            } else {
                 dHours.readOnly = false;
                 dHours.classList.remove('bg-gray-300');
             }

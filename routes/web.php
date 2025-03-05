@@ -17,6 +17,7 @@ use App\Http\Controllers\{
     ParameterController,
 };
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\View;
 
 /*
 |--------------------------------------------------------------------------

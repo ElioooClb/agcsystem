@@ -92,7 +92,27 @@
                         </div>
                     </div>
                     <hr>
-                    <div wire:ignore x-data="dropdown" x-global="isEndDate">
+                    <div wire:ignore>
+                        <button id="toggleDropdown"
+                            class="px-6 py-3 text-white bg-green-500 rounded hover:bg-green-600 focus:outline-none focus:shadow-outline-green">
+                            Sélection de dates
+                        </button>
+                        <div id="dropdownMenu" class="user-dropdown">
+                            <hr>
+                            <menu class="p-3 date-selection">
+                                <label for="date_debut">Date de début</label>
+                                <input
+                                    class="w-full px-4 py-2 mb-3 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray"
+                                    type="date" name="date_debut" id="date_debut">
+                                <label for="date_fin">Date de fin</label>
+                                <input
+                                    class="w-full px-4 py-2 mb-3 text-2xl leading-tight text-gray-700 bg-gray-100 border border-gray-300 rounded-lg appearance-none h-14 focus:outline-none focus:shadow-outline-gray"
+                                    type="date" name="date_fin" id="date_fin">
+                            </menu>
+                        </div>
+                    </div>
+
+                    {{-- <div wire:ignore x-data="dropdown" x-global="isEndDate">
                         <button @click="toggle"
                             class="px-6 py-3 text-white bg-green-500 rounded hover:bg-green-600 focus:outline-none focus:shadow-outline-green">Sélection
                             de dates</button>
@@ -109,7 +129,7 @@
                                     type="date" name="date_fin" id="date_fin">
                             </menu>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>
@@ -129,14 +149,12 @@
             const interactionPlugin = window.interactionPlugin;
             const multiMonthPlugin = window.multiMonthPlugin;
             const moment = window.moment;
-
-            Alpine.data('dropdown', () => ({
-                isOpen: false,
-
-                toggle() {
-                    this.isOpen = !this.isOpen
-                },
-            }));
+            if (@json($this->hasError)) {
+                window.flashAlert('error',
+                    'Une erreur est survenue. Contactez un administrateur pour nettoyer la base de données.');
+            }
+            const events = @json($events);
+            // console.log(events);
 
             // Calendar
             let weekendsVisible = false;
@@ -176,7 +194,7 @@
                         handleClick(arg);
                     }
                 },
-                events: @json($events),
+                events: events,
                 eventClick: function(arg) {
                     if (!arg.jsEvent.target.classList.contains("fc-daygrid-day-top")) {
                         handleClick(arg, true);
@@ -276,38 +294,71 @@
             });
             calendar.render();
 
+            const dropdownButton = document.getElementById('toggleDropdown');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+
+            dropdownButton.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('isOpen');
+            });
+
             const menu = document.getElementById("actionsMenu");
-            const actionsButtons = menu.querySelectorAll("button:not(.deleteBtn)");
+            const actionsButtons = menu.querySelectorAll(
+                "button:not(.deleteBtn)"); // Tous les boutons sauf celui de suppression
             const actionsModalEl = document.getElementById('actionsModal');
-            const deleteBtn = actionsModalEl.querySelector('.deleteBtn');
+            const deleteBtn = actionsModalEl.querySelector(
+                '.deleteBtn'); // Le bouton de suppression si nécessaire
+
+            // Variables liées au dropdown de dates
+            const dateDebutInput = document.getElementById('date_debut');
+            const dateFinInput = document.getElementById('date_fin');
+            const dropdown = document.querySelector('.user-dropdown'); // L'élément qui contient le dropdown
+            const isDropdownVisible = () => dropdown && dropdown.classList.contains(
+                'isOpen'); // Fonction pour vérifier si le dropdown est visible
 
             actionsButtons.forEach((button) => {
                 button.addEventListener("click", (e) => {
                     let dateDebut;
                     let dateFin;
-                    if (!isEndDate.isOpen) {
-                        dateDebut = actionsModalEl.querySelector('h2').getAttribute('data-date');
-                    } else {
-                        dateDebut = document.getElementById('date_debut').value;
-                        dateFin = document.getElementById('date_fin').value;
+
+                    // Si le dropdown est visible, il faut que les dates soient renseignées
+                    if (isDropdownVisible()) {
+                        dateDebut = dateDebutInput.value;
+                        dateFin = dateFinInput.value;
+
+                        // Vérifier si les dates sont sélectionnées
                         if (!dateDebut || !dateFin) {
                             window.flashAlert('error',
-                                'Veuillez sélectionner une date de début et une date de fin.');
+                                'Veuillez sélectionner une date de début et une date de fin.'
+                            );
                             return;
                         }
+                    } else {
+                        // Si le dropdown est caché, ne pas utiliser de dates
+                        dateDebut = actionsModalEl.querySelector('h2').getAttribute(
+                            'data-date');
+                        dateFin = null; // Pas de date de fin nécessaire
                     }
-                    if (dateDebut === null) {
+
+                    // Vérification de la date de début
+                    if (dateDebut === null || dateDebut === '') {
                         window.flashAlert('error',
-                            'Veuillez sélectionner une date de début et une date de fin');
+                            'Veuillez sélectionner une date de début');
                         return;
                     }
+                    dropdown.classList.remove('isOpen');
+
+                    // Récupérer l'action et l'ID de l'état du bouton cliqué
                     const method = button.getAttribute('data-action');
                     const stateId = button.value;
+
+                    // Récupérer l'heure
                     const hoursElement = actionsModalEl.querySelector('#hours_day');
-                    let hours = "07:00";
-                    if (hoursElement.value.length === 0) {
-                        hours = actionsModalEl.querySelector('#hours_day').value;
+                    let hours = "07:00"; // Valeur par défaut
+                    if (hoursElement.value.length > 0) {
+                        hours = hoursElement.value;
                     }
+
+                    // Emission de l'événement Livewire
                     Livewire.emit('onAvailability', {
                         method: method,
                         date: dateDebut,
