@@ -166,20 +166,12 @@ class TimeController extends Controller
         $productiveHours = [];
         $nonProductiveHours = [];
         foreach ($times as $time) {
-            // Si l'heure a un état, ne pas inclure les heures "normales" pour le même jour
-            if ($time->state) {
-                $times = $times->filter(function ($item) use ($time) {
-                    return $item->date != $time->date || $item->state;
-                });
-            }
-
             $productiveHours[$time->date] = $this->calculOnHoursService->dayProductiveHours($time->date);
             $nonProductiveHours[$time->date] = $this->calculOnHoursService->dayNonProductiveHours($time->date);
         }
 
         // Variable pour stocker les ids des chantiers de l'utilisateur
         $chantiers = $user->chantiers;
-
 
         return view('users.suivi.showHeure', [
             'user' => $user,

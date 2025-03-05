@@ -133,7 +133,9 @@
                         const hasUserEnteredHour = Boolean(timeForEvent);
 
                         // Ajout de la classe si nécessaire
-                        const classNames = hasUserEnteredHour ? ['idChantierEvent' + idChantier, 'text-center'] : [
+                        const classNames = hasUserEnteredHour ? ['idChantierEvent' + idChantier,
+                            'text-center'
+                        ] : [
                             'idChantierEvent' + idChantier, 'bg-gray-500', 'text-center'
                         ];
 
@@ -215,6 +217,12 @@
 
                         if (times) {
                             times.forEach(time => {
+                                // if (!time.hours_day && !time.hours_night && time.note) {
+                                //     console.log(time.note);
+                                // }
+                                if (time.note == "tt") {
+                                    console.log(time);
+                                }
                                 if (time.user_id === userId && time.date === cellDate
                                     .toISOString().split('T')[0] &&
                                     time.chantier_id === null) {
@@ -232,6 +240,9 @@
                                             3,
                                             true);
                                     } else if (time.state) {
+                                        if (time.id == 4876) {
+                                            console.log(time);
+                                        }
                                         switch (time.state) {
                                             case 1:
                                                 createHoursInfo(time, 'Congé Payé',
@@ -242,6 +253,8 @@
                                                     '#EAB308', 10);
                                                 break;
                                             case 3:
+                                                console.log("Arrêt");
+                                                console.log(time);
                                                 createHoursInfo(time, 'Arrêt',
                                                     '#3B82F6', 10);
                                                 break;
@@ -255,6 +268,9 @@
                                                 break;
                                         }
                                     } else {
+                                        if (time.id == 4876) {
+                                            console.log('else', time);
+                                        }
                                         createHoursInfo(time, convertToTimeFormat(time
                                                 .hours_day) + ' heures',
                                             '#FF99FF', 0, true);
@@ -413,6 +429,11 @@
             const selectEl = document.querySelector('#hoursSelect');
             const hoursEl = document.querySelector('#dHours');
             const form = document.querySelector('#timeForm');
+            const submitButton = document.querySelector('#validate');
+
+            submitButton.addEventListener('click', function() {
+
+            });
 
             selectEl.addEventListener('change', function() {
                 const selectedValue = selectEl.value;
@@ -532,9 +553,12 @@
                 const dhours = document.getElementById('dHours');
                 const label = document.querySelector('label[for="dHours"]');
                 const select = document.getElementById('hoursSelect');
+                const note = document.getElementById('note');
 
-                if (dhours.value === '00:00' && label.textContent === 'Heures :' && select.value !== '0') {
-                    window.flashAlert('error', 'Veuillez entrer des heures valides');
+                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' && note
+                    .value === '') {
+                    const btn = document.getElementById('validate');
+                    window.flashAlert('error', 'Veuillez renseigner les heures ou une note pour valider.');
                     return;
                 }
 
@@ -624,12 +648,13 @@
             // Show the event hours
             const dHours = document.querySelector('#dHours');
             info.event ? dHours.value = info.event.extendedProps?.hours : dHours.value = '00:00';
-            
-            if (info.event && info.event.extendedProps?.type && info.event.extendedProps?.type !== 3) { // If type equal 0 it will not trigger this condition
+
+            if (info.event && info.event.extendedProps?.type && info.event.extendedProps?.type !==
+                3) { // If type equal 0 it will not trigger this condition
                 console.log('readonly');
                 dHours.readOnly = true;
                 dHours.classList.add('bg-gray-300');
-            }else{
+            } else {
                 dHours.readOnly = false;
                 dHours.classList.remove('bg-gray-300');
             }
