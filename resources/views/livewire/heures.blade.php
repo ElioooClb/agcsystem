@@ -188,7 +188,7 @@
                         const times = @json($times);
 
                         const createHoursInfo = (timeForCellDate, title, backgroundColor, type,
-                            editable = false) => {
+                            editable = false, eventInteractive = false) => {
                             if (timeForCellDate) {
                                 const existingEvent = calendar.getEvents().find(event =>
                                     event.start.toDateString() === cellDate
@@ -202,6 +202,7 @@
                                         backgroundColor: backgroundColor,
                                         textColor: '#FFF',
                                         editable: editable,
+                                        eventInteractive: eventInteractive,
                                         isWorksiteEvent: false,
                                         classNames: ['text-center'],
                                         originalTitle: title,
@@ -223,17 +224,17 @@
                                     time.chantier_id === null) {
                                     if (time.oncall_duty) {
                                         createHoursInfo(time, 'Astreinte', '#ed8936', 1,
-                                            true);
+                                            true, true);
                                     } else if (time.on_business_trip) {
                                         createHoursInfo(time, 'Grand Trajet', '#46755b',
                                             2,
-                                            true);
+                                            true, true);
                                     } else if (time.unbillable) {
                                         createHoursInfo(time, convertToTimeFormat(time
-                                                .hours_day) +
+                                                .hours_day,) +
                                             ' Intervention non facturée', '#9c23a1',
                                             3,
-                                            true);
+                                            true, true);
                                     } else if (time.state) {
                                         switch (time.state) {
                                             case 1:
@@ -260,7 +261,7 @@
                                     } else {
                                         createHoursInfo(time, convertToTimeFormat(time
                                                 .hours_day) + ' heures',
-                                            '#FF99FF', 0, true);
+                                            '#FF99FF', 0, true, true);
                                     }
                                 }
                             });
@@ -363,7 +364,7 @@
                                     deleteButton.classList.remove('hidden');
                                 }
                             });
-                        } else if (info.event) {
+                        } else if (info.event && info.event.extendedProps.type !== 10) {
                             handleModal({
                                 info
                             });
@@ -651,7 +652,6 @@
                     return;
                 }
             }
-
 
             if (info.event) {
                 populateModal({
