@@ -4,6 +4,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import listPlugin from '@fullcalendar/list';
 import timeGridPlugin from '@fullcalendar/timegrid';
+
 import interactionPlugin, { Draggable } from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import frLocale from '@fullcalendar/core/locales/fr';
@@ -19,6 +20,7 @@ import 'moment/locale/fr';
 import Alpine from 'alpinejs';
 
 // Import the sweetalert2 and animate.css plugin
+import Swal from 'sweetalert2';
 import { flashAlert, confirmationAlert } from '/resources/js/utils/flashAlert.js';
 
 // Import the tippy plugin and css
@@ -28,6 +30,7 @@ import 'tippy.js/dist/tippy.css';
 // Add flashAlert to the window
 window.flashAlert = flashAlert;
 window.confirmationAlert = confirmationAlert;
+window.Swal = Swal;
 
 // Add FullCalendar to the window
 window.Calendar = Calendar;

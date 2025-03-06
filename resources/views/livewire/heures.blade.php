@@ -209,6 +209,7 @@
                                             .hours_day),
                                         type: type,
                                         timeID: timeForCellDate.id,
+                                        note: timeForCellDate.note,
                                     };
                                     calendar.addEvent(event);
                                 }
@@ -244,8 +245,6 @@
                                                     '#EAB308', 10);
                                                 break;
                                             case 3:
-                                                console.log("Arrêt");
-                                                console.log(time);
                                                 createHoursInfo(time, 'Arrêt',
                                                     '#3B82F6', 10);
                                                 break;
@@ -309,7 +308,16 @@
                         }
                     },
                     dateClick: function(info) {
-                        handleModal(info, info.dateStr, times);
+                        const date = info.date;
+                        const events = calendar.getEvents().filter(event => {
+                            return event.start.toDateString() === date.toDateString();
+                        });
+                        const currentEvents = events.filter(event => !event.extendedProps
+                            .isWorksiteEvent);
+                        handleModal({
+                            info,
+                            currentEvents
+                        });
                     },
                     eventClick: function(info) {
                         if (info.event.extendedProps.isWorksiteEvent) {
@@ -355,23 +363,11 @@
                                     deleteButton.classList.remove('hidden');
                                 }
                             });
-                        } else if (info.event.backgroundColor === '#FF99FF') {
-                            // Hors productions
-                            console.log(info.event.extendedProps);
-                            handleModal(info, info.event.start.toISOString().split('T')[0],
-                                times);
-                        } else if (info.event.backgroundColor === '#ed8936') {
-                            // On Call Duty
-                            handleModal(info, info.event.start.toISOString().split('T')[0],
-                                times, true);
-                        } else if (info.event.backgroundColor === '#46755b') {
-                            // Business Trip
-                            handleModal(info, info.event.start.toISOString().split('T')[0],
-                                times, false, true);
-                        } else if (info.event.backgroundColor === '#9c23a1') {
-                            // Unbillable
-                            handleModal(info, info.event.start.toISOString().split('T')[0],
-                                times);
+                        } else if (info.event) {
+                            console.log('event clicked', info.event);
+                            handleModal({
+                                info
+                            });
                         } else {
                             // Others
                             info.jsEvent.preventDefault();
@@ -540,7 +536,8 @@
                 const note = document.getElementById('note');
                 const checkedNote = note.value.trim();
 
-                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' && checkedNote === '') {
+                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' &&
+                    checkedNote === '') {
                     const btn = document.getElementById('validate');
                     window.flashAlert('error', 'Veuillez renseigner les heures ou une note pour valider.');
                     return;
@@ -554,6 +551,176 @@
             });
 
         });
+
+        /**
+         * Function to handle the modal for the dateClick and non-productive events
+         * 0: Heure non productive, 1: Astreinte, 2: Grand trajet, 3: Intervention non facturée
+         * @param info
+         * @param dateStr
+         * @param times
+         * @param isOncallDutyEvent
+         */
+        async function handleModal({
+            info,
+            currentEvents
+        }) {
+            const dateStr = info.dateStr ?? info.event.start.toISOString().split('T')[0];
+            console.log('dateStr', dateStr);
+            const events = {
+                'unproductive': null,
+                'unbillable': null,
+                'create': {
+                    'hours': '00:00',
+                    'type': 0,
+                    'note': '',
+                }
+            }
+
+            if (currentEvents && currentEvents.length > 0) {
+                currentEvents.forEach(event => {
+                    if (event.extendedProps.type === 0) events.unproductive = event;
+                    if (event.extendedProps.type === 3) events.unbillable = event;
+                });
+            }
+
+            const hasUnproductive = events.unproductive;
+            const hasUnbillable = events.unbillable;
+            const hasEvent = hasUnproductive || hasUnbillable;
+
+            // console.log('isUnproductive', hasUnproductive);
+            // console.log('isUnbillable', hasUnbillable);
+            // console.log('envent clicked', info.event);
+
+            const doms = {
+                modal: document.querySelector('#actionsModal'),
+                deleteBtn: document.querySelector('#delete'),
+                prodHoursDiv: document.querySelector('#prodHoursDiv'),
+                dHours: document.querySelector('#dHours'),
+                selectSection: document.querySelector('#hoursSelectSection'),
+                selectEl: document.querySelector('#hoursSelect'),
+                noteDiv: document.querySelector('#noteDiv'),
+                note: document.querySelector('#note'),
+                dbHoursLabel: document.querySelector('label[for="dHours"]'),
+                infoImage: document.querySelector('#infoImage'),
+            }
+
+            // Define the modal static elements
+            doms.prodHoursDiv.classList.add('hidden');
+            doms.noteDiv.classList.remove('hidden');
+            doms.selectSection.classList.remove('hidden');
+            doms.selectEl.classList.remove('hidden');
+            hasEvent ? doms.deleteBtn.classList.remove('hidden') : doms.deleteBtn.classList.add('hidden');
+            tippy(doms.infoImage, {
+                content: "Utiliser cette boite pour signaler une note de frais, des vêtements de travail, etc...",
+            });
+
+            if (hasEvent) {
+                let choice = null;
+                let inputOptions = {
+                    Heures: {}
+                };
+
+                inputOptions.Heures.create = 'Créer une nouvelle déclaration';
+                if (hasUnproductive) inputOptions.Heures.unproductive = 'Heures hors production';
+                if (hasUnbillable) inputOptions.Heures.unbillable = 'Heures non facturables';
+
+                if (hasUnproductive || hasUnbillable) {
+                    const {
+                        value
+                    } = await window.Swal.fire({
+                        title: "Choisissez une option",
+                        text: "Vous avez des heures hors production et des heures non facturables pour cette date. Veuillez choisir laquelle vous souhaitez modifier.",
+                        icon: "question",
+                        input: "select",
+                        inputOptions: inputOptions,
+                        inputPlaceholder: 'Choisissez une déclaration',
+                        showCancelButton: true,
+                        reverseButtons: true,
+                        inputValidator: (value) => {
+                            return value ? null : 'Veuillez choisir une option.';
+                        },
+                    });
+
+                    if (value === undefined) return;
+                    choice = value;
+                }
+
+                const eventType = choice || (hasUnproductive ? 'unproductive' : 'unbillable');
+
+                if (events[eventType]) {
+                    console.log(`Un event ${eventType} a été trouvé`);
+                    populateModal({
+                        doms,
+                        event: events[eventType],
+                        isCreation: choice === 'create',
+                    });
+                    showModal(doms.modal, `Déclaration d'heures ${eventType} affectée`, dateStr);
+                    return;
+                }
+            }
+
+
+            if (info.event) {
+                console.log('Un event à été trouvé');
+                populateModal({
+                    doms,
+                    event: info.event,
+                });
+                showModal(doms.modal, "Déclaration d'heures hors production affectée", dateStr);
+                return;
+            }
+
+            // Value the label
+            doms.dbHoursLabel.textContent = 'Heures :';
+
+            // select options values
+            doms.selectEl.value = '0';
+            doms.selectEl.disabled = false;
+            doms.selectEl.classList.remove('bg-gray-300');
+
+            // Show the event hours
+            dHours.value = '00:00';
+
+            if (event?.extendedProps?.type && event?.extendedProps?.type !== 3) {
+                dHours.readOnly = true;
+                dHours.classList.add('bg-gray-300');
+            } else {
+                dHours.readOnly = false;
+                dHours.classList.remove('bg-gray-300');
+            }
+
+            // Populate the note section with the note of the event
+            doms.note.value = '';
+
+            // Show the modal
+            showModal(doms.modal, "Déclaration d'heures hors production affectée", dateStr);
+        }
+
+        /**
+         * Function to populate the modal with the event data
+         * @param event
+         * @param modalInfo
+         * @return void
+         */
+        function populateModal({
+            doms,
+            event,
+            isCreation = false,
+        }) {
+            // Ajouter les heures
+            doms.dHours.value = event.extendedProps?.hours || '00:00';
+
+            // Choix du select
+            doms.selectSection.classList.remove('hidden');
+            doms.selectEl.classList.remove('hidden');
+            doms.selectEl.value = event.extendedProps?.type ?? 0;
+            const isDisabled = !!event.extendedProps?.type || !isCreation;
+            doms.selectEl.disabled = isDisabled;
+            if (isDisabled) doms.selectEl.classList.add('bg-gray-300');
+
+            // Ajouter la note
+            doms.note.value = event.extendedProps?.note ?? '';
+        }
 
         /**
          * Function to show the modal for worksite events
@@ -597,69 +764,6 @@
             } else {
                 worksiteId.value = null;
             }
-        }
-
-        /**
-         * Function to handle the modal for the dateClick and non-productive events
-         * @param info
-         * @param dateStr
-         * @param times
-         * @param isOncallDutyEvent
-         */
-        function handleModal(info, dateStr, times, isOncallDutyEvent = false, onBusinessTrip = false) {
-            var modalInfo = document.getElementById('actionsModal');
-            // Update the modal title & subtitle
-            document.querySelector('label[for="dHours"]').textContent = 'Heures :';
-            // const subtitle = document.querySelector('#idAff');
-
-            // Hide the delete button by default unless an event exist
-            const deleteButton = document.querySelector('#delete');
-            info.event ? deleteButton.classList.remove('hidden') : deleteButton.classList.add('hidden');
-
-            // select options value
-            const selectSection = document.querySelector('#hoursSelectSection');
-            const selectEl = document.querySelector('#hoursSelect');
-            selectSection.classList.remove('hidden');
-            selectEl.classList.remove('hidden');
-            info.event ? selectEl.value = info.event.extendedProps?.type : selectEl.value = '0';
-            info.event ? selectEl.disabled = true : selectEl.disabled = false;
-            info.event ? selectEl.classList.add('bg-gray-300') : selectEl.classList.remove('bg-gray-300');
-
-            // Hide the productive hours div by default
-            const prodHoursDiv = document.querySelector('#prodHoursDiv');
-            prodHoursDiv.classList.add('hidden');
-
-            // Show the event hours
-            const dHours = document.querySelector('#dHours');
-            info.event ? dHours.value = info.event.extendedProps?.hours : dHours.value = '00:00';
-
-            if (info.event && info.event.extendedProps?.type && info.event.extendedProps?.type !==
-                3) { // If type equal 0 it will not trigger this condition
-                console.log('readonly');
-                dHours.readOnly = true;
-                dHours.classList.add('bg-gray-300');
-            } else {
-                dHours.readOnly = false;
-                dHours.classList.remove('bg-gray-300');
-            }
-
-            // Add Tippy tooltip to the info image | Add the image next to the label of the input 'note'
-            const infoImage = document.querySelector('#infoImage');
-            tippy(infoImage, {
-                content: "Utiliser cette boite pour signaler une note de frais, des vêtements de travail, etc...",
-            });
-
-            // Show the note section
-            const noteDiv = document.querySelector('#noteDiv');
-            noteDiv.classList.remove('hidden');
-
-            // Populate the note section with the note of the event
-            const note = document.querySelector('#note');
-            const time = times.find(time => time.id === info.event?.extendedProps?.timeID);
-            note.value = time?.note ? time.note : '';
-
-            // Show the modal
-            showModal(modalInfo, "Déclaration d'heures hors production affectée", dateStr);
         }
 
         async function findChantierByIdLocal(idChantier) {
