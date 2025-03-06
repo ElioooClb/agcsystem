@@ -709,6 +709,7 @@
             const isDisabled = !!event.extendedProps?.type || !isCreation;
             doms.selectEl.disabled = isDisabled;
             if (isDisabled) doms.selectEl.classList.add('bg-gray-300');
+            if (!isDisabled) doms.selectEl.classList.remove('bg-gray-300');
 
             // Ajouter la note
             doms.note.value = event.extendedProps?.note ?? '';
