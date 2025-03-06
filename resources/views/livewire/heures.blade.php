@@ -364,7 +364,6 @@
                                 }
                             });
                         } else if (info.event) {
-                            console.log('event clicked', info.event);
                             handleModal({
                                 info
                             });
@@ -565,7 +564,6 @@
             currentEvents
         }) {
             const dateStr = info.dateStr ?? info.event.start.toISOString().split('T')[0];
-            console.log('dateStr', dateStr);
             const events = {
                 'unproductive': null,
                 'unbillable': null,
@@ -586,10 +584,6 @@
             const hasUnproductive = events.unproductive;
             const hasUnbillable = events.unbillable;
             const hasEvent = hasUnproductive || hasUnbillable;
-
-            // console.log('isUnproductive', hasUnproductive);
-            // console.log('isUnbillable', hasUnbillable);
-            // console.log('envent clicked', info.event);
 
             const doms = {
                 modal: document.querySelector('#actionsModal'),
@@ -648,7 +642,6 @@
                 const eventType = choice || (hasUnproductive ? 'unproductive' : 'unbillable');
 
                 if (events[eventType]) {
-                    console.log(`Un event ${eventType} a été trouvé`);
                     populateModal({
                         doms,
                         event: events[eventType],
@@ -661,7 +654,6 @@
 
 
             if (info.event) {
-                console.log('Un event à été trouvé');
                 populateModal({
                     doms,
                     event: info.event,
