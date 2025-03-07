@@ -51,7 +51,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-560d080b.css",
+    "file": "assets/app-a2a0b103.css",
     "isEntry": true,
     "src": "resources/css/app.css"
   },
@@ -63,11 +63,11 @@
     "css": [
       "assets/app-5470c205.css"
     ],
-    "file": "assets/app-1ed41739.js",
+    "file": "assets/app-b0d50570.js",
     "imports": [
+      "_sweetalert2.esm.all-509645c6.js",
       "_flashAlert-c8019654.js",
-      "_tippy.esm-e500460f.js",
-      "_sweetalert2.esm.all-509645c6.js"
+      "_tippy.esm-e500460f.js"
     ],
     "isEntry": true,
     "src": "resources/js/app.js"

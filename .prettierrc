@@ -4,7 +4,7 @@
     "semi": true,
     "useTabs": false,
     "tabWidth": 2,
-    "printWidth": 175,
+    "printWidth": 200,
     "arrowParens": "always",
     "bracketSpacing": true,
     "jsxBracketSameLine": false,
