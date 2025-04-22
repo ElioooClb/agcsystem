@@ -1231,7 +1231,6 @@
                 "pda/pheanstalk": "^4.0",
                 "phpstan/phpstan": "~1.11.11",
                 "phpunit/phpunit": "^10.0.7",
-                "predis/predis": "^2.0.2",
                 "symfony/cache": "^6.2",
                 "symfony/http-client": "^6.2.4",
                 "symfony/psr-http-message-bridge": "^2.0"
