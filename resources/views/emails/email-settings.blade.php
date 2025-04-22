@@ -15,7 +15,14 @@
             <aside>
                 @foreach ($emails as $email)
                     <button class="general-button"
-                        @click="currentEmail = '{{ $email->email }}'; currentLabel = '{{ $email->label }}'; currentTitle = '{{ $email->label ?? 'Detail for Button 1' }}'; currentType = '{{ $email->type }}'; currentId = '{{ $email->id }}'">
+                        @click="
+                    currentEmail = @js($email->email);
+                    currentLabel = @js($email->label);
+                    currentTitle = @js($email->label ?? 'Detail for Button 1');
+                    currentType = @js($email->type);
+                    currentId = @js($email->id);
+                    "
+                    >
                         {{ $email->label ?? 'Paramètre à venir...' }}
                     </button>
                 @endforeach
@@ -24,7 +31,8 @@
                 <article class="detail-container">
                     <h2 x-text="currentTitle">Detail for Button 1</h2>
                     <hr>
-                    <form action="{{ route('email-settings.update') }}" method="POST"  x-data="formHandler()" @submit="submitForm">
+                    <form action="{{ route('email-settings.update') }}" method="POST" x-data="formHandler()"
+                        @submit="submitForm">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="id" x-model="currentId">

@@ -121,6 +121,9 @@
                                 </label>
                             </div>
                             <hr>
+                            {{-- Stage Chantier --}}
+                            <p class="mt-4 text-2xl">Stage : {{ $chantier->stage_state }}</p>
+                            <hr>
                             {{-- Observation(s) Chantier --}}
                             <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
                             @if ($chantier->observation)

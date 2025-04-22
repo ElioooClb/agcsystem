@@ -341,6 +341,17 @@
                                     </select>
                                 </div>
                                 <hr>
+                                {{-- Stage Chantier --}}
+                                @php
+                                    $stage = $chantier->stages;
+                                @endphp
+                                <p class="mt-4 text-2xl">Dossier : {{ $stage->label }}</p>
+                                <button
+                                    class="staging-btn px-4 py-2 font-bold text-white bg-green-500 rounded-full hover:bg-green-700"
+                                    data-id="{{ $chantier->id }}">
+                                    Passer à l'étape suivante
+                                </button>
+                                <hr>
                                 {{-- Observation(s) Chantier --}}
                                 <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
                                 <textarea name="observations" cols="15" rows="5" class="block w-full mt-1 rounded-md observations">{{ $chantier->observation }}</textarea>
