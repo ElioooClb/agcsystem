@@ -76,15 +76,28 @@
             <!-- Fin [SPECGT11] - Affichage d'un message si aucun chantier n'est trouvé -->
 
             <menu class="calendarListingWorksites">
+                @php
+                    $colors = [
+                        'STAGE_1A' => 'bg-danger',
+                        'STAGE_1B' => 'bg-warning',
+                        'STAGE_1C' => 'bg-success',
+                    ];
+                @endphp
                 @foreach ($chantiers as $chantier)
-                    <!-- Début [SPECGT11] - Modification filtrage des chantiers -->
                     @if (!collect($archivedWorkSites)->contains($chantier))
-                        <!-- Fin [SPECGT11] - Modification filtrage des chantiers -->
                         <li data-id-chantier="{{ $chantier->id }}" data-event='@json(['title' => $chantier->title])'
-                            class="menu-item dropEvent bg-{{ $chantier->color }}-500">{{ $chantier->title }}</li>
-                        {{-- FIN [SPECGT17] - Ajout d'un scroll css et d'une gestion de l'affichage mobile --}}
+                            class="menu-item dropEvent bg-{{ $chantier->color }}-500 relative p-2 text-md">
 
-                        {{-- Modal Modif Chantier  --}}
+                            <span class="block pr-6">
+                                {{ $chantier->title }}
+                            </span>
+
+                            <span
+                                class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
+                            </span>
+
+                        </li>
+
                         @csrf
                         <div id="chantierModal_{{ $chantier->id }}" data-id="{{ $chantier->id }}" class="modalCh">
                             <div class="p-6 bg-white rounded-lg shadow-lg modalCh-content modal_admin">
@@ -167,8 +180,7 @@
 
                                         <p class="flex pb-2 invoiceContainer" data-id="{{ $chantier->id }}">
                                             <label for="invoiceNumber" class="font-thin me-2">Facture n° :</label>
-                                            <input class='invoiceInputNumber text-[14px]'
-                                                data-id="{{ $chantier->id }}"
+                                            <input class='invoiceInputNumber text-[14px]' data-id="{{ $chantier->id }}"
                                                 data-status="{{ $chantier->states->status }}" type='text'
                                                 name="invoiceNumber"
                                                 value="{{ $existFilledAt ? $chantier->invoices->number : '' }}"
