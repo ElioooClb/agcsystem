@@ -15,6 +15,7 @@ use App\Http\Controllers\{
     LoadoutController,
     ManageController,
     ParameterController,
+    StateController,
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -72,6 +73,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/handle-invoice', [InvoiceController::class, 'handleInvoice']);
     Route::delete('/delete-invoice', [InvoiceController::class, 'delete']);
     Route::post('/recovery-invoice', [InvoiceController::class, 'recovery']);
+
+    Route::post('/handle-stage', [StateController::class, 'handleStage']);
 
     /** Gestion des statistiques */
     Route::get('/voir-les-statistiques', [ChantierController::class, 'statistiques'])->name('chantier.statistiques');

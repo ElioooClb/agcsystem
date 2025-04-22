@@ -22,7 +22,7 @@ class EmailService
         $dataToSend = collect($worksite)->toArray();
         $to = $this->handleTo($config);
 
-        if (is_null($to)) {
+        if (empty($to)) {
             Log::error('EmailService: No valid recipient email address found.');
             return;
         }
@@ -40,21 +40,23 @@ class EmailService
     /**
      * Handle recipient email address based on config.
      * @param array $config - ['to']
-     * @return string|null
+     * @return array<string>
      */
-    private function handleTo(array $config): ?string
+    private function handleTo(array $config): ?array
     {
-        switch ($config['to']) {
-            case 'accountant':
-                $template = EmailTemplate::where('type', 'accountant')->first();
-                return $template ? $template->email : null;
-            case 'supervisor':
-                return $config['supervisorEmail'] ?? null;
-            case 'admin':
-                $template = EmailTemplate::where('type', 'admin')->first();
-                return $template ? $template->email : null;
-            default:
-                return null;
+        $recipients = [];
+
+        $types = is_array($config['to']) ? $config['to'] : [$config['to']];
+
+        foreach ($types as $type) {
+            $template = EmailTemplate::where('type', $type)->first();
+            if ($template && $template->email) {
+                $recipients[] = $template->email;
+            }
         }
+
+        Log::info('EmailService: Recipients', ['recipients' => $recipients]);
+
+        return count($recipients) ? $recipients : [];
     }
 }

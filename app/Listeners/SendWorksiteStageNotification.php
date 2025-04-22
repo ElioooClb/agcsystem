@@ -2,10 +2,12 @@
 
 namespace App\Listeners;
 
+use App\Events\WorksiteStageUpdated;
 use App\Services\EmailService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 class SendWorksiteStageNotification implements ShouldQueue
 {
     use InteractsWithQueue;
@@ -23,27 +25,32 @@ class SendWorksiteStageNotification implements ShouldQueue
     /**
      * Handle the event.
      */
-    public function handle(array $event): void
+    public function handle(WorksiteStageUpdated $event): void
     {
-        $worksite = $event['worksite'];
-        $oldStage = $event['oldStage'];
-        $newStage = $event['newStage'];
-        $direction = $event['direction'];
+        $worksite = $event->worksite;
+        $oldStage = $event->oldStage;
+        $newStage = $event->newStage;
+        $direction = $event->direction;
 
         // Configuration de l'email en fonction du stage
         $config = $this->getEmailConfig($oldStage, $newStage, $direction);
-        
+
         if (!$config) {
             return;
         }
 
-        // Préparation des données du chantier
+        // Préparation des données du worksite
         $worksiteData = [
             'title' => $worksite->title,
-            'idaff' => $worksite->idaff,
-            'oldStage' => $oldStage,
-            'newStage' => $newStage,
-            'direction' => $direction
+            'idaff' => $worksite->getIdAff(),
+            'hours' => $worksite->hours,
+            'materialamount' => $worksite->montantmateriel,
+            'serviceamount' => $worksite->montantservice,
+            'type' => $worksite->type(),
+            'supervisor' => Auth::user()->name,
+            'stageLabel' => $worksite->stages->label,
+            'direction' => $direction,
+            'updated_at' => $worksite->updated_at->format('d/m/Y H:i'),
         ];
 
         // Envoi de l'email
@@ -59,32 +66,31 @@ class SendWorksiteStageNotification implements ShouldQueue
         $configs = [
             'STAGE_1A' => [
                 'forward' => [
-                    'to' => 'supervisor',
-                    'template' => 'stage_1a_to_1b',
-                    'subject' => 'Transition du chantier vers l\'étape d\'approbation'
-                ]
+                    'to' => ['worker_02'],
+                    'template' => 'emails.worksite.staging-notification',
+                    'subject' => '🔔 Nouveau worksite à traiter (passage en validation)',
+                ],
             ],
             'STAGE_1B' => [
                 'forward' => [
-                    'to' => 'admin',
-                    'template' => 'stage_1b_to_1c',
-                    'subject' => 'Chantier archivé'
+                    'to' => ['worker_01'],
+                    'template' => 'emails.worksite.staging-notification',
+                    'subject' => '✅ worksite validé et archivé',
                 ],
                 'backward' => [
-                    'to' => 'supervisor',
-                    'template' => 'stage_1b_to_1a',
-                    'subject' => 'Chantier retourné à l\'étape initiale'
-                ]
+                    'to' => ['worker_01'],
+                    'template' => 'emails.worksite.staging-notification',
+                    'subject' => '⛔ Retour du worksite à l’étape initiale',
+                ],
             ],
             'STAGE_1C' => [
                 'backward' => [
-                    'to' => 'admin',
-                    'template' => 'stage_1c_to_1b',
-                    'subject' => 'Chantier réactivé'
-                ]
-            ]
+                    'to' => ['worker_01', 'worker_02'],
+                    'template' => 'emails.worksite.staging-notification',
+                    'subject' => '🔄 Réactivation d’un worksite archivé',
+                ],
+            ],
         ];
-
         return $configs[$oldStage][$direction] ?? null;
     }
 }

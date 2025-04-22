@@ -3,16 +3,11 @@
 namespace App\Services;
 
 use App\Models\Chantier;
-use Illuminate\Support\Facades\Event;
+use App\Events\WorksiteStageUpdated;
+use Illuminate\Support\Facades\Log;
 
 class WorksiteStagingService
 {
-    private array $stages = [
-        'STAGE_1A' => 'initial',
-        'STAGE_1B' => 'pendingApproval',
-        'STAGE_1C' => 'archived',
-    ];
-
     private array $allowedForwardTransitions = [
         'STAGE_1A' => ['STAGE_1B'],
         'STAGE_1B' => ['STAGE_1C'],
@@ -25,16 +20,16 @@ class WorksiteStagingService
         'STAGE_1C' => ['STAGE_1B'],
     ];
 
-    private Chantier $workSite;
+    private Chantier $worksite;
 
-    public function __construct(Chantier $workSite)
+    public function __construct(Chantier $worksite)
     {
-        $this->workSite = $workSite;
+        $this->worksite = $worksite;
     }
 
     public function getCurrentStage(): string
     {
-        return $this->workSite->stage_state;
+        return $this->worksite->stage_state;
     }
 
     public function canTransitionForward(): bool
@@ -73,16 +68,17 @@ class WorksiteStagingService
         }
 
         $oldStage = $this->getCurrentStage();
-        $this->workSite->stage_state = $nextStage;
-        $this->workSite->save();
+        $this->worksite->stage_state = $nextStage;
+        $this->worksite->save();
 
         // Émettre un événement pour permettre l'envoi de mails
-        Event::dispatch('worksite.stage.changed', [
-            'worksite' => $this->workSite,
-            'oldStage' => $oldStage,
-            'newStage' => $nextStage,
-            'direction' => 'forward'
-        ]);
+        event(new worksiteStageUpdated(
+            $this->worksite,
+            $oldStage,
+            $this->worksite->stage_state,
+            'forward'
+        ));
+        
 
         return true;
     }
@@ -99,16 +95,17 @@ class WorksiteStagingService
         }
 
         $oldStage = $this->getCurrentStage();
-        $this->workSite->stage_state = $previousStage;
-        $this->workSite->save();
+        $this->worksite->stage_state = $previousStage;
+        $this->worksite->save();
 
         // Émettre un événement pour permettre l'envoi de mails
-        Event::dispatch('worksite.stage.changed', [
-            'worksite' => $this->workSite,
-            'oldStage' => $oldStage,
-            'newStage' => $previousStage,
-            'direction' => 'backward'
-        ]);
+        event(new worksiteStageUpdated(
+            $this->worksite,
+            $oldStage,
+            $this->worksite->stage_state,
+            'backward'
+        ));
+        
 
         return true;
     }
