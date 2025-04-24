@@ -109,7 +109,6 @@
                     </div>
                 </div>
             </div>
-            <div id="worksiteModal"></div>
         </div>
     </div>
 </div>
@@ -291,6 +290,7 @@
                         cellHeaderElement.classList.add("bg-slate-200");
                         cellHeaderElement.classList.add('fc-tooltips');
                     },
+                    // Fin [SPECGT25] - Modification de l'affichage des heures pour intégrer les astreintes
                     viewDidMount: function(arg) {
                         if (arg.view.type === 'listWeek') {
                             calendar.getEvents().forEach(event => {
@@ -378,7 +378,6 @@
                     },
                     eventDidMount: function(info) {
                         if (info.event.extendedProps.isWorksiteEvent) {
-                            console.log(info.event.extendedProps);
                             let dayHours = info.event.extendedProps.hours_day;
                             let nightHours = info.event.extendedProps.hours_night;
                             let passengerHours = info.event.extendedProps.hours_travel;
@@ -475,6 +474,8 @@
 
             deleteButton.addEventListener("click", function(event) {
                 event.preventDefault();
+
+                // Add a confirmation alert before deleting the time entry
                 window.confirmationAlert('Êtes-vous sûr de vouloir supprimer cette heure ?')
                     .then((result) => {
                         if (result) {
@@ -560,21 +561,17 @@
                 event.preventDefault();
 
                 const dhours = document.getElementById('dHours');
-                const nhours = document.getElementById('nHours');
-                const phours = document.getElementById('pHours');
                 const label = document.querySelector('label[for="dHours"]');
                 const select = document.getElementById('hoursSelect');
                 const note = document.getElementById('note');
                 const checkedNote = note.value.trim();
 
-                const isHoursDefined = (dhours.value !== '00:00' || nhours.value !== '00:00' || phours.value !== '00:00');
-                const isNoteDefined = (checkedNote !== '');
-                const isSelectDefined = (select.value === '0' || select.value === '3');
-
-                if (!isHoursDefined && !isNoteDefined && isSelectDefined) {
+                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' &&
+                    checkedNote === '') {
+                    const btn = document.getElementById('validate');
                     window.flashAlert('error', 'Veuillez renseigner les heures ou une note pour valider.');
                     return;
-                };
+                }
 
                 // Get the selected value
                 selectEl.disabled = false;
@@ -733,12 +730,7 @@
             isCreation = false,
         }) {
             // Ajouter les heures
-            const hasHours = event.extendedProps?.hours;
-            doms.dHours.value = hasHours ? event.extendedProps?.hours : '00:00';
-
-            // Handling the delete button
-            const deleteBtn = document.querySelector('#delete');
-            hasHours ? deleteBtn.classList.remove('hidden') : deleteBtn.classList.add('hidden');
+            doms.dHours.value = event.extendedProps?.hours || '00:00';
 
             // Choix du select
             doms.selectSection.classList.remove('hidden');

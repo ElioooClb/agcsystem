@@ -33,10 +33,30 @@ class TimeController extends Controller
         $worksiteId = $request->input('worksiteId');
         $note = $request->input('note');
         $type = $request->input('type');
-        // dd($type);
         switch ($type) {
+            case '0': // Heure productive
+                $entry = Time::where('date', $date)->where('user_id', $userId)->where('chantier_id', $worksiteId)->first();
+                if ($entry) {
+                    $entry->update([
+                        'hours_day' => (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60,
+                        'hours_night' => (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60,
+                        'hours_travel' => (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60,
+                        'note' => $note,
+                    ]);
+                } else {
+                    $time = new Time;
+                    $time->user_id = $userId;
+                    $time->date = $date;
+                    $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
+                    $time->hours_night = (int)explode(':', $nightHours)[0] + (int)explode(':', $nightHours)[1] / 60;
+                    $time->hours_travel = (int)explode(':', $passengerHours)[0] + (int)explode(':', $passengerHours)[1] / 60;
+                    $time->chantier_id = $worksiteId;
+                    $time->note = $note;
+                    $time->save();
+                }
+                break;
             case '1': // Astreinte
-                Log::info('Option sélectionnée : Astreinte');
+                // Log::info('Option sélectionnée : Astreinte');
                 $currentDate = Carbon::parse($date);
                 $startOfWeek = $currentDate->copy()->startOfWeek(Carbon::MONDAY);  // Récupère le lundi de la semaine en cours
 
