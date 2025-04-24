@@ -92,8 +92,7 @@
                                 {{ $chantier->title }}
                             </span>
 
-                            <span
-                                data-id={{ $chantier->id }}
+                            <span data-id={{ $chantier->id }}
                                 class="stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
                             </span>
 
@@ -366,7 +365,8 @@
                                 <div class="flex items-center gap-2 my-4">
                                     <span data-id="{{ $chantier->id }}"
                                         class="modal-stage-indicator w-3 h-3 rounded-full border border-dark {{ $color }}"></span>
-                                    <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">{{ $stage->label }}</p>
+                                    <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">
+                                        {{ $stage->label }}</p>
                                 </div>
                                 <menu id='staging-menu' class="flex items-center gap-2">
                                     <button
@@ -540,6 +540,33 @@
                     },
                     hiddenDays: [6, 0], // enleve le samedi et dimanche
                     events: eventsData,
+                    eventDidMount: function(info) {
+                        const stage = info.event.extendedProps.chantier?.stage_state;
+                        const colors = {
+                            STAGE_1A: 'bg-danger',
+                            STAGE_1B: 'bg-warning',
+                            STAGE_1C: 'bg-success',
+                        };
+                        const color = colors[stage] || 'bg-gray-300';
+                        const id = info.event.extendedProps.chantier?.id || '';
+
+                        // Ajoute du padding à droite pour faire de la place au span
+                        info.el.style.position = 'relative';
+                        info.el.style.paddingRight = '1.5rem';
+
+                        const indicator = document.createElement('span');
+                        indicator.className =
+                            `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
+                        indicator.setAttribute('data-id', id);
+
+                        // Positionne le span à droite avec absolute
+                        indicator.style.position = 'absolute';
+                        indicator.style.top = '50%';
+                        indicator.style.right = '4px';
+                        indicator.style.transform = 'translateY(-50%)';
+
+                        info.el.appendChild(indicator);
+                    },
                     editable: true,
                     selectable: false,
                     locale: 'fr',
@@ -644,7 +671,6 @@
             return uuid;
         }
 
-        //[SPECGT10] pop up somme
         // Fonction pour afficher la boîte modale + ajoutez un événement au bouton pour ouvrir le pop-up
         var openPopupButton = document.getElementById("openPopupButton");
         var closePopupButton = document.getElementById("closePopupButton");
