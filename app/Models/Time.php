@@ -16,6 +16,7 @@ class Time extends Model
         'date',
         'hours_day',
         'hours_night',
+        'hours_travel',
         'user_id',
         'chantier_id',
         'note',
