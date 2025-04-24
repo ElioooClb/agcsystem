@@ -93,7 +93,8 @@
                             </span>
 
                             <span
-                                class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
+                                data-id={{ $chantier->id }}
+                                class="stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
                             </span>
 
                         </li>
@@ -344,13 +345,45 @@
                                 {{-- Stage Chantier --}}
                                 @php
                                     $stage = $chantier->stages;
+                                    $colors = [
+                                        'STAGE_1A' => 'bg-danger',
+                                        'STAGE_1B' => 'bg-warning',
+                                        'STAGE_1C' => 'bg-success',
+                                    ];
+                                    $prevStage = [
+                                        'STAGE_1A' => 'STAGE_1A',
+                                        'STAGE_1B' => 'STAGE_1A',
+                                        'STAGE_1C' => 'STAGE_1B',
+                                    ];
+                                    $nextStage = [
+                                        'STAGE_1A' => 'STAGE_1B',
+                                        'STAGE_1B' => 'STAGE_1C',
+                                        'STAGE_1C' => 'STAGE_1C',
+                                    ];
+                                    $color = $colors[$stage->code];
                                 @endphp
-                                <p class="mt-4 text-2xl">Dossier : {{ $stage->label }}</p>
-                                <button
-                                    class="staging-btn px-4 py-2 font-bold text-white bg-green-500 rounded-full hover:bg-green-700"
-                                    data-id="{{ $chantier->id }}">
-                                    Passer à l'étape suivante
-                                </button>
+
+                                <div class="flex items-center gap-2 my-4">
+                                    <span data-id="{{ $chantier->id }}"
+                                        class="modal-stage-indicator w-3 h-3 rounded-full border border-dark {{ $color }}"></span>
+                                    <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">{{ $stage->label }}</p>
+                                </div>
+                                <menu id='staging-menu' class="flex items-center gap-2">
+                                    <button
+                                        class="staging-backward-btn px-4 py-2 font-bold text-white bg-orange-500 rounded-3 hover:bg-orange-700"
+                                        data-id="{{ $chantier->id }}" data-direction="backward"
+                                        data-next-stage="{{ $prevStage[$stage->code] }}"
+                                        data-current-stage="{{ $stage->code }}">
+                                        Revenir à l'étape précédente
+                                    </button>
+                                    <button
+                                        class="staging-forward-btn px-4 py-2 font-bold text-white bg-green-500 rounded-3 hover:bg-green-700"
+                                        data-id="{{ $chantier->id }}" data-direction="forward"
+                                        data-next-stage="{{ $nextStage[$stage->code] }}"
+                                        data-current-stage="{{ $stage->code }}">
+                                        Passer à l'étape suivante
+                                    </button>
+                                </menu>
                                 <hr>
                                 {{-- Observation(s) Chantier --}}
                                 <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
@@ -802,4 +835,5 @@
     @vite('resources/js/heures/chantier.js')
     @vite('resources/js/heures/worksiteState.js')
     @vite('resources/js/heures/deleteWorksite.js')
+    @vite('resources/js/heures/worksiteStaging.js')
 @endpush
