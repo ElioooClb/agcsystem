@@ -148,6 +148,9 @@
                             isWorksiteEvent: true,
                             originalTitle: event.title,
                             editable: true,
+                            extendedProps: {
+                                chantier: chantier
+                            },
                         };
                     });
                 })).then(eventsData => {
@@ -231,7 +234,7 @@
                                             true, true);
                                     } else if (time.unbillable) {
                                         createHoursInfo(time, convertToTimeFormat(time
-                                                .hours_day,) +
+                                                .hours_day, ) +
                                             ' Intervention non facturée', '#9c23a1',
                                             3,
                                             true, true);
@@ -396,7 +399,34 @@
                                         passengerHours),
                                 allowHTML: true
                             });
-                        }
+                        };
+                        if (info.event.extendedProps.isWorksiteEvent) {
+                            const stage = info.event.extendedProps.chantier?.stage_state;
+                            const colors = {
+                                STAGE_1A: 'bg-danger',
+                                STAGE_1B: 'bg-warning',
+                                STAGE_1C: 'bg-success',
+                            };
+                            const color = colors[stage] || 'bg-gray-300';
+                            const id = info.event.extendedProps.chantier?.id || '';
+
+                            // Ajoute du padding à droite pour faire de la place au span
+                            info.el.style.position = 'relative';
+                            info.el.style.paddingRight = '1.5rem';
+
+                            const indicator = document.createElement('span');
+                            indicator.className =
+                                `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
+                            indicator.setAttribute('data-id', id);
+
+                            // Positionne le span à droite avec absolute
+                            indicator.style.position = 'absolute';
+                            indicator.style.top = '50%';
+                            indicator.style.right = '4px';
+                            indicator.style.transform = 'translateY(-50%)';
+
+                            info.el.appendChild(indicator);
+                        };
                     },
                 });
                 calendar.render();

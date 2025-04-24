@@ -122,7 +122,20 @@
                             </div>
                             <hr>
                             {{-- Stage Chantier --}}
-                            <p class="mt-4 text-2xl">Stage : {{ $chantier->stage_state }}</p>
+                            @php
+                                $stage = $chantier->stages;
+                                $colors = [
+                                    'STAGE_1A' => 'bg-danger',
+                                    'STAGE_1B' => 'bg-warning',
+                                    'STAGE_1C' => 'bg-success',
+                                ];
+                            @endphp
+                            <div class="flex items-center gap-2 my-4">
+                                <span data-id="{{ $chantier->id }}"
+                                    class="modal-stage-indicator w-3 h-3 rounded-full border border-dark {{ $colors[$stage->code] }}"></span>
+                                <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">
+                                    {{ $stage->label }}</p>
+                            </div>
                             <hr>
                             {{-- Observation(s) Chantier --}}
                             <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
@@ -164,6 +177,10 @@
                             classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' +
                                 idChantier
                             ],
+                            extendedProps: {
+                                ...event.extendedProps,
+                                chantier: chantier,
+                            },
                         };
                     });
                 })).then(eventsData => {
@@ -208,6 +225,34 @@
                     locale: 'fr',
                     // Set time zone to Paris
                     timeZone: 'Europe/paris',
+
+                    eventDidMount: function(info) {
+                        const stage = info.event.extendedProps.chantier?.stage_state;
+                        const colors = {
+                            STAGE_1A: 'bg-danger',
+                            STAGE_1B: 'bg-warning',
+                            STAGE_1C: 'bg-success',
+                        };
+                        const color = colors[stage] || 'bg-gray-300';
+                        const id = info.event.extendedProps.chantier?.id || '';
+
+                        // Ajoute du padding à droite pour faire de la place au span
+                        info.el.style.position = 'relative';
+                        info.el.style.paddingRight = '1.5rem';
+
+                        const indicator = document.createElement('span');
+                        indicator.className =
+                            `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
+                        indicator.setAttribute('data-id', id);
+
+                        // Positionne le span à droite avec absolute
+                        indicator.style.position = 'absolute';
+                        indicator.style.top = '50%';
+                        indicator.style.right = '4px';
+                        indicator.style.transform = 'translateY(-50%)';
+
+                        info.el.appendChild(indicator);
+                    },
 
                     // Event resize handler
                     eventResize: info => {
