@@ -378,7 +378,6 @@
                     },
                     eventDidMount: function(info) {
                         if (info.event.extendedProps.isWorksiteEvent) {
-                            console.log(info.event.extendedProps);
                             let dayHours = info.event.extendedProps.hours_day;
                             let nightHours = info.event.extendedProps.hours_night;
                             let passengerHours = info.event.extendedProps.hours_travel;

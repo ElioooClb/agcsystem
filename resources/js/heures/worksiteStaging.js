@@ -137,8 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            console.log('Stage updated successfully:', data);
-
                             // Mise à jour des attributs des boutons et de l'affichage
                             updateStageDisplay(chantierId, nextStage);
                             updateButtonAttributes(chantierId, nextStage);

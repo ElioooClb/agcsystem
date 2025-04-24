@@ -25,7 +25,6 @@ class TimeController extends Controller
     {
         // Retrieve the input values from the request
         $date = $request->input('date');
-        // dd($date);
         $dayHours = $request->input('dHours');
         $nightHours = $request->input('nHours');
         $passengerHours = $request->input('pHours');
@@ -159,6 +158,7 @@ class TimeController extends Controller
                     $time->date = $date;
                     $time->hours_day = (int)explode(':', $dayHours)[0] + (int)explode(':', $dayHours)[1] / 60;
                     $time->hours_night = 0.00;
+                    $time->hours_travel = 0.00;
                     $time->chantier_id = $worksiteId;
                     $time->note = $note;
                     $time->save();
