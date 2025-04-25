@@ -18,7 +18,6 @@ class HeureTekosAdmin extends Component
     public function render()
     {
         $this->events = json_encode(Event::with('user')->get());
-        dd($this->events);
         $this->times = json_encode(Time::with('user')->get());
         $this->chantiers = Chantier::all();
 

@@ -6,8 +6,8 @@ use App\Events\WorksiteStageUpdated;
 use App\Services\EmailService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+
 class SendWorksiteStageNotification implements ShouldQueue
 {
     use InteractsWithQueue;
@@ -39,7 +39,34 @@ class SendWorksiteStageNotification implements ShouldQueue
             return;
         }
 
-        // Préparation des données du worksite
+        // Définir dynamiquement le titre et le message
+        $message_title = '';
+        $message_content = '';
+
+        // Exemple de logique pour ajuster le titre et le message en fonction des stages
+        switch ($newStage) {
+            case 'STAGE_1A':
+                $message_title = '🔔 Demande de bon de travaux';
+                $message_content = 'Le bon de travaux a été demandé. Veuillez vérifier les informations.';
+                break;
+
+            case 'STAGE_1B':
+                $message_title = '✅ Bon de travaux validé';
+                $message_content = 'Le bon de travaux a été validé par l\'administration.';
+                break;
+
+            case 'STAGE_1C':
+                $message_title = '🔄 Demande de vérification du bon de travaux';
+                $message_content = 'Veuillez procéder à la vérification du bon de travaux.';
+                break;
+
+            default:
+                $message_title = 'Notification de chantier';
+                $message_content = 'Une mise à jour de chantier a été effectuée.';
+                break;
+        }
+
+        // Préparation des données du chantier
         $worksiteData = [
             'title' => $worksite->title,
             'idaff' => $worksite->getIdAff(),
@@ -48,12 +75,11 @@ class SendWorksiteStageNotification implements ShouldQueue
             'serviceamount' => $worksite->montantservice,
             'type' => $worksite->type(),
             'supervisor' => Auth::user()->name,
-            'stageLabel' => $worksite->stages->label,
-            'direction' => $direction,
             'updated_at' => $worksite->updated_at->format('d/m/Y H:i'),
+            'message_title' => $message_title,
+            'message_content' => $message_content,
         ];
-
-        // Envoi de l'email
+        // Envoi de l'email avec les données préparées
         $this->emailService->sendEmailNotification($config, $worksiteData);
     }
 
@@ -67,27 +93,22 @@ class SendWorksiteStageNotification implements ShouldQueue
             'STAGE_1A' => [
                 'forward' => [
                     'to' => ['worker_02'],
-                    'template' => 'emails.worksite.staging-notification',
-                    'subject' => '🔔 Nouveau worksite à traiter (passage en validation)',
+                    'template' => 'emails.workorder.notification',
+                    'subject' => '🔔 Demande de bon de travaux',
                 ],
             ],
             'STAGE_1B' => [
                 'forward' => [
                     'to' => ['worker_01'],
-                    'template' => 'emails.worksite.staging-notification',
-                    'subject' => '✅ worksite validé et archivé',
-                ],
-                'backward' => [
-                    'to' => ['worker_01'],
-                    'template' => 'emails.worksite.staging-notification',
-                    'subject' => '⛔ Retour du worksite à l’étape initiale',
+                    'template' => 'emails.workorder.notification',
+                    'subject' => '✅ Bon de travaux validé',
                 ],
             ],
             'STAGE_1C' => [
                 'backward' => [
-                    'to' => ['worker_01', 'worker_02'],
-                    'template' => 'emails.worksite.staging-notification',
-                    'subject' => '🔄 Réactivation d’un worksite archivé',
+                    'to' => ['worker_02'],
+                    'template' => 'emails.workorder.notification',
+                    'subject' => '🔄 Demande de vérification du bon de travaux',
                 ],
             ],
         ];

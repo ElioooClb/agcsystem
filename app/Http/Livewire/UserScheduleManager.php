@@ -352,8 +352,6 @@ class UserScheduleManager extends Component
             ];
             // Delete the dayHours and nightHours arrays to avoid duplicates
             unset($events['dayHours'], $events['nightHours'], $events['travelHours']);
-
-            // dd($finalEvents);
         }
         return $finalEvents;
     }
