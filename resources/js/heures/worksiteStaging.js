@@ -107,12 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const messages = {
             'forward': {
-                'STAGE_1A': 'Voulez-vous vraiment passer ce chantier en validation ?',
-                'STAGE_1B': 'Voulez-vous vraiment archiver ce chantier ?'
+                'STAGE_1A': 'Voulez-vous commencer le bon de travaux ?',
+                'STAGE_1B': 'Voulez-vous passer le bon de travaux en terminé ?'
             },
             'backward': {
-                'STAGE_1B': 'Voulez-vous vraiment revenir à l\'étape initiale ?',
-                'STAGE_1C': 'Voulez-vous vraiment réactiver ce chantier ?'
+                'STAGE_1B': 'Voulez-vous revenir à l\'étape "Bon de travaux non commencé" ?',
+                'STAGE_1C': 'Voulez-vous revenir à l\'étape "Bon de travaux en cours" ?'
             }
         };
 

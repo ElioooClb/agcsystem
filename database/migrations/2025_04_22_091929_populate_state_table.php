@@ -17,19 +17,19 @@ return new class extends Migration
             [
                 'code' => 'STAGE_1A',
                 'status' => 'Not Started',
-                'label' => 'Dossier non commencé',
+                'label' => 'Bon de travaux non commencé',
                 'status_group' => 'staging'
             ],
             [
                 'code' => 'STAGE_1B',
                 'status' => 'Started',
-                'label' => 'Dossier commencé',
+                'label' => 'Bon de travaux en cours',
                 'status_group' => 'staging'
             ],
             [
                 'code' => 'STAGE_1C',
                 'status' => 'Finished',
-                'label' => 'Dossier fini',
+                'label' => 'Bon de travaux terminé',
                 'status_group' => 'staging'
             ],
         ]);
@@ -40,6 +40,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        DB::table('states')->where('code', 'STAGE_1A')->delete();
+        DB::table('states')->where('code', 'STAGE_1B')->delete();
+        DB::table('states')->where('code', 'STAGE_1C')->delete();
     }
 };
