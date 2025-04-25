@@ -166,40 +166,41 @@
 @push('scripts')
     <script>
         document.addEventListener('livewire:load', function() {
-            // Load events asynchronously
-            Promise.all(JSON.parse(@this.events).filter(event => chantierIds.includes(event.id_chantier)).map(
-                event => {
-                    // Cas 1 : Event public_holiday (chantier_id)
-                    if (event.chantier_id !== undefined) {
-                        return {
-                            ...event,
-                            start: event.date,
-                            id_chantier: event.chantier_id,
-                            chantier: {
-                                id: event.chantier_id,
-                                title: '🎉 Jour férié 🎉',
-                                color: 'gray',
-                            },
-                            title: '🎉 Jour férié 🎉',
-                            classNames: ['bg-pink-500', 'idChantierEvent' + event.chantier_id,
-                                'border border-dark',
-                                'public-holiday',
-                            ],
-                            isWorksite: false,
-                        };
-                    }
+            const events = JSON.parse(@this.events);
 
-                    // Cas 2 : Event chantier (a déjà id_chantier)
-                    if (event.id_chantier) {
-                        const chantier = event.chantier;
-                        const idChantier = chantier.id;
-                        return {
-                            ...event,
-                            classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' + idChantier],
-                            isWorksite: true,
-                        };
-                    }
-                })).then(eventsData => {
+            // Séparation des events
+            const publicHolidays = events.filter(e => e.chantier_id !== undefined);
+            const chantierEvents = events.filter(e => e.id_chantier !== undefined && chantierIds.includes(e
+                .id_chantier));
+
+
+            // Load events asynchronously
+            Promise.all([
+                ...publicHolidays.map(event => ({
+                    ...event,
+                    start: event.date,
+                    id_chantier: event.chantier_id,
+                    chantier: {
+                        id: event.chantier_id,
+                        title: '🎉 Jour férié 🎉',
+                        color: 'gray',
+                    },
+                    title: '🎉 Jour férié 🎉',
+                    classNames: ['bg-pink-500', 'idChantierEvent' + event.chantier_id,
+                        'border border-dark', 'public-holiday'
+                    ],
+                    isWorksite: false,
+                })),
+                ...chantierEvents.map(event => {
+                    const chantier = event.chantier;
+                    const idChantier = chantier.id;
+                    return {
+                        ...event,
+                        classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' + idChantier],
+                        isWorksite: true,
+                    };
+                })
+            ]).then(eventsData => {
 
                 // Get calendar and draggable elements
                 const calendarEl = document.getElementById('calendar');
