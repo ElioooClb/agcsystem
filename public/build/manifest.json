@@ -51,7 +51,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-8d0e70de.css",
+    "file": "assets/app-bb9d379d.css",
     "isEntry": true,
     "src": "resources/css/app.css"
   },
@@ -138,7 +138,7 @@
     "src": "resources/js/heures/scheduleModalHandler.js"
   },
   "resources/js/heures/worksiteStaging.js": {
-    "file": "assets/worksiteStaging-51dbcfa3.js",
+    "file": "assets/worksiteStaging-8e81ccf9.js",
     "isEntry": true,
     "src": "resources/js/heures/worksiteStaging.js"
   },
