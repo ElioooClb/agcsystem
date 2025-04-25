@@ -502,13 +502,12 @@
     <script>
         document.addEventListener('livewire:load', function() {
             Promise.all(JSON.parse(@this.events).map(event => {
-                console.log(event);
                 // Cas 1 : Event public_holiday (chantier_id)
                 if (event.chantier_id !== undefined) {
                     return {
                         ...event,
-                        start: event.date, // harmoniser avec fullcalendar
-                        id_chantier: event.chantier_id, // harmoniser le nom de champ
+                        start: event.date,
+                        id_chantier: event.chantier_id,
                         chantier: {
                             id: event.chantier_id,
                             title: '🎉 Jour férié 🎉',
@@ -533,7 +532,6 @@
                         isWorksite: true,
                     };
                 }
-                // FIN - [SPECGT26] - Optimisation et corrections du code, correction de la dépendance chantier et suppression des requêtes en boucles
             })).then(eventsData => {
                 const Calendar = window.Calendar;
                 const calendarEl = document.getElementById('calendar');
