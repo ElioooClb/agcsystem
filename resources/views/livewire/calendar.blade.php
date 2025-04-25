@@ -7,4 +7,6 @@
 {{-- Planning Pour Télé --}}
 @elseif (Auth::user()->role_id === 3)
     @include('livewire.calendar-tv')
+@elseif (Auth::user()->role_id === 4)
+    @include('livewire.calendar-admin')
 @endif

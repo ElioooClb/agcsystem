@@ -10,7 +10,7 @@
                     </a>
                 </div>
                 <!-- menu pour admin et technicien -->
-                @if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2)
+                @if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2 || Auth::user()->role_id === 4)
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 nav-hiden sm:-my-px sm:ml-10 sm:flex nav_max">
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
