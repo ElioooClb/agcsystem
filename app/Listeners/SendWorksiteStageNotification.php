@@ -44,7 +44,7 @@ class SendWorksiteStageNotification implements ShouldQueue
         $message_content = '';
 
         // Exemple de logique pour ajuster le titre et le message en fonction des stages
-        switch ($newStage) {
+        switch ($oldStage) {
             case 'STAGE_1A':
                 $message_title = '🔔 Demande de bon de travaux';
                 $message_content = 'Le bon de travaux a été demandé. Veuillez vérifier les informations.';
@@ -62,7 +62,7 @@ class SendWorksiteStageNotification implements ShouldQueue
 
             default:
                 $message_title = 'Notification de chantier';
-                $message_content = 'Une mise à jour de chantier a été effectuée.';
+                $message_content = 'Une mise à jour du bon de travaux a été effectuée.';
                 break;
         }
 

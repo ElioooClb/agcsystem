@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Chantier;
 use App\Events\WorksiteStageUpdated;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class WorksiteStagingService
 {
@@ -18,6 +18,11 @@ class WorksiteStagingService
         'STAGE_1A' => [],
         'STAGE_1B' => ['STAGE_1A'],
         'STAGE_1C' => ['STAGE_1B'],
+    ];
+
+    private array $allowedFonctionsToLeave1B = [
+        'Président',
+        'Bureau étude',
     ];
 
     private Chantier $worksite;
@@ -35,7 +40,8 @@ class WorksiteStagingService
     public function canTransitionForward(): bool
     {
         $currentStage = $this->getCurrentStage();
-        return !empty($this->allowedForwardTransitions[$currentStage]);
+        $isAllowed = !empty($this->allowedForwardTransitions[$currentStage]);
+        return $isAllowed;
     }
 
     public function canTransitionBackward(): bool
@@ -108,5 +114,12 @@ class WorksiteStagingService
         
 
         return true;
+    }
+
+    public function isAllowedToForward(): bool
+    {
+        if ($this->getCurrentStage() !== 'STAGE_1B') return true;
+        $fonction = Auth::user()->fonction;
+        return in_array($fonction, $this->allowedFonctionsToLeave1B);
     }
 }

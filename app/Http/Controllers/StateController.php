@@ -20,6 +20,13 @@ class StateController extends Controller
         $stageService = new WorksiteStagingService($chantier);
 
         if ($validatedData['direction'] === 'forward') {
+            if (!$stageService->isAllowedToForward()) {
+                $hasSucceed = false;
+                return response()->json([
+                    'success' => $hasSucceed,
+                    'message' => 'Vous n\'êtes pas autorisé à quitter le stage 1B',
+                ]);
+            }
             $hasSucceed = $stageService->transitionForward();
         } else if ($validatedData['direction'] === 'backward') {
             $hasSucceed = $stageService->transitionBackward();
