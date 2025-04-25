@@ -188,6 +188,22 @@ td:empty {
 
 /*FIN [SPECGT10] - style pop up*/
 
+.public-holiday {
+    min-height: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.public-holiday .fc-event-title {
+    text-align: center;
+    display: block;
+    width: 100%;
+    flex-grow: 1;
+    color: black;
+    opacity: 1;
+}
+
+
 /* DEBUT - [SPECGT20] - Mise à jour de l'affichage des heures /voir-les-heures/{user} */
 /*
   _______          _ _______ _

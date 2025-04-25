@@ -12,21 +12,9 @@ use Illuminate\Support\Arr;
 
 class Calendar extends Component
 {
-    public $events = [];
-    public $totalMaterialAmount;
-    public $totalServiceAmount;
-    public $totalHoursScheduled;
-    public $totalHoursDone;
-    public $totalHourlyRate;
+    public string $events = '';
 
-    public function mount()
-    {
-        $this->totalMaterialAmount = 0;
-        $this->totalServiceAmount = 0;
-        $this->totalHoursScheduled = 0;
-        $this->totalHoursDone = 0;
-        $this->totalHourlyRate = 0;
-    }
+    public function mount() {}
 
     public function eventChange($id, $event)
     {
@@ -55,36 +43,36 @@ class Calendar extends Component
         Event::destroy($id);
     }
 
-    /**
-     * Calculate the total hours for each user at a work site
-     * [SPECGT10] Calcul des heures totales pour chaque utilisateur sur un chantier
-     * @param $workSite
-     * @return array
-     */
-    public function calculateUserHours($workSite)
-    {
-        // Get the list of user IDs associated with the work site
-        $userByWorkSite = $workSite->users()->pluck('user_id');
-        // Fetch all users that are in the list of user IDs
-        $listUsers = User::whereIn('id', $userByWorkSite)->get();
-        // Initialize an array to store the total hours for each user
-        $userHours = [];
+    // /**
+    //  * Calculate the total hours for each user at a work site
+    //  * [SPECGT10] Calcul des heures totales pour chaque utilisateur sur un chantier
+    //  * @param $workSite
+    //  * @return array
+    //  */
+    // public function calculateUserHours($workSite)
+    // {
+    //     // Get the list of user IDs associated with the work site
+    //     $userByWorkSite = $workSite->users()->pluck('user_id');
+    //     // Fetch all users that are in the list of user IDs
+    //     $listUsers = User::whereIn('id', $userByWorkSite)->get();
+    //     // Initialize an array to store the total hours for each user
+    //     $userHours = [];
 
-        // Loop through each user
-        foreach ($listUsers as $user) {
-            // Fetch all time entries for the current user at the work site
-            $userTimes = Time::where('chantier_id', $workSite->id)
-                ->where('user_id', $user->id)
-                ->get();
-            // Calculate the total hours (day + night) for the current user
-            $userTotalHours = $userTimes->sum('hours_day') + $userTimes->sum('hours_night');
-            // Store the total hours for the current user in the array
-            $userHours[$user->id] = $userTotalHours;
-        }
+    //     // Loop through each user
+    //     foreach ($listUsers as $user) {
+    //         // Fetch all time entries for the current user at the work site
+    //         $userTimes = Time::where('chantier_id', $workSite->id)
+    //             ->where('user_id', $user->id)
+    //             ->get();
+    //         // Calculate the total hours (day + night) for the current user
+    //         $userTotalHours = $userTimes->sum('hours_day') + $userTimes->sum('hours_night');
+    //         // Store the total hours for the current user in the array
+    //         $userHours[$user->id] = $userTotalHours;
+    //     }
 
-        // Return the array with the total hours for each user
-        return $userHours;
-    }
+    //     // Return the array with the total hours for each user
+    //     return $userHours;
+    // }
 
     /**
      * Partition work sites by hours done
@@ -106,31 +94,31 @@ class Calendar extends Component
             return $totalHours > 0;
         });
     }
-   
-    /**
-     * Calculate totals by status
-     * [SPECGT10] Calcul des totaux par statut
-     * @param $workSites
-     * @return array
-     */
-    public function calculateTotalsByStatus($workSites): array
-    {
-        $totalMaterialAmount = 0;
-        $totalServiceAmount = 0;
-        $totalHoursScheduled = 0;
 
-        foreach ($workSites as $workSite) {
-            $totalMaterialAmount += round($workSite->materialamount);
-            $totalServiceAmount += round($workSite->serviceamount);
-            $totalHoursScheduled += round($workSite->hours);
-        }
+    // /**
+    //  * Calculate totals by status
+    //  * [SPECGT10] Calcul des totaux par statut
+    //  * @param $workSites
+    //  * @return array
+    //  */
+    // public function calculateTotalsByStatus($workSites): array
+    // {
+    //     $totalMaterialAmount = 0;
+    //     $totalServiceAmount = 0;
+    //     $totalHoursScheduled = 0;
 
-        return [
-            'totalMaterialAmount' => $totalMaterialAmount,
-            'totalServiceAmount' => $totalServiceAmount,
-            'totalHoursScheduled' => $totalHoursScheduled,
-        ];
-    }
+    //     foreach ($workSites as $workSite) {
+    //         $totalMaterialAmount += round($workSite->materialamount);
+    //         $totalServiceAmount += round($workSite->serviceamount);
+    //         $totalHoursScheduled += round($workSite->hours);
+    //     }
+
+    //     return [
+    //         'totalMaterialAmount' => $totalMaterialAmount,
+    //         'totalServiceAmount' => $totalServiceAmount,
+    //         'totalHoursScheduled' => $totalHoursScheduled,
+    //     ];
+    // }
 
     public function render()
     {
@@ -145,80 +133,103 @@ class Calendar extends Component
             return $chantier->states->status_group;
         });
 
-        $inProgressWorkSites = $workSitesByState['inProgress'] ?? [];
-        list($startedWorkSites, $upcomingWorkSites) = $this->partitionWorkSitesByHoursDone($inProgressWorkSites);
+        // $inProgressWorkSites = $workSitesByState['inProgress'] ?? [];
+        // list($startedWorkSites, $upcomingWorkSites) = $this->partitionWorkSitesByHoursDone($inProgressWorkSites);
 
-        $toBillWorkSites = $workSitesByState['toBill'] ?? [];
+        // $toBillWorkSites = $workSitesByState['toBill'] ?? [];
         $archivedWorkSites = $workSitesByState['archived'] ?? [];
         // Fin [SPECGT10][V2.1] - Récupération des chantiers en fonction du statut
 
         // [SPECGT10] Calcul du total des heures affectées
-        $this->totalMaterialAmount = 0;
-        $this->totalServiceAmount = 0;
-        $this->totalHoursScheduled = 0;
-        $this->totalServiceAmount = 0;
-        $this->totalHourlyRate = 0;
-        $globalHoursDone = 0;
+        // $this->totalMaterialAmount = 0;
+        // $this->totalServiceAmount = 0;
+        // $this->totalHoursScheduled = 0;
+        // $this->totalServiceAmount = 0;
+        // $this->totalHourlyRate = 0;
+        // $globalHoursDone = 0;
 
-        foreach ($chantiers as $chantier) {
-            if (!collect($archivedWorkSites)->contains($chantier)) {
-                //calcul total fournitures
-                $this->totalMaterialAmount += round($chantier->materialamount);
+        // foreach ($chantiers as $chantier) {
+        //     if (!collect($archivedWorkSites)->contains($chantier)) {
+        //         //calcul total fournitures
+        //         $this->totalMaterialAmount += round($chantier->materialamount);
 
-                //calcul total main d'oeuvre
-                $this->totalServiceAmount += round($chantier->serviceamount);
+        //         //calcul total main d'oeuvre
+        //         $this->totalServiceAmount += round($chantier->serviceamount);
 
-                //calcul total heures prévues
-                $this->totalHoursScheduled += round($chantier->hours);
+        //         //calcul total heures prévues
+        //         $this->totalHoursScheduled += round($chantier->hours);
 
-                //calcul total heures affectées
-                $chantiersHours = Time::where('chantier_id', $chantier->id)->get();
-                $totalHours = $chantiersHours->sum('hours_day') + $chantiersHours->sum('hours_night') + $chantiersHours->sum('hours_travel');
-                $this->totalHoursDone += $totalHours;
-                $globalHoursDone += $totalHours;
+        //         //calcul total heures affectées
+        //         $chantiersHours = Time::where('chantier_id', $chantier->id)->get();
+        //         $totalHours = $chantiersHours->sum('hours_day') + $chantiersHours->sum('hours_night') + $chantiersHours->sum('hours_travel');
+        //         $this->totalHoursDone += $totalHours;
+        //         $globalHoursDone += $totalHours;
 
-                $chantier->userHours = $this->calculateUserHours($chantier);
-            }else{
-                $chantiersHours = Time::where('chantier_id', $chantier->id)->get();
-                $totalHours = $chantiersHours->sum('hours_day') + $chantiersHours->sum('hours_night') + $chantiersHours->sum('hours_travel');
-                $globalHoursDone += $totalHours;
-            }
-        }
+        //         $chantier->userHours = $this->calculateUserHours($chantier);
+        //     }else{
+        //         $chantiersHours = Time::where('chantier_id', $chantier->id)->get();
+        //         $totalHours = $chantiersHours->sum('hours_day') + $chantiersHours->sum('hours_night') + $chantiersHours->sum('hours_travel');
+        //         $globalHoursDone += $totalHours;
+        //     }
+        // }
 
         // Début [SPECGT10][V2.1] - Calcul des totaux par statut & modification du return
-        $startedWorkSitesTotals = $this->calculateTotalsByStatus($startedWorkSites);
-        $upcomingWorkSitesTotals = $this->calculateTotalsByStatus($upcomingWorkSites);
-        $toBillWorkSitesTotals = $this->calculateTotalsByStatus($toBillWorkSites);
-        $globalTotals = $this->calculateTotalsByStatus($chantiers);
-        
-        // calcul revenu par heure
-        $this->totalHourlyRate = number_format($globalTotals['totalServiceAmount'] / $globalHoursDone, 2, '.', '');
-        $averageToBillHourlyRate = number_format($toBillWorkSitesTotals['totalServiceAmount'] / $toBillWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
-        $averageUpcomingHourlyRate = number_format($upcomingWorkSitesTotals['totalServiceAmount'] / $upcomingWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
-        $averageStartedHourlyRate = number_format($startedWorkSitesTotals['totalServiceAmount'] / $startedWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
-        
-        $totalAmountFromHoursDone = $this->totalHoursDone * $this->totalHourlyRate;
-        $totalAmountFromToBillHourlyRate = $this->totalHoursDone * $averageToBillHourlyRate;
-        $totalAmountFromUpcomingHourlyRate = $this->totalHoursDone * $averageUpcomingHourlyRate;
+        // $startedWorkSitesTotals = $this->calculateTotalsByStatus($startedWorkSites);
+        // $upcomingWorkSitesTotals = $this->calculateTotalsByStatus($upcomingWorkSites);
+        // $toBillWorkSitesTotals = $this->calculateTotalsByStatus($toBillWorkSites);
+        // $globalTotals = $this->calculateTotalsByStatus($chantiers);
 
+        // calcul revenu par heure
+        // $this->totalHourlyRate = number_format($globalTotals['totalServiceAmount'] / $globalHoursDone, 2, '.', '');
+        // $averageToBillHourlyRate = number_format($toBillWorkSitesTotals['totalServiceAmount'] / $toBillWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
+        // $averageUpcomingHourlyRate = number_format($upcomingWorkSitesTotals['totalServiceAmount'] / $upcomingWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
+        // $averageStartedHourlyRate = number_format($startedWorkSitesTotals['totalServiceAmount'] / $startedWorkSitesTotals['totalHoursScheduled'], 2, '.', '');
+
+        // $totalAmountFromHoursDone = $this->totalHoursDone * $this->totalHourlyRate;
+        // $totalAmountFromToBillHourlyRate = $this->totalHoursDone * $averageToBillHourlyRate;
+        // $totalAmountFromUpcomingHourlyRate = $this->totalHoursDone * $averageUpcomingHourlyRate;
+
+        // return view('livewire.calendar', compact(
+        //     'chantiers',
+        //     'users',
+        //     'message',
+        //     'startedWorkSites',
+        //     'upcomingWorkSites',
+        //     'toBillWorkSites',
+        //     'startedWorkSitesTotals',
+        //     'upcomingWorkSitesTotals',
+        //     'toBillWorkSitesTotals',
+        //     'archivedWorkSites',
+        //     'averageToBillHourlyRate',
+        //     'averageUpcomingHourlyRate',
+        //     'averageStartedHourlyRate',
+        //     'totalAmountFromHoursDone',
+        //     'totalAmountFromToBillHourlyRate',
+        //     'totalAmountFromUpcomingHourlyRate'
+        // ))->with('totalHours', $this->totalHoursDone);
+        // Fin [SPECGT10][V2.1] - Calcul des totaux par statut & modification du return
+
+        $public_holidays = Time::where('state', 5)
+            ->select('*')
+            ->whereIn('id', function ($query) {
+                $query->selectRaw('MIN(id)')
+                    ->from('times')
+                    ->where('state', 5)
+                    ->groupBy('date');
+            })
+            ->get();
+        foreach ($public_holidays as $public_holiday) {
+            $public_holiday->display = 'background';
+        }
+        $events = collect(json_decode($this->events));
+        $mergedEvents = $events->merge($public_holidays);
+        $this->events = json_encode($mergedEvents);
         return view('livewire.calendar', compact(
             'chantiers',
             'users',
             'message',
-            'startedWorkSites',
-            'upcomingWorkSites',
-            'toBillWorkSites',
-            'startedWorkSitesTotals',
-            'upcomingWorkSitesTotals',
-            'toBillWorkSitesTotals',
             'archivedWorkSites',
-            'averageToBillHourlyRate',
-            'averageUpcomingHourlyRate',
-            'averageStartedHourlyRate',
-            'totalAmountFromHoursDone',
-            'totalAmountFromToBillHourlyRate',
-            'totalAmountFromUpcomingHourlyRate'
-        ))->with('totalHours', $this->totalHoursDone);
-        // Fin [SPECGT10][V2.1] - Calcul des totaux par statut & modification du return
+            'public_holidays'
+        ));
     }
 }

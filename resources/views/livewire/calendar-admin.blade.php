@@ -502,13 +502,37 @@
     <script>
         document.addEventListener('livewire:load', function() {
             Promise.all(JSON.parse(@this.events).map(event => {
-                // DEBUT - [SPECGT26] - Optimisation et corrections du code, correction de la dépendance chantier et suppression des requêtes en boucles
-                const chantier = event.chantier;
-                const idChantier = chantier.id;
-                return {
-                    ...event,
-                    classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' + idChantier],
-                };
+                console.log(event);
+                // Cas 1 : Event public_holiday (chantier_id)
+                if (event.chantier_id !== undefined) {
+                    return {
+                        ...event,
+                        start: event.date, // harmoniser avec fullcalendar
+                        id_chantier: event.chantier_id, // harmoniser le nom de champ
+                        chantier: {
+                            id: event.chantier_id,
+                            title: '🎉 Jour férié 🎉',
+                            color: 'gray',
+                        },
+                        title: '🎉 Jour férié 🎉',
+                        classNames: ['bg-pink-500', 'idChantierEvent' + event.chantier_id,
+                            'border border-dark',
+                            'public-holiday',
+                        ],
+                        isWorksite: false,
+                    };
+                }
+
+                // Cas 2 : Event chantier (a déjà id_chantier)
+                if (event.id_chantier) {
+                    const chantier = event.chantier;
+                    const idChantier = chantier.id;
+                    return {
+                        ...event,
+                        classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' + idChantier],
+                        isWorksite: true,
+                    };
+                }
                 // FIN - [SPECGT26] - Optimisation et corrections du code, correction de la dépendance chantier et suppression des requêtes en boucles
             })).then(eventsData => {
                 const Calendar = window.Calendar;
@@ -574,85 +598,97 @@
                     firstDay: 1,
                     // Lors du redimensionnement d'un événement, et mise à jour de la variable de l'id pour pouvoir le manipuler avant recharge de la page
                     eventResize: info => {
-                        const id = info.event['extendedProps']['data-id'] || info.event.id;
-                        @this.eventChange(id, info.event);
+                        if (info.event.extendedProps.isWorksite) {
+                            const id = info.event['extendedProps']['data-id'] || info.event.id;
+                            @this.eventChange(id, info.event);
+                        };
                     },
 
                     // Lors du drag d'un événement, mise à jour de la variable currentEvent
                     eventDrop: info => {
-                        const id = info.event['extendedProps']['data-id'] || info.event.id;
-                        @this.eventChange(id, info.event);
+                        if (info.event.extendedProps.isWorksite) {
+                            const id = info.event['extendedProps']['data-id'] || info.event.id;
+                            @this.eventChange(id, info.event);
+                        };
                     },
                     // Lors du drag d'un événement, mise à jour de la variable currentEvent
                     eventReceive: info => {
-                        const id = create_UUID();
-                        const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
+                        if (info.event.extendedProps.isWorksite) {
+                            const id = create_UUID();
+                            const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
 
-                        // Récupération de la classe complète de l'élément dragué
-                        const draggedElClass = info.draggedEl.className;
-                        // Utilisation d'une expression régulière pour extraire la couleur
-                        const colorRegex = /bg-(\w+)-500/;
-                        const match = draggedElClass.match(colorRegex);
+                            // Récupération de la classe complète de l'élément dragué
+                            const draggedElClass = info.draggedEl.className;
+                            // Utilisation d'une expression régulière pour extraire la couleur
+                            const colorRegex = /bg-(\w+)-500/;
+                            const match = draggedElClass.match(colorRegex);
 
-                        // Récupération de la couleur
-                        const colorClass = match[0]; // Classe tailwinds pour background color
+                            // Récupération de la couleur
+                            const colorClass = match[
+                                0]; // Classe tailwinds pour background color
 
-                        // Appliquer le style à l'événement
-                        info.event.setProp('classNames', ['idChantierEvent' + id_chantier,
-                            colorClass
-                        ]);
+                            // Appliquer le style à l'événement
+                            info.event.setProp('classNames', ['idChantierEvent' + id_chantier,
+                                colorClass
+                            ]);
 
-                        // Ajout d'un attribut id-chantier à l'événement pour pouvoir le manipuler avant recharge de la page
-                        info.event.setExtendedProp('data-id', id);
+                            // Ajout d'un attribut id-chantier à l'événement pour pouvoir le manipuler avant recharge de la page
+                            info.event.setExtendedProp('data-id', id);
 
-                        @this.eventAdd(info.event, id, id_chantier);
+                            @this.eventAdd(info.event, id, id_chantier);
+                        };
                     },
                     // Lors du clique sur un événement, affichage des informations sur le chantier
                     eventClick: info => {
+                        if (info.event.extendedProps.isWorksite) {
+                            var id = info.event.id;
+                            var id_chantier = info.event['extendedProps']['id_chantier'];
+                            // Récupération de l'id_chantier et id pour les événements créés par drag and drop avant rechargement de la page car null
+                            if (id_chantier == null || id_chantier == undefined ||
+                                id_chantier ==
+                                '') {
+                                // Récupération de la classe de l'événement
+                                const eventClass = info.event.classNames.find(className =>
+                                    className
+                                    .startsWith('idChantierEvent'));
 
-                        var id = info.event.id;
-                        var id_chantier = info.event['extendedProps']['id_chantier'];
-                        // Récupération de l'id_chantier et id pour les événements créés par drag and drop avant rechargement de la page car null
-                        if (id_chantier == null || id_chantier == undefined || id_chantier ==
-                            '') {
-                            // Récupération de la classe de l'événement
-                            const eventClass = info.event.classNames.find(className => className
-                                .startsWith('idChantierEvent'));
-
-                            // Expression régulière pour rechercher le nombre dans la classe
-                            const regex = /idChantierEvent(\d+)/;
-                            const match = eventClass.match(regex);
-                            // Récupération de l'id chantier
-                            id_chantier = match[1];
-                            id = info.event['extendedProps']['data-id'];
-                        }
-                        // Récupération de l'élément modal info
-                        var modalInfo = document.getElementById('chantierModalInfo_' +
-                            id_chantier);
-
-                        // Fermeture de la modal si on clique en dehors
-                        window.onclick = function(event) {
-                            if (event.target == modalInfo) {
-                                modalInfo.style.display = "none";
+                                // Expression régulière pour rechercher le nombre dans la classe
+                                const regex = /idChantierEvent(\d+)/;
+                                const match = eventClass.match(regex);
+                                // Récupération de l'id chantier
+                                id_chantier = match[1];
+                                id = info.event['extendedProps']['data-id'];
                             }
-                        };
-                        // Get the <span> element that closes the modal
-                        var span = modalInfo.getElementsByClassName("close")[0];
-                        // Fermeture de la modal quand clique de la croix
-                        span.onclick = function() {
-                            modalInfo.style.display = "none";
-                        };
+                            // Récupération de l'élément modal info
+                            var modalInfo = document.getElementById('chantierModalInfo_' +
+                                id_chantier);
 
-                        modalInfo.style.display = "block";
-
-                        // Suppression de l'événement
-                        var deleteEvent = document.querySelector("#deleteEvent_" + id_chantier);
-                        deleteEvent.onclick = function() {
-                            if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
-                                info.event.remove();
-                                @this.eventRemove(id);
+                            // Fermeture de la modal si on clique en dehors
+                            window.onclick = function(event) {
+                                if (event.target == modalInfo) {
+                                    modalInfo.style.display = "none";
+                                }
+                            };
+                            // Get the <span> element that closes the modal
+                            var span = modalInfo.getElementsByClassName("close")[0];
+                            // Fermeture de la modal quand clique de la croix
+                            span.onclick = function() {
                                 modalInfo.style.display = "none";
-                            }
+                            };
+
+                            modalInfo.style.display = "block";
+
+                            // Suppression de l'événement
+                            var deleteEvent = document.querySelector("#deleteEvent_" +
+                                id_chantier);
+                            deleteEvent.onclick = function() {
+                                if (confirm(
+                                        "Voulez-vous vraiment supprimer cet événement ?")) {
+                                    info.event.remove();
+                                    @this.eventRemove(id);
+                                    modalInfo.style.display = "none";
+                                }
+                            };
                         };
                     },
                 });
@@ -672,19 +708,19 @@
         }
 
         // Fonction pour afficher la boîte modale + ajoutez un événement au bouton pour ouvrir le pop-up
-        var openPopupButton = document.getElementById("openPopupButton");
-        var closePopupButton = document.getElementById("closePopupButton");
-        var popupContainer = document.getElementById("popupContainer");
+        // var openPopupButton = document.getElementById("openPopupButton");
+        // var closePopupButton = document.getElementById("closePopupButton");
+        // var popupContainer = document.getElementById("popupContainer");
 
-        if (openPopupButton && closePopupButton && popupContainer) {
-            openPopupButton.addEventListener("click", function() {
-                popupContainer.classList.add("show");
-            });
+        // if (openPopupButton && closePopupButton && popupContainer) {
+        //     openPopupButton.addEventListener("click", function() {
+        //         popupContainer.classList.add("show");
+        //     });
 
-            closePopupButton.addEventListener("click", function() {
-                popupContainer.classList.remove("show");
-            });
-        }
+        //     closePopupButton.addEventListener("click", function() {
+        //         popupContainer.classList.remove("show");
+        //     });
+        // }
         //FIN [SPECGT10] pop up somme
 
         // Début [SPECGT11] - Script pour la recherche par id
