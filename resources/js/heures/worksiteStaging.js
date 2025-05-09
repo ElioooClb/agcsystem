@@ -215,9 +215,17 @@ class StageManager {
           flashAlert('success', `Le chantier a été ${directionText} à l'étape ${nextStage}`);
 
           // Mise à jour de l'indicateur dans la liste
-          const stageIndicator = document.querySelector(`.dropEvent[data-id-chantier="${chantierId}"] .stage-indicator`);
-          if (stageIndicator) {
-            stageIndicator.className = `stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark ${this.stageColors[nextStage]}`;
+          const dropEvent = document.querySelector(`.dropEvent[data-id-chantier="${chantierId}"]`);
+          if (dropEvent) {
+            // Mise à jour du data-stage sur l'élément li
+            dropEvent.setAttribute('data-stage', nextStage);
+            
+            // Mise à jour de l'indicateur
+            const stageIndicator = dropEvent.querySelector('.stage-indicator');
+            if (stageIndicator) {
+              stageIndicator.setAttribute('data-stage', nextStage);
+              stageIndicator.className = `stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark ${this.stageColors[nextStage]}`;
+            }
           }
 
           // Mise à jour des indicateurs dans le calendrier
