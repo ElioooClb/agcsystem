@@ -98,10 +98,10 @@
                     @if (!collect($archivedWorkSites)->contains($chantier))
                         <!-- Élément du chantier dans la liste -->
                         <li data-id-chantier="{{ $chantier->id }}" data-event='@json(['title' => $chantier->title])'
-                            data-stage="{{ $chantier->stage_state }}" class="menu-item dropEvent">
-                            <div class="bg-{{ $chantier->color }}-500 relative p-2 rounded-lg">
+                            data-stage="{{ $chantier->stage_state }}" class="menu-item dropEvent mb-3 p-0">
+                            <div class="bg-{{ $chantier->color }}-500 relative rounded-lg w-full p-2 mb-0 cursor-pointer">
                                 {{ $chantier->title }}
-                                <span data-id={{ $chantier->id }}* data-stage="{{ $chantier->stage_state }}"
+                                <span data-id={{ $chantier->id }}* data-stage="{{ $chantier->stage_state }}" class="m-0 p-0"
                                     class="stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
                                 </span>
                             </div>

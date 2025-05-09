@@ -18,7 +18,7 @@
                     @if (!$archivedWorkSites->contains($chantier))
                         <menu class="calendarListingWorksites">
                             <li data-id-chantier="{{ $chantier->id }}" data-event='@json(['title' => $chantier->title])'
-                                class="dropEvent bg-{{ $chantier->color }}-500">
+                                class="dropEvent bg-{{ $chantier->color }}-500 w-full p-1 mb-1 cursor-pointer">
                                 {{ $chantier->title }}
                             </li>
                         </menu>
