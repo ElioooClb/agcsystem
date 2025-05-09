@@ -178,13 +178,20 @@
                 ...publicHolidays.map(event => ({
                     ...event,
                     start: event.date,
+                    id_chantier: event.chantier_id,
+                    chantier: {
+                        id: event.chantier_id,
+                        title: '🎉 Jour férié 🎉',
+                        color: 'gray',
+                    },
                     title: '🎉 Jour férié 🎉',
-                    classNames: ['bg-pink-500', 'text-black', 'border', 'border-black',
-                        'min-h-full', 'flex', 'items-center', 'justify-center', 'font-bold'
+                    classNames: [
+                        'bg-pink-500',
+                        'idChantierEvent' + event.chantier_id,
+                        'border border-dark',
+                        'public-holiday',
                     ],
                     isWorksite: false,
-                    display: 'block',
-                    allDay: true
                 })),
                 ...chantierEvents.map(event => {
                     const chantier = event.chantier;
@@ -239,31 +246,33 @@
                     timeZone: 'Europe/paris',
 
                     eventDidMount: function(info) {
-                        const stage = info.event.extendedProps.chantier?.stage_state;
-                        const colors = {
-                            STAGE_1A: 'bg-danger',
-                            STAGE_1B: 'bg-warning',
-                            STAGE_1C: 'bg-success',
-                        };
-                        const color = colors[stage] || 'bg-gray-300';
-                        const id = info.event.extendedProps.chantier?.id || '';
+                        if (info.event.extendedProps.isWorksite) {
+                            const stage = info.event.extendedProps.chantier?.stage_state;
+                            const colors = {
+                                STAGE_1A: 'bg-danger',
+                                STAGE_1B: 'bg-warning',
+                                STAGE_1C: 'bg-success',
+                            };
+                            const color = colors[stage] || 'bg-gray-300';
+                            const id = info.event.extendedProps.chantier?.id || '';
 
-                        // Ajoute du padding à droite pour faire de la place au span
-                        info.el.style.position = 'relative';
-                        info.el.style.paddingRight = '1.5rem';
+                            // Ajoute du padding à droite pour faire de la place au span
+                            info.el.style.position = 'relative';
+                            info.el.style.paddingRight = '1.5rem';
 
-                        const indicator = document.createElement('span');
-                        indicator.className =
-                            `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
-                        indicator.setAttribute('data-id', id);
+                            const indicator = document.createElement('span');
+                            indicator.className =
+                                `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
+                            indicator.setAttribute('data-id', id);
 
-                        // Positionne le span à droite avec absolute
-                        indicator.style.position = 'absolute';
-                        indicator.style.top = '50%';
-                        indicator.style.right = '4px';
-                        indicator.style.transform = 'translateY(-50%)';
+                            // Positionne le span à droite avec absolute
+                            indicator.style.position = 'absolute';
+                            indicator.style.top = '50%';
+                            indicator.style.right = '4px';
+                            indicator.style.transform = 'translateY(-50%)';
 
-                        info.el.appendChild(indicator);
+                            info.el.appendChild(indicator);
+                        }
                     },
 
                     // Event resize handler
