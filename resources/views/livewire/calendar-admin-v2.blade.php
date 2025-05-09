@@ -730,11 +730,12 @@
                 updateStageIndicators(chantierId, stageColor) {
                     // Récupère tous les événements du calendrier
                     const events = this.calendar.getEvents();
-
+                    
                     // Filtre les événements du chantier spécifique
-                    const chantierEvents = events.filter(event =>
-                        event.extendedProps.chantier.id == chantierId
-                    );
+                    const chantierEvents = events.filter(event => {
+                        const eventChantierId = event.extendedProps.chantier?.id || event.extendedProps.id_chantier;
+                        return eventChantierId == chantierId;
+                    });
 
                     // Met à jour la couleur du stage pour chaque événement
                     chantierEvents.forEach(event => {
