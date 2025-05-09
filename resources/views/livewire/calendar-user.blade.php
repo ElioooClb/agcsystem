@@ -169,27 +169,22 @@
             const events = JSON.parse(@this.events);
 
             // Séparation des events
-            const publicHolidays = events.filter(e => e.chantier_id !== undefined);
+            const publicHolidays = events.filter(e => e.state === 5);
             const chantierEvents = events.filter(e => e.id_chantier !== undefined && chantierIds.includes(e
                 .id_chantier));
-
 
             // Load events asynchronously
             Promise.all([
                 ...publicHolidays.map(event => ({
                     ...event,
                     start: event.date,
-                    id_chantier: event.chantier_id,
-                    chantier: {
-                        id: event.chantier_id,
-                        title: '🎉 Jour férié 🎉',
-                        color: 'gray',
-                    },
                     title: '🎉 Jour férié 🎉',
-                    classNames: ['bg-pink-500', 'idChantierEvent' + event.chantier_id,
-                        'border border-dark', 'public-holiday'
+                    classNames: ['bg-pink-500', 'text-black', 'border', 'border-black',
+                        'min-h-full', 'flex', 'items-center', 'justify-center', 'font-bold'
                     ],
                     isWorksite: false,
+                    display: 'block',
+                    allDay: true
                 })),
                 ...chantierEvents.map(event => {
                     const chantier = event.chantier;
