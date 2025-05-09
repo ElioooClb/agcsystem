@@ -5,9 +5,9 @@
 class StageManager {
     constructor() {
       this.stageLabels = {
-        'STAGE_1A': 'Dossier non commencé',
-        'STAGE_1B': 'Dossier en cours',
-        'STAGE_1C': 'Dossier terminé'
+        'STAGE_1A': 'Bon de travaux non commencé',
+        'STAGE_1B': 'Bon de travaux en cours',
+        'STAGE_1C': 'Bon de travaux terminé'
       };
       
       this.stageColors = {

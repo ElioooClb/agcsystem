@@ -726,7 +726,6 @@
                     ModalHandler.showChantierInfo(id, id_chantier, info);
                 },
 
-                // Ajout de la méthode pour mettre à jour les indicateurs
                 updateStageIndicators(chantierId, stageColor) {
                     // Récupère tous les événements du calendrier
                     const events = this.calendar.getEvents();
