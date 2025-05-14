@@ -666,6 +666,7 @@
                         container.style.alignItems = 'center';
                         container.style.gap = '8px';
                         container.style.width = '100%';
+                        container.classList.add('px-2');
 
                         // Crée le texte de l'événement
                         const text = document.createElement('div');
@@ -690,7 +691,7 @@
                     } else {
                         // Retourne le contenu par défaut pour les autres types d'événements
                         return {
-                            html: info.event.title
+                            html: `<div class="px-2">${info.event.title}</div>`
                         };
                     }
                 },
