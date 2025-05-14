@@ -992,11 +992,10 @@
 
                 showAstreinteInfo(date = null, event = null) {
                     // Créer une modal pour ajouter une astreinte
-                    const modal = document.createElement('div');
-                    modal.className =
-                        'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50';
+                    const modal = document.createElement('dialog');
+                    modal.className = 'p-6 bg-white rounded-lg shadow';
                     modal.innerHTML = `
-                        <div class="w-full max-w-lg p-6 bg-white rounded-lg shadow">
+                        <div class="w-full w-auto">
                             <h3 class="mb-4 text-xl font-bold">${event ? 'Gérer l\'astreinte' : 'Ajouter une astreinte'}</h3>
                             <p class="mb-4 text-sm text-gray-600">L'astreinte sera créée pour toute la semaine (du lundi au vendredi) à partir de la date sélectionnée.</p>
                             <div class="mb-4">
@@ -1013,37 +1012,46 @@
                             </div>
                             <div class="flex justify-end gap-2">
                                 ${event ? `
-                                    <button id="deleteAstreinte" class="btn btn-danger btn-sm" title="Supprimer complètement l'astreinte">
+                                    <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                             <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
                                         </svg>
-                                        Supprimer
+                                        <span>Supprimer</span>
                                     </button>
-                                    <button id="updateAstreinte" class="btn btn-primary btn-sm" title="Mettre à jour">
+                                    <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
                                             <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
                                         </svg>
-                                        Mettre à jour
+                                        <span>Mettre à jour</span>
                                     </button>
                                 ` : ''}
-                                <button id="cancelAstreinte" class="btn btn-secondary btn-sm" title="Annuler">
+                                <button id="cancelAstreinte" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
                                     </svg>
-                                    Annuler
+                                    <span>Annuler</span>
                                 </button>
                                 ${!event ? `
-                                    <button id="saveAstreinte" class="btn btn-success btn-sm" title="Enregistrer">
+                                    <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
                                             <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
                                         </svg>
-                                        Enregistrer
+                                        <span>Enregistrer</span>
                                     </button>
                                 ` : ''}
                             </div>
                         </div>
                     `;
                     document.body.appendChild(modal);
+
+                    // Ajouter le style pour l'overlay
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        dialog::backdrop {
+                            background-color: rgba(0, 0, 0, 0.5);
+                        }
+                    `;
+                    document.head.appendChild(style);
 
                     // Si une date est fournie, on la formate et on la définit dans l'input
                     if (date) {
@@ -1058,8 +1066,11 @@
                         document.getElementById('astreinteUser').value = event.extendedProps.user_id;
                     }
 
+                    // Afficher la modale
+                    modal.showModal();
+
                     // Gestionnaire pour fermer la modal (bouton Annuler)
-                    document.getElementById('cancelAstreinte').onclick = () => modal.remove();
+                    document.getElementById('cancelAstreinte').onclick = () => modal.close();
 
                     // Gestionnaire pour supprimer l'astreinte
                     if (event) {
@@ -1067,7 +1078,7 @@
                             if (confirm("Voulez-vous vraiment supprimer cette astreinte ?")) {
                                 @this.deleteAstreinte(event.id);
                                 event.remove();
-                                modal.remove();
+                                modal.close();
                             }
                         };
 
@@ -1075,7 +1086,7 @@
                         document.getElementById('updateAstreinte').onclick = function() {
                             const userId = document.getElementById('astreinteUser').value;
                             @this.updateAstreinte(event.id, userId);
-                            modal.remove();
+                            modal.close();
                         };
                     }
 
@@ -1091,9 +1102,25 @@
                             }
 
                             @this.addAstreinte(date, userId);
-                            modal.remove();
+                            modal.close();
                         };
                     }
+
+                    // Gestionnaire pour le clic en dehors de la modale
+                    modal.addEventListener('click', (e) => {
+                        const rect = modal.getBoundingClientRect();
+                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                            rect.left <= e.clientX && e.clientX <= rect.right);
+                        if (!isInDialog) {
+                            modal.close();
+                        }
+                    });
+
+                    // Nettoyer la modale après sa fermeture
+                    modal.addEventListener('close', () => {
+                        modal.remove();
+                        style.remove();
+                    });
                 }
             };
 
