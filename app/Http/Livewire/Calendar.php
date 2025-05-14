@@ -142,6 +142,11 @@ class Calendar extends Component
 
     $oncall_duty = Time::with('user')->where('oncall_duty', 1)->get();
 
+    foreach ($oncall_duty as $ocd) {
+      $ocd->allDay = true;
+      $ocd->backgroundColor = '#f97316';
+    }
+
     foreach ($public_holidays as $public_holiday) {
       $public_holiday->display = 'background';
     }
