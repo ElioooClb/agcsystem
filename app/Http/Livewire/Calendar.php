@@ -105,8 +105,9 @@ class Calendar extends Component
     $startDate = \Carbon\Carbon::parse($astreinte->date);
     $monday = $startDate->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
 
-    // Supprimer toutes les astreintes de la semaine
+    // Supprimer uniquement les astreintes de l'utilisateur spécifique pour la semaine
     Time::where('oncall_duty', 1)
+      ->where('user_id', $astreinte->user_id)
       ->whereBetween('date', [
         $monday->format('Y-m-d'),
         $monday->copy()->addDays(4)->format('Y-m-d')

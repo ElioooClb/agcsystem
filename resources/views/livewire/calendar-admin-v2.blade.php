@@ -633,6 +633,7 @@
                         locale: 'fr',
                         timeZone: 'Europe/paris',
                         firstDay: 1,
+                        height: 'full',
                         eventResize: this.handleEventResize,
                         eventDrop: this.handleEventDrop,
                         eventReceive: this.handleEventReceive,
@@ -667,6 +668,7 @@
                         container.style.gap = '8px';
                         container.style.width = '100%';
                         container.classList.add('px-2');
+                        container.classList.add('py-1');
 
                         // Crée le texte de l'événement
                         const text = document.createElement('div');
@@ -691,7 +693,7 @@
                     } else {
                         // Retourne le contenu par défaut pour les autres types d'événements
                         return {
-                            html: `<div class="px-2">${info.event.title}</div>`
+                            html: `<div class="px-2 py-1">${info.event.title}</div>`
                         };
                     }
                 },
@@ -1051,18 +1053,18 @@
                             <div class="flex justify-end gap-2">
                                 ${event ? `
                                         <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
-                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                                            </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                        </svg>
                                             <span>Supprimer</span>
-                                        </button>
+                                    </button>
                                         <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
-                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                                            </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                        </svg>
                                             <span>Mettre à jour</span>
-                                        </button>
-                                    ` : ''}
+                                    </button>
+                                ` : ''}
                                 <button id="cancelAstreinte" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
@@ -1071,12 +1073,12 @@
                                 </button>
                                 ${!event ? `
                                         <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
-                                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-                                            </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                        </svg>
                                             <span>Enregistrer</span>
-                                        </button>
-                                    ` : ''}
+                                    </button>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -1288,7 +1290,7 @@
 
                     // Nettoyer la modale après sa fermeture
                     modal.addEventListener('close', () => {
-                        modal.remove();
+                            modal.remove();
                         style.remove();
                     });
                 },
