@@ -9,6 +9,7 @@ use App\Models\Time;
 use App\Models\Chantier;
 use App\Models\Message;
 use Illuminate\Support\Arr;
+use App\Models\CustomEvent;
 
 class Calendar extends Component
 {
@@ -115,6 +116,83 @@ class Calendar extends Component
     $this->emit('astreinteDeleted');
   }
 
+  public function addCustomEvent($date, $title, $backgroundColor = '#3788d8', $textColor = '#ffffff', $description = '')
+  {
+    // On force le fuseau horaire à Paris pour éviter les décalages
+    $date = \Carbon\Carbon::parse($date)->setTimezone('Europe/Paris');
+
+    $customEvent = CustomEvent::create([
+      'title' => $title,
+      'start' => $date->startOfDay(),
+      'end' => $date->endOfDay(),
+      'allDay' => 1,
+      'backgroundColor' => $backgroundColor,
+      'borderColor' => $backgroundColor,
+      'textColor' => $textColor,
+      'extendedProps' => [
+        'description' => $description
+      ]
+    ]);
+
+    $this->emit('customEventAdded');
+    $this->emit('flashMessage', 'success', 'Événement personnalisé ajouté avec succès');
+  }
+
+  public function updateCustomEvent($id, $title, $backgroundColor = null, $description = '')
+  {
+    $customEvent = CustomEvent::findOrFail($id);
+    $updates = [
+      'title' => $title,
+      'extendedProps' => [
+        'description' => $description
+      ]
+    ];
+
+    if ($backgroundColor) {
+      $updates['backgroundColor'] = $backgroundColor;
+      $updates['borderColor'] = $backgroundColor;
+    }
+
+    $customEvent->update($updates);
+
+    $this->emit('customEventUpdated');
+    $this->emit('flashMessage', 'success', 'Événement personnalisé mis à jour avec succès');
+  }
+
+  public function deleteCustomEvent($id)
+  {
+    $customEvent = CustomEvent::findOrFail($id);
+    $customEvent->delete();
+
+    $this->emit('customEventDeleted');
+    $this->emit('flashMessage', 'success', 'Événement personnalisé supprimé avec succès');
+  }
+
+  public function getEvents()
+  {
+    $events = [];
+
+    // Ajouter les événements personnalisés
+    $customEvents = CustomEvent::all();
+    foreach ($customEvents as $event) {
+      $events[] = [
+        'id' => 'custom_' . $event->id,
+        'title' => $event->title,
+        'start' => $event->start,
+        'end' => $event->end,
+        'allDay' => $event->allDay,
+        'backgroundColor' => $event->backgroundColor,
+        'borderColor' => $event->borderColor,
+        'textColor' => $event->textColor,
+        'url' => $event->url,
+        'extendedProps' => $event->extendedProps,
+        'isCustomEvent' => true
+      ];
+    }
+
+    return $events;
+  }
+
   public function render()
   {
     $this->events = json_encode(Event::with(['user', 'chantier'])->get());
@@ -151,9 +229,12 @@ class Calendar extends Component
       $public_holiday->display = 'background';
     }
 
+    $customEvents = $this->getEvents();
+
     $events = collect(json_decode($this->events));
     $mergedEvents = $events->merge($public_holidays);
     $mergedEvents = $mergedEvents->merge($oncall_duty);
+    $mergedEvents = $mergedEvents->merge($customEvents);
     $this->events = json_encode($mergedEvents);
     return view('livewire.calendar', compact(
       'chantiers',

@@ -511,6 +511,7 @@
                 processEvent(event) {
                     // Cas 1 : Autres events
                     if (event.chantier_id !== undefined) {
+                        // Astreinte
                         if (event.oncall_duty === 1) {
                             return {
                                 ...event,
@@ -528,6 +529,7 @@
                             };
                         }
 
+                        // Jour férié
                         if (event.state === 5) {
                             return {
                                 ...event,
@@ -540,14 +542,32 @@
                                 },
                                 title: '🎉 Jour férié 🎉',
                                 classNames: [
-                                    'bg-pink-500',
-                                    'idChantierEvent' + event.chantier_id,
-                                    'border border-dark',
                                     'public-holiday',
+                                    'idChantierEvent' + event.chantier_id,
                                 ],
                                 isWorksite: false,
+                                display: 'background',
+                                color: 'rgba(34, 197, 94, 0.3)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.3)',
+                                borderColor: 'rgba(34, 197, 94, 0.3)',
+                                textColor: '#000000',
                             };
                         }
+                    }
+
+                    // Cas 2 : Custom Events
+                    if (event.isCustomEvent) {
+                        return {
+                            ...event,
+                            classNames: [
+                                'border border-dark',
+                                'custom-event',
+                            ],
+                            isWorksite: false,
+                            isCustomEvent: true,
+                            editable: true,
+                            display: 'block'
+                        };
                     }
 
                     // Cas 3 : Event chantier (a déjà id_chantier)
@@ -580,7 +600,7 @@
                             interactionPlugin
                         ],
                         headerToolbar: {
-                            left: 'prev,next today addAstreinte',
+                            left: 'prev,next today addAstreinte addCustomEvent',
                             center: 'title',
                             right: 'dayGridMonth,listWeek',
                         },
@@ -589,6 +609,12 @@
                                 text: 'Ajouter Astreinte',
                                 click: function() {
                                     ModalHandler.showAstreinteInfo(null, null);
+                                }
+                            },
+                            addCustomEvent: {
+                                text: 'Ajouter Événement',
+                                click: function() {
+                                    ModalHandler.handleModal();
                                 }
                             }
                         },
@@ -610,11 +636,21 @@
                         eventResize: this.handleEventResize,
                         eventDrop: this.handleEventDrop,
                         eventReceive: this.handleEventReceive,
-                        eventClick: this.handleEventClick,
+                        eventClick: function(info) {
+                            info.jsEvent.preventDefault();
+                            WorksiteCalendar.handleEventClick(info);
+                        },
                         dateClick: this.handleDateClick,
+                        eventDidMount: this.handleEventDidMount
                     });
 
                     this.calendar.render();
+                },
+
+                handleEventDidMount(info) {
+                    if (info.event.classNames.includes('public-holiday')) {
+                        info.el.style.opacity = '1';
+                    }
                 },
 
                 handleEventContent(info) {
@@ -737,8 +773,9 @@
                 handleEventClick(info) {
                     if (info.event.extendedProps.isAstreinte) {
                         ModalHandler.showAstreinteInfo(null, info.event);
-                    }
-                    if (info.event.extendedProps.isWorksite) {
+                    } else if (info.event.extendedProps.isCustomEvent) {
+                        ModalHandler.showCustomEventInfo(info.event);
+                    } else if (info.event.extendedProps.isWorksite) {
                         let id = info.event.id;
                         let id_chantier = info.event['extendedProps']['id_chantier'];
 
@@ -783,7 +820,7 @@
                 },
 
                 handleDateClick(info) {
-                    ModalHandler.showAstreinteInfo(info.date);
+                    ModalHandler.showChoiceInfo(info);
                 }
             };
 
@@ -1012,19 +1049,19 @@
                             </div>
                             <div class="flex justify-end gap-2">
                                 ${event ? `
-                                    <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
-                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                                        </svg>
-                                        <span>Supprimer</span>
-                                    </button>
-                                    <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
-                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                                        </svg>
-                                        <span>Mettre à jour</span>
-                                    </button>
-                                ` : ''}
+                                        <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                            </svg>
+                                            <span>Supprimer</span>
+                                        </button>
+                                        <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
+                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                            </svg>
+                                            <span>Mettre à jour</span>
+                                        </button>
+                                    ` : ''}
                                 <button id="cancelAstreinte" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
@@ -1032,13 +1069,13 @@
                                     <span>Annuler</span>
                                 </button>
                                 ${!event ? `
-                                    <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
-                                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-                                        </svg>
-                                        <span>Enregistrer</span>
-                                    </button>
-                                ` : ''}
+                                        <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                            </svg>
+                                            <span>Enregistrer</span>
+                                        </button>
+                                    ` : ''}
                             </div>
                         </div>
                     `;
@@ -1090,21 +1127,153 @@
                         };
                     }
 
-                    // Gestionnaire pour sauvegarder l'astreinte
-                    if (!event) {
-                        document.getElementById('saveAstreinte').onclick = function() {
-                            const date = document.getElementById('astreinteDate').value;
-                            const userId = document.getElementById('astreinteUser').value;
+                    // Gestionnaire pour le clic en dehors de la modale
+                    modal.addEventListener('click', (e) => {
+                        const rect = modal.getBoundingClientRect();
+                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                            rect.left <= e.clientX && e.clientX <= rect.right);
+                        if (!isInDialog) {
+                            modal.close();
+                        }
+                    });
 
-                            if (!date) {
+                    // Nettoyer la modale après sa fermeture
+                    modal.addEventListener('close', () => {
+                        modal.remove();
+                        style.remove();
+                    });
+                },
+
+                showChoiceInfo(info) {
+                    // Créer une modal pour choisir le type d'événement
+                    const modal = document.createElement('dialog');
+                    modal.className = 'p-6 bg-white rounded-lg shadow';
+                    modal.innerHTML = `
+                        <div class="w-full w-auto">
+                            <h3 class="mb-4 text-xl font-bold">Ajouter un événement</h3>
+                            <div class="mb-4">
+                                <label class="block mb-2">Type d'événement</label>
+                                <select id="eventType" class="w-full p-2 border rounded">
+                                    <option value="astreinte">Astreinte</option>
+                                    <option value="custom">Événement personnalisé</option>
+                                </select>
+                            </div>
+                            <div id="astreinteFields" class="hidden">
+                                <div class="mb-4">
+                                    <label class="block mb-2">Date de début (sera ajustée au lundi de la semaine)</label>
+                                    <input type="date" id="astreinteDate" class="w-full p-2 border rounded">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block mb-2">Technicien</label>
+                                    <select id="astreinteUser" class="w-full p-2 border rounded">
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="customEventFields" class="hidden">
+                                <div class="mb-4">
+                                    <label class="block mb-2">Titre</label>
+                                    <input type="text" id="customEventTitle" class="w-full p-2 border rounded">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block mb-2">Description</label>
+                                    <textarea id="customEventDescription" class="w-full p-2 border rounded"></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block mb-2">Couleur</label>
+                                    <input type="color" id="customEventColor" class="w-full p-2 border rounded" value="#3788d8">
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button id="cancelEvent" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                    <span>Annuler</span>
+                                </button>
+                                <button id="saveEvent" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                    </svg>
+                                    <span>Enregistrer</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Ajouter le style pour l'overlay
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        dialog::backdrop {
+                            background-color: rgba(0, 0, 0, 0.5);
+                        }
+                    `;
+                    document.head.appendChild(style);
+
+                    // Afficher la modale
+                    modal.showModal();
+
+                    // Si une date est fournie, on la formate et on la définit dans l'input
+                    if (info.date) {
+                        const formattedDate = info.date.toISOString().split('T')[0];
+                        document.getElementById('astreinteDate').value = formattedDate;
+                    }
+
+                    // Gestionnaire pour le type d'événement
+                    const eventTypeSelect = document.getElementById('eventType');
+                    const customEventFields = document.getElementById('customEventFields');
+                    const astreinteFields = document.getElementById('astreinteFields');
+
+                    eventTypeSelect.addEventListener('change', (e) => {
+                        const isAstreinte = e.target.value === 'astreinte';
+                        customEventFields.classList.toggle('hidden', isAstreinte);
+                        astreinteFields.classList.toggle('hidden', !isAstreinte);
+                    });
+
+                    // Afficher le formulaire correspondant au type sélectionné
+                    eventTypeSelect.dispatchEvent(new Event('change'));
+
+                    // Gestionnaire pour fermer la modal (bouton Annuler)
+                    document.getElementById('cancelEvent').onclick = () => modal.close();
+
+                    // Gestionnaire pour sauvegarder l'événement
+                    document.getElementById('saveEvent').onclick = function() {
+                        const eventType = eventTypeSelect.value;
+                        const date = info.date.toISOString().split('T')[0];
+
+                        if (eventType === 'astreinte') {
+                            const userId = document.getElementById('astreinteUser').value;
+                            const astreinteDate = document.getElementById('astreinteDate').value;
+
+                            if (!astreinteDate) {
                                 Utils.flashMe('warning', 'Veuillez sélectionner une date');
                                 return;
                             }
 
-                            @this.addAstreinte(date, userId);
+                            @this.addAstreinte(astreinteDate, userId);
                             modal.close();
-                        };
-                    }
+                        } else {
+                            const title = document.getElementById('customEventTitle').value;
+                            const description = document.getElementById('customEventDescription').value;
+                            const backgroundColor = document.getElementById('customEventColor').value;
+
+                            if (!title) {
+                                Utils.flashMe('warning', 'Veuillez saisir un titre');
+                                return;
+                            }
+
+                            // Calcul de la couleur de texte en fonction de la luminosité de la couleur de fond
+                            const rgb = Utils.hexToRgb(backgroundColor);
+                            const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+                            const textColor = brightness > 128 ? '#000000' : '#ffffff';
+
+                            @this.addCustomEvent(date, title, backgroundColor, textColor, description);
+                            modal.close();
+                        }
+                    };
 
                     // Gestionnaire pour le clic en dehors de la modale
                     modal.addEventListener('click', (e) => {
@@ -1120,6 +1289,206 @@
                     modal.addEventListener('close', () => {
                         modal.remove();
                         style.remove();
+                    });
+                },
+
+                showCustomEventInfo(event) {
+                    // Créer une modal pour éditer l'événement personnalisé
+                    const modal = document.createElement('dialog');
+                    modal.className = 'p-6 bg-white rounded-lg shadow';
+                    modal.innerHTML = `
+                        <div class="w-full w-auto">
+                            <h3 class="mb-4 text-xl font-bold">Modifier l'événement</h3>
+                            <div class="mb-4">
+                                <label class="block mb-2">Titre</label>
+                                <input type="text" id="customEventTitle" class="w-full p-2 border rounded" value="${event.title}">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-2">Description</label>
+                                <textarea id="customEventDescription" class="w-full p-2 border rounded">${event.extendedProps.description || ''}</textarea>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-2">Couleur</label>
+                                <input type="color" id="customEventColor" class="w-full p-2 border rounded" value="${event.backgroundColor}">
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button id="deleteCustomEvent" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3h11V2h-11v1Z"/>
+                                    </svg>
+                                    <span>Supprimer</span>
+                                </button>
+                                <button id="cancelCustomEvent" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                    <span>Annuler</span>
+                                </button>
+                                <button id="updateCustomEvent" class="btn btn-success btn-sm d-flex align-items-center" title="Mettre à jour">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                    </svg>
+                                    <span>Mettre à jour</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Ajouter le style pour l'overlay
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        dialog::backdrop {
+                            background-color: rgba(0, 0, 0, 0.5);
+                        }
+                    `;
+                    document.head.appendChild(style);
+
+                    // Afficher la modale
+                    modal.showModal();
+
+                    // Gestionnaire pour fermer la modal (bouton Annuler)
+                    document.getElementById('cancelCustomEvent').onclick = () => modal.close();
+
+                    // Gestionnaire pour supprimer l'événement
+                    document.getElementById('deleteCustomEvent').onclick = function() {
+                        if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
+                            const eventId = event.id.replace('custom_', '');
+                            @this.deleteCustomEvent(eventId);
+                            event.remove();
+                            modal.close();
+                        }
+                    };
+
+                    // Gestionnaire pour mettre à jour l'événement
+                    document.getElementById('updateCustomEvent').onclick = function() {
+                        console.log("updateEvent");
+                        const title = document.getElementById('customEventTitle').value;
+                        const description = document.getElementById('customEventDescription').value;
+                        const backgroundColor = document.getElementById('customEventColor').value;
+
+                        if (!title) {
+                            Utils.flashMe('warning', 'Veuillez saisir un titre');
+                            return;
+                        }
+
+                        const eventId = event.id.replace('custom_', '');
+                        console.log(eventId, title, backgroundColor, description);
+                        @this.updateCustomEvent(eventId, title, backgroundColor, description);
+                        modal.close();
+                    };
+
+                    // Gestionnaire pour le clic en dehors de la modale
+                    modal.addEventListener('click', (e) => {
+                        const rect = modal.getBoundingClientRect();
+                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                            rect.left <= e.clientX && e.clientX <= rect.right);
+                        if (!isInDialog) {
+                            modal.close();
+                        }
+                    });
+
+                    // Nettoyer la modale après sa fermeture
+                    modal.addEventListener('close', () => {
+                        modal.remove();
+                        style.remove();
+                    });
+                },
+
+                handleModal(date = null) {
+                    const today = date || new Date();
+                    const modal = document.createElement('dialog');
+                    modal.className = 'p-6 bg-white rounded-lg shadow';
+                    modal.innerHTML = `
+                        <div class="w-full w-auto">
+                            <h3 class="mb-4 text-xl font-bold">Ajouter un événement personnalisé</h3>
+                            <div class="mb-4">
+                                <label class="block mb-2">Date</label>
+                                <input type="date" id="customEventDate" class="w-full p-2 border rounded" value="${today.toISOString().split('T')[0]}">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-2">Titre</label>
+                                <input type="text" id="customEventTitle" class="w-full p-2 border rounded">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-2">Description</label>
+                                <textarea id="customEventDescription" class="w-full p-2 border rounded"></textarea>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block mb-2">Couleur</label>
+                                <input type="color" id="customEventColor" class="w-full p-2 border rounded" value="#3788d8">
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button id="cancelCustomEvent" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                    <span>Annuler</span>
+                                </button>
+                                <button id="saveCustomEvent" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                    </svg>
+                                    <span>Enregistrer</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Ajouter le style pour l'overlay
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        dialog::backdrop {
+                            background-color: rgba(0, 0, 0, 0.5);
+                        }
+                    `;
+                    document.head.appendChild(style);
+
+                    // Afficher la modale
+                    modal.showModal();
+
+                    // Gestionnaire pour fermer la modal (bouton Annuler)
+                    document.getElementById('cancelCustomEvent').onclick = () => {
+                        modal.close();
+                        modal.remove();
+                        style.remove();
+                    };
+
+                    // Gestionnaire pour sauvegarder l'événement
+                    document.getElementById('saveCustomEvent').onclick = function() {
+                        const date = document.getElementById('customEventDate').value;
+                        const title = document.getElementById('customEventTitle').value;
+                        const description = document.getElementById('customEventDescription').value;
+                        const backgroundColor = document.getElementById('customEventColor').value;
+
+                        if (!title) {
+                            Utils.flashMe('warning', 'Veuillez saisir un titre');
+                            return;
+                        }
+
+                        // Calcul de la couleur de texte en fonction de la luminosité de la couleur de fond
+                        const rgb = Utils.hexToRgb(backgroundColor);
+                        const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+                        const textColor = brightness > 128 ? '#000000' : '#ffffff';
+
+                        @this.addCustomEvent(date, title, backgroundColor, textColor, description);
+                        modal.close();
+                        modal.remove();
+                        style.remove();
+                    };
+
+                    // Gestionnaire pour le clic en dehors de la modale
+                    modal.addEventListener('click', (e) => {
+                        const rect = modal.getBoundingClientRect();
+                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                            rect.left <= e.clientX && e.clientX <= rect.right);
+                        if (!isInDialog) {
+                            modal.close();
+                            modal.remove();
+                            style.remove();
+                        }
                     });
                 }
             };
@@ -1155,6 +1524,22 @@
                 reloadEventsWithSuccess(message) {
                     WorksiteCalendar.loadEvents();
                     Utils.flashMe('success', message);
+                },
+
+                hexToRgb(hex) {
+                    // Supprimer le # si présent
+                    hex = hex.replace('#', '');
+
+                    // Convertir en RGB
+                    const r = parseInt(hex.substring(0, 2), 16);
+                    const g = parseInt(hex.substring(2, 4), 16);
+                    const b = parseInt(hex.substring(4, 6), 16);
+
+                    return {
+                        r,
+                        g,
+                        b
+                    };
                 }
             };
 
@@ -1169,6 +1554,14 @@
             ['Added', 'Updated', 'Deleted'].forEach(action => {
                 Livewire.on(`astreinte${action}`, () => {
                     Utils.reloadEventsWithSuccess(`Astreinte ${action.toLowerCase()}e avec succès`);
+                });
+            });
+
+            // Écouteurs pour le rafraîchissement après actions sur les événements personnalisés
+            ['Added', 'Updated', 'Deleted'].forEach(action => {
+                Livewire.on(`customEvent${action}`, () => {
+                    Utils.reloadEventsWithSuccess(
+                        `Événement personnalisé ${action.toLowerCase()} avec succès`);
                 });
             });
         });

@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     ManageController,
     ParameterController,
     StateController,
+    CustomEventController,
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -132,5 +133,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/modifier-parameter/{idChantier}/{idParameter}/{checked}', [ChantierController::class, 'updateParameter'])->name('chantier.updateParameter');
     // Fin [SPECGT6] - Service de gestion des paramètres
     Route::post('/users/coefProd', [UserController::class, 'patchCoef'])->name('users.coefProd');
+
+    // Routes pour les événements personnalisés
+    Route::post('/custom-events', [CustomEventController::class, 'store'])->name('custom-events.store');
+    Route::put('/custom-events/{customEvent}', [CustomEventController::class, 'update'])->name('custom-events.update');
+    Route::delete('/custom-events/{customEvent}', [CustomEventController::class, 'destroy'])->name('custom-events.destroy');
 });
 require __DIR__ . '/auth.php';
