@@ -27,6 +27,11 @@ class User extends Authenticatable
         'role_id',
         'fonction',
         'acronyme',
+        'avatar',
+    ];
+
+    protected $attributes = [
+        'avatar' => 'front/images/default-avatar.svg'
     ];
 
     /**

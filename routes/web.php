@@ -17,6 +17,7 @@ use App\Http\Controllers\{
     ParameterController,
     StateController,
     CustomEventController,
+    AvatarController,
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -44,6 +45,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     /** Planning admnistrateur */
@@ -138,5 +140,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/custom-events', [CustomEventController::class, 'store'])->name('custom-events.store');
     Route::put('/custom-events/{customEvent}', [CustomEventController::class, 'update'])->name('custom-events.update');
     Route::delete('/custom-events/{customEvent}', [CustomEventController::class, 'destroy'])->name('custom-events.destroy');
+
+    // Avatar
+    Route::post('/avatar', [AvatarController::class, 'store'])->name('avatar.store');
+    Route::delete('/avatar/{avatar}', [AvatarController::class, 'destroy'])->name('avatar.destroy');
 });
 require __DIR__ . '/auth.php';
