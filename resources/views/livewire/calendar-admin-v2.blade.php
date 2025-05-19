@@ -660,11 +660,69 @@
                             WorksiteCalendar.handleEventClick(info);
                         },
                         dateClick: this.handleDateClick,
-                        eventDidMount: this.handleEventDidMount
+                        eventDidMount: this.handleEventDidMount,
+                        eventClassNames: this.handleEventClassNames
                     });
 
                     this.calendar.render();
-                    this.renderCustomTitleButton();
+                    this.renderAstreintesButton();
+                },
+
+                renderAstreintesButton() {
+                    // Ajouter les checkboxes après le rendu du calendrier
+                    const headerLeft = document.querySelector(
+                        '.fc-header-toolbar .fc-toolbar-chunk:first-child');
+                    const checkboxContainer = document.createElement('div');
+                    checkboxContainer.className = 'fc-button-group';
+                    checkboxContainer.innerHTML = `
+                        <label class="fc-button fc-button-primary me-2" style="background-color: #2c3e50; color: #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="showAstreintes" hidden checked>
+                            <span class="loader hidden"></span>
+                            <span>Astreintes</span>
+                        </label>
+                    `;
+                    headerLeft.appendChild(checkboxContainer);
+
+                    // Ajouter le style pour le loader
+                    const loaderStyle = document.createElement('style');
+                    loaderStyle.textContent = `
+                        .loader {
+                            display: inline-block;
+                            width: 16px;
+                            height: 16px;
+                            border: 2px solid #ffffff;
+                            border-radius: 50%;
+                            border-top-color: transparent;
+                            animation: spin 1s linear infinite;
+                        }
+                        @keyframes spin {
+                            to {
+                                transform: rotate(360deg);
+                            }
+                        }
+                        .hidden {
+                            display: none !important;
+                        }
+                    `;
+                    document.head.appendChild(loaderStyle);
+
+                    // Afficher les événements au chargement initial
+                    const events = WorksiteCalendar.calendar.getEvents();
+                    const astreintes = events.filter(event => event.extendedProps.isAstreinte);
+                    astreintes.forEach(event => event.setProp('display', 'block'));
+
+                    // Gestionnaires d'événements pour les checkboxes
+                    document.getElementById('showAstreintes').addEventListener('change', function(e) {
+                        const button = e.target.parentElement;
+                        const loader = button.querySelector('.loader');
+                        const text = button.querySelector('span:not(.loader)');
+                        loader.classList.remove('hidden');
+
+                        // setTimeout(() => {
+                        FilterHandler.showAstreintes(button, astreintes);
+                        loader.classList.add('hidden');
+                        // }, 1);
+                    });
                 },
 
                 handleEventDidMount(info) {
@@ -820,6 +878,31 @@
                     }
                 },
 
+                handleDateClick(info) {
+                    ModalHandler.showChoiceInfo(info);
+                },
+
+                handleEventClassNames(info) {
+                    // // Compteur pour suivre le nombre de re-rendus par ID d'événement
+                    // const eventId = info.event.id;
+                    // if (!window.eventRenderCounts) {
+                    //     window.eventRenderCounts = {};
+                    // }
+                    // window.eventRenderCounts[eventId] = (window.eventRenderCounts[eventId] || 0) + 1;
+
+                    // // Log si un événement est rendu plusieurs fois
+                    // if (window.eventRenderCounts[eventId] > 1) {
+                    //     console.warn(`L'événement ${eventId} a été rendu ${window.eventRenderCounts[eventId]} fois`, {
+                    //         id: eventId,
+                    //         title: info.event.title,
+                    //         start: info.event.start,
+                    //         end: info.event.end,
+                    //         currentDisplay: info.event.display,
+                    //         extendedProps: info.event.extendedProps
+                    //     });
+                    // }
+                },
+
                 updateStageIndicators(chantierId, stageColor) {
                     // Récupère tous les événements du calendrier
                     const events = this.calendar.getEvents();
@@ -840,67 +923,6 @@
                     // Force le re-rendu des événements
                     this.calendar.render();
                 },
-
-                handleDateClick(info) {
-                    ModalHandler.showChoiceInfo(info);
-                },
-
-                renderCustomTitleButton() {
-                    // Ajouter les checkboxes après le rendu du calendrier
-                    const headerLeft = document.querySelector(
-                        '.fc-header-toolbar .fc-toolbar-chunk:first-child');
-                    const checkboxContainer = document.createElement('div');
-                    checkboxContainer.className = 'fc-button-group';
-                    checkboxContainer.innerHTML = `
-                        <label class="fc-button fc-button-primary me-2" style="background-color: #2c3e50; color: #e2e8f0; display: flex; align-items: center; gap: 8px;">
-                            <input type="checkbox" id="showAstreintes" hidden checked>
-                            <span class="loader hidden"></span>
-                            <span>Astreintes</span>
-                        </label>
-                    `;
-                    headerLeft.appendChild(checkboxContainer);
-
-                    // Ajouter le style pour le loader
-                    const loaderStyle = document.createElement('style');
-                    loaderStyle.textContent = `
-                        .loader {
-                            display: inline-block;
-                            width: 16px;
-                            height: 16px;
-                            border: 2px solid #ffffff;
-                            border-radius: 50%;
-                            border-top-color: transparent;
-                            animation: spin 1s linear infinite;
-                        }
-                        @keyframes spin {
-                            to {
-                                transform: rotate(360deg);
-                            }
-                        }
-                        .hidden {
-                            display: none !important;
-                        }
-                    `;
-                    document.head.appendChild(loaderStyle);
-
-                    // Afficher les événements au chargement initial
-                    const events = WorksiteCalendar.calendar.getEvents();
-                    const astreintes = events.filter(event => event.extendedProps.isAstreinte);
-                    astreintes.forEach(event => event.setProp('display', 'block'));
-
-                    // Gestionnaires d'événements pour les checkboxes
-                    document.getElementById('showAstreintes').addEventListener('change', function(e) {
-                        const button = e.target.parentElement;
-                        const loader = button.querySelector('.loader');
-                        const text = button.querySelector('span:not(.loader)');
-
-                        loader.classList.remove('hidden');
-                        setTimeout(() => {
-                            FilterHandler.showAstreintes(button, events);
-                            loader.classList.add('hidden');
-                        }, 300);
-                    });
-                }
             };
 
             const SearchModule = {
@@ -1075,10 +1097,16 @@
             };
 
             const FilterHandler = {
-                showAstreintes(element, events) {
-                    const astreintes = events.filter(event => event.extendedProps.isAstreinte);
+                showAstreintes(element, astreintes) {
                     const isChecked = element.querySelector('input').checked;
-                    astreintes.forEach(event => event.setProp('display', isChecked ? 'block' : 'none'));
+
+                    // Utiliser batchRendering pour optimiser les performances
+                    WorksiteCalendar.calendar.batchRendering(() => {
+                        astreintes.forEach(event => {
+                            event.setProp('display', isChecked ? 'block' : 'none');
+                        });
+                    });
+
                     element.style.backgroundColor = isChecked ? '#2c3e50' : '#e2e8f0';
                     element.style.color = isChecked ? 'white' : '#2c3e50';
                 },
@@ -1138,19 +1166,19 @@
                             </div>
                             <div class="flex justify-end gap-2">
                                 ${event ? `
-                                                                    <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
-                                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                                                            </svg>
-                                                                        <span>Supprimer</span>
-                                                        </button>
-                                                                    <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
-                                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                                                            </svg>
-                                                                        <span>Mettre à jour</span>
-                                                        </button>
-                                                    ` : ''}
+                                                                            <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                                    </svg>
+                                                                                <span>Supprimer</span>
+                                                                </button>
+                                                                            <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
+                                                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                                                    </svg>
+                                                                                <span>Mettre à jour</span>
+                                                                </button>
+                                                            ` : ''}
                                 <button id="cancelAstreinte" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
@@ -1158,13 +1186,13 @@
                                     <span>Annuler</span>
                                 </button>
                                 ${!event ? `
-                                                                    <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
-                                                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-                                                            </svg>
-                                                                        <span>Enregistrer</span>
-                                                        </button>
-                                                    ` : ''}
+                                                                            <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                                                    </svg>
+                                                                                <span>Enregistrer</span>
+                                                                </button>
+                                                            ` : ''}
                             </div>
                         </div>
                     `;
