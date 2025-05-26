@@ -12,7 +12,7 @@
                 <!-- menu pour admin et technicien -->
                 @if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2 || Auth::user()->role_id === 4)
                     <!-- Navigation Links -->
-                    <div class="hidden space-x-8 nav-hiden sm:-my-px sm:ml-10 sm:flex nav_max">
+                    <div class="space-x-8 nav-hiden sm:-my-px sm:ml-10 sm:flex nav_max">
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             Mon Tableau de Bord
                         </x-nav-link>
@@ -78,7 +78,7 @@
 
 
 
-            <div class="hidden nav-hiden sm:flex sm:items-center sm:ml-6 btn_profile">
+            <div class="nav-hiden sm:flex sm:items-center sm:ml-6 btn_profile">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button

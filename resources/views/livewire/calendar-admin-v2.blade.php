@@ -668,7 +668,6 @@
                     // Ajouter les checkboxes après le rendu du calendrier
                     const headerLeft = document.querySelector(
                         '.fc-header-toolbar .fc-toolbar-chunk:first-child');
-                    console.log(headerLeft);
                     const checkboxContainer = document.createElement('div');
                     checkboxContainer.className = 'fc-button-group';
                     checkboxContainer.innerHTML = `
