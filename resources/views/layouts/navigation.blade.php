@@ -39,7 +39,7 @@
 
 
             <!-- menu responsive -->
-            <div class="hidden nav-hiden sm:flex sm:items-center sm:ml-6 btn_profile nav_min">
+            <div class="nav-hiden sm:flex sm:items-center sm:ml-6 btn_profile nav_min">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
