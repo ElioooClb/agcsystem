@@ -22,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::table('roles')->where('name', 'Chef de chantier')->delete();
+        DB::table('roles')->where('role', 'superintendant')->delete();
     }
 };

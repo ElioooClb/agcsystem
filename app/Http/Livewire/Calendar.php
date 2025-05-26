@@ -112,7 +112,7 @@ class Calendar extends Component
       ->where('user_id', $astreinte->user_id)
       ->whereBetween('date', [
         $monday->format('Y-m-d'),
-        $monday->copy()->addDays(4)->format('Y-m-d')
+        $monday->copy()->addDays(6)->format('Y-m-d')
       ])
       ->delete();
 

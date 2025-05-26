@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class CustomEvent extends Model
 {
-    protected $table = 'table_custom_events';
-
     protected $fillable = [
         'title',
         'start',

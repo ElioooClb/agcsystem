@@ -1365,7 +1365,7 @@
                                     start: date.format('YYYY-MM-DD'),
                                     end: date.format('YYYY-MM-DD'),
                                     title: Utils.generateAstreinteTitle(userAcronyme),
-                                    color: '#FF3D00',
+                                    color: '#f97316',
                                     extendedProps: {
                                         isAstreinte: true,
                                         user_id: userId,
@@ -1373,7 +1373,6 @@
                                     }
                                 };
                                 WorksiteCalendar.calendar.addEvent(event);
-                                @this.addAstreinte(astreinteDate, userId);
                             }
                             ModalHandler.closeAndRemoveModal(modal);
                         } else {
@@ -1667,11 +1666,12 @@
             // Écouteur pour le rafraîchissement après ajout d'astreinte
             ['Added', 'Updated', 'Deleted'].forEach(action => {
                 Livewire.on(`astreinte${action}`, () => {
-                    WorksiteCalendar.refetchEvents();
+                    WorksiteCalendar.loadEvents();
                     Utils.flashMe('success', `Astreinte ${action.toLowerCase()}e avec succès`);
                 });
             });
             Livewire.on('astreinteNotFound', () => {
+                WorksiteCalendar.loadEvents();
                 Utils.flashMe('danger', 'Astreinte non trouvée');
             });
         });
