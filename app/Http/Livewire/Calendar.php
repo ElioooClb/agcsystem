@@ -10,6 +10,7 @@ use App\Models\Chantier;
 use App\Models\Message;
 use Illuminate\Support\Arr;
 use App\Models\CustomEvent;
+use Carbon\Carbon;
 
 class Calendar extends Component
 {
@@ -47,7 +48,7 @@ class Calendar extends Component
   public function addAstreinte($date, $userId)
   {
     // Convertir la date en objet Carbon
-    $startDate = \Carbon\Carbon::parse($date);
+    $startDate = Carbon::parse($date);
 
     // Ajuster au lundi de la semaine si ce n'est pas déjà un lundi
     $monday = $startDate->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
@@ -75,6 +76,7 @@ class Calendar extends Component
     // Trouver l'astreinte existante
     $astreinte = Time::find($id);
     if (!$astreinte) {
+      $this->emit('astreinteNotFound');
       return;
     }
 
@@ -185,7 +187,6 @@ class Calendar extends Component
         'backgroundColor' => $event->backgroundColor,
         'borderColor' => $event->borderColor,
         'textColor' => $event->textColor,
-        'url' => $event->url,
         'extendedProps' => $event->extendedProps,
         'isCustomEvent' => true
       ];
@@ -218,16 +219,15 @@ class Calendar extends Component
           ->groupBy('date');
       })
       ->get();
+    foreach ($public_holidays as $public_holiday) {
+      $public_holiday->display = 'background';
+    }
 
     $oncall_duty = Time::with('user')->where('oncall_duty', 1)->get();
 
     foreach ($oncall_duty as $ocd) {
       $ocd->allDay = true;
       $ocd->backgroundColor = '#f97316';
-    }
-
-    foreach ($public_holidays as $public_holiday) {
-      $public_holiday->display = 'background';
     }
 
     $customEvents = $this->getEvents();
