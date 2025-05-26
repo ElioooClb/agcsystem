@@ -623,7 +623,7 @@
                                 }
                             },
                             showCustomEvents: {
-                                text: 'Événements',
+                                text: 'Évènements',
                                 click: function() {
                                     const events = this.calendar.getEvents();
                                     const customEvents = events.filter(event => event
@@ -826,7 +826,7 @@
                         // Appel au backend
                         @this.eventAdd(info.event, id, id_chantier);
                     } catch (error) {
-                        console.error('Erreur lors de la réception de l\'événement:', error);
+                        console.error('Erreur lors de la réception de l\'évènement:', error);
                     }
                 },
 
@@ -1094,7 +1094,7 @@
                     // Suppression de l'événement
                     const deleteEvent = document.querySelector("#deleteEvent_" + id_chantier);
                     deleteEvent.onclick = function() {
-                        if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
+                        if (confirm("Voulez-vous vraiment supprimer cet évènement ?")) {
                             info.event.remove();
                             @this.eventRemove(id);
                             modalInfo.style.display = "none";
@@ -1226,12 +1226,12 @@
                     modal.className = 'p-6 bg-white rounded-lg shadow';
                     modal.innerHTML = `
                         <div class="w-full w-auto">
-                            <h3 class="mb-4 text-xl font-bold">Ajouter un événement</h3>
+                            <h3 class="mb-4 text-xl font-bold">Ajouter un évènement</h3>
                             <div class="mb-4">
-                                <label class="block mb-2">Type d'événement</label>
+                                <label class="block mb-2">Type d'évènement</label>
                                 <select id="eventType" class="w-full p-2 border rounded">
                                     <option value="astreinte">Astreinte</option>
-                                    <option value="custom">Événement personnalisé</option>
+                                    <option value="custom">Évènement personnalisé</option>
                                 </select>
                             </div>
                             <div id="astreinteFields" class="hidden">
@@ -1411,7 +1411,7 @@
                     modal.className = 'p-6 bg-white rounded-lg shadow';
                     modal.innerHTML = `
                         <div class="w-full w-auto">
-                            <h3 class="mb-4 text-xl font-bold">Modifier l'événement</h3>
+                            <h3 class="mb-4 text-xl font-bold">Modifier l'évènement</h3>
                             <div class="mb-4">
                                 <label class="block mb-2">Titre</label>
                                 <input type="text" id="customEventTitle" class="w-full p-2 border rounded" value="${event.title}">
@@ -1467,7 +1467,7 @@
 
                     // Gestionnaire pour supprimer l'événement
                     document.getElementById('deleteCustomEvent').onclick = function() {
-                        if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
+                        if (confirm("Voulez-vous vraiment supprimer cet évènement ?")) {
                             const eventId = event.id.replace('custom_', '');
                             @this.deleteCustomEvent(eventId);
                             event.remove();
