@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('borderColor')->nullable();
             $table->string('textColor')->nullable();
             $table->string('url')->nullable();
-            $table->json('extendedProps')->nullable();
+            $table->longtext('extendedProps')->nullable();
             $table->timestamps();
         });
     }
