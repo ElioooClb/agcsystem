@@ -1,5 +1,5 @@
 <div>
-    <!-- Partie recherche et navigation - Regroupée en une seule section cohérente -->
+
     <div class="grid grid-cols-2 ml-[20px]">
         <!-- Zone de recherche gauche -->
         <aside class="float-left max-w-[60%]">
@@ -109,295 +109,302 @@
                         </li>
 
                         @csrf
-                        <!-- Modal d'édition du chantier -->
-                        <div id="chantierModal_{{ $chantier->id }}" data-id="{{ $chantier->id }}" class="modalCh">
-                            <div class="p-6 bg-white rounded-lg shadow-lg modalCh-content modal_admin">
-                                <span class="absolute top-0 right-0 p-4 cursor-pointer close">&times;</span>
-                                <h3 class="mb-4 text-2xl font-bold title_info title-modal">
-                                    Modification du chantier "{{ $chantier->title }}"
-                                </h3>
+                        @if (Auth::user()->role_id === 1 || Auth::user()->role_id === 4)
+                            <!-- Modal d'édition du chantier -->
+                            <div id="chantierModal_{{ $chantier->id }}" data-id="{{ $chantier->id }}" class="modalCh">
+                                <div class="p-6 bg-white rounded-lg shadow-lg modalCh-content modal_admin">
+                                    <span class="absolute top-0 right-0 p-4 cursor-pointer close">&times;</span>
+                                    <h3 class="mb-4 text-2xl font-bold title_info title-modal">
+                                        Modification du chantier "{{ $chantier->title }}"
+                                    </h3>
 
-                                <!-- Information d'identifiant -->
-                                <p>IdAff_{{ $chantier->id }}</p>
-                                <hr>
+                                    <!-- Information d'identifiant -->
+                                    <p>IdAff_{{ $chantier->id }}</p>
+                                    <hr>
 
-                                <!-- Section titre -->
-                                <div>
-                                    <p>Titre Chantier :</p>
-                                    <input class="title input_admin" type="text" name="title"
-                                        value="{{ $chantier->title }}">
-                                    <button
-                                        class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full btn-title hover:bg-green-700"
-                                        data-id="{{ $chantier->id }}">Modifier Nom
-                                    </button>
-                                </div>
-                                <hr>
+                                    <!-- Section titre -->
+                                    <div>
+                                        <p>Titre Chantier :</p>
+                                        <input class="title input_admin" type="text" name="title"
+                                            value="{{ $chantier->title }}">
+                                        <button
+                                            class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full btn-title hover:bg-green-700"
+                                            data-id="{{ $chantier->id }}">Modifier Nom
+                                        </button>
+                                    </div>
+                                    <hr>
 
-                                <!-- Section état facturation -->
-                                <p>État de la facturation :</p>
-                                <div>
-                                    @php
-                                        $invoice = $chantier->invoices;
-                                        $existRequestedAt = $invoice && $invoice->requested_at;
-                                        $existFilledAt = $invoice && $invoice->filled_at;
-                                        $isDisabled = false;
-                                        $isReturnable = $chantier->states->status !== 'initial';
-                                        $colorClass = '';
+                                    <!-- Section état facturation -->
+                                    <p>État de la facturation :</p>
+                                    <div>
+                                        @php
+                                            $invoice = $chantier->invoices;
+                                            $existRequestedAt = $invoice && $invoice->requested_at;
+                                            $existFilledAt = $invoice && $invoice->filled_at;
+                                            $isDisabled = false;
+                                            $isReturnable = $chantier->states->status !== 'initial';
+                                            $colorClass = '';
 
-                                        if ($chantier->invoices !== null) {
-                                            if (
-                                                $chantier->states &&
-                                                ($chantier->states->status === 'billable' ||
-                                                    $chantier->states->status === 'partiallyBilled')
-                                            ) {
+                                            if ($chantier->invoices !== null) {
                                                 if (
-                                                    !property_exists($chantier->invoices, 'number') ||
-                                                    $chantier->invoices->number === null
+                                                    $chantier->states &&
+                                                    ($chantier->states->status === 'billable' ||
+                                                        $chantier->states->status === 'partiallyBilled')
                                                 ) {
-                                                    $isDisabled = true;
+                                                    if (
+                                                        !property_exists($chantier->invoices, 'number') ||
+                                                        $chantier->invoices->number === null
+                                                    ) {
+                                                        $isDisabled = true;
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        switch ($chantier->states->status) {
-                                            case 'pendingArchiving':
-                                                $colorClass = 'bg-orange-500 hover:bg-orange-700';
-                                                break;
-                                            case 'billable':
-                                            case 'partiallyBilled':
-                                                $colorClass = $isDisabled
-                                                    ? 'bg-gray-500 enabled:hover:bg-gray-700'
-                                                    : 'bg-gray-500 hover:bg-gray-700';
-                                                break;
-                                            default:
-                                                $colorClass = 'bg-green-500 hover:bg-green-700';
-                                        }
-                                    @endphp
-
-                                    <button
-                                        class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white rounded-full invoiceStateBtn {{ $colorClass }}"
-                                        data-id="{{ $chantier->id }}" data-status="{{ $chantier->states->status }}"
-                                        @if ($isDisabled) disabled @endif>
-                                        {{ $chantier->states->label }}
-                                    </button>
-
-                                    <div class="my-2 stateContainer" data-id="{{ $chantier->id }}"
-                                        {{ $existRequestedAt ? '' : 'hidden' }}>
-                                        <p class="flex pt-2">
-                                            <span class='requestedAtTitle' data-id="{{ $chantier->id }}">
-                                                Facture demandée le :
-                                            </span>
-                                            <strong>
-                                                <span class='requestedAtDate formattedDate'
-                                                    data-id="{{ $chantier->id }}">{{ $existRequestedAt ? $chantier->invoices->requested_at : '' }}
-                                                </span>
-                                            </strong>
-                                            <button class="cursor-pointer invoiceReturnStateBtn ms-3"
-                                                data-id="{{ $chantier->id }}"
-                                                data-status="{{ $chantier->states->status }}"
-                                                @if (!$isReturnable) disabled @endif>
-                                                <img src={{ $isReturnable ? '/front/images/return-icon.svg' : '/front/images/return-icon-disabled.svg' }}
-                                                    alt='icône retour {{ $isReturnable ? '' : 'désactivée' }}'>
-                                            </button>
-                                        </p>
-
-                                        <p class="flex pb-2 invoiceContainer" data-id="{{ $chantier->id }}">
-                                            <label for="invoiceNumber" class="font-thin me-2">Facture n° :</label>
-                                            <input class='invoiceInputNumber text-[14px]' data-id="{{ $chantier->id }}"
-                                                data-status="{{ $chantier->states->status }}" type='text'
-                                                name="invoiceNumber"
-                                                value="{{ $existFilledAt ? $chantier->invoices->number : '' }}"
-                                                @if (!$isDisabled) disabled @endif>
-                                            <button class="mx-4 invoiceValidateBtn" data-id="{{ $chantier->id }}"
-                                                data-status="{{ $chantier->states->status }}"
-                                                @if (!$isDisabled) disabled @endif>
-                                                <img src='/front/images/{{ $isDisabled ? 'validate-icon.svg' : 'validate-icon-disabled.svg' }}'
-                                                    alt='icône validation {{ $isDisabled ? '' : 'désactivée' }}'>
-                                            </button>
-                                            <button class="invoiceDeleteBtn" data-id="{{ $chantier->id }}"
-                                                data-status="{{ $chantier->states->status }}"
-                                                @if (!$isDisabled) disabled @endif>
-                                                <img src='/front/images/{{ $isDisabled ? 'trashbin-icon.svg' : 'trashbin-icon-disabled.svg' }}'
-                                                    alt='icône poubelle {{ $isDisabled ? '' : 'désactivée' }}'>
-                                            </button>
-                                        </p>
-                                    </div>
-                                </div>
-                                <hr>
-
-                                <!-- Section heures -->
-                                <div>
-                                    <p>Heure Prévue :</p>
-                                    <input class="hour input_admin" type="text" name="hours"
-                                        value="{{ $chantier->hours }}">
-                                    <button
-                                        class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full btn-hour hover:bg-green-700"
-                                        data-id="{{ $chantier->id }}">Modifier Temps
-                                    </button>
-                                </div>
-                                <hr>
-
-                                <!-- Section techniciens disponibles -->
-                                <p class="mt-4">Techniciens Disponibles : </p>
-                                @csrf
-                                <select multiple="multiple" name="user_id[]"
-                                    class="block w-full rounded-md selected-users font-2xl">
-                                    @foreach ($users as $user)
-                                        @if (!$chantier->users->contains($user) && $user->email != null)
-                                            <option value="{{ $user->id }}" class="text-2xl">
-                                                {{ $user->name }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                                <button
-                                    class="px-4 py-2 mt-2 font-bold text-white bg-green-500 rounded-full btn-assign hover:bg-green-700"
-                                    form="chantierForm_{{ $chantier->id }}">Ajouter Technicien
-                                </button>
-                                <hr>
-
-                                <!-- Section techniciens affectés -->
-                                <p class="mt-4 listeTeck">Liste des techniciens affectés : </p>
-                                <ul class="ulListeTeck">
-                                    @foreach ($chantier->users as $user)
-                                        <li class="d-flex assignedUser">
-                                            <p>{{ $user->name }}</p>
-                                            <button class="deleteAssignedUser" data-id-user="{{ $user->id }}"
-                                                data-name-user="{{ $user->name }}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                    fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-                                                    <path
-                                                        d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
-                                                    <path
-                                                        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
-                                                </svg>
-                                            </button>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                                <hr>
-
-                                <!-- Section montants -->
-                                <div class="form-group amounts" data-id="{{ $chantier->id }}">
-                                    <label>Montant matériel :</label>
-                                    <div class="montant">
-                                        <input type="float" class="form-control amount" name="materialamount"
-                                            value="{{ $chantier->materialamount }}">
-                                        <p>€</p>
-                                    </div>
-
-                                    <label>Montant Service :</label>
-                                    <div class="montant">
-                                        <input type="float" class="form-control amount" name="serviceamount"
-                                            value="{{ $chantier->serviceamount }}">
-                                        <p>€</p>
-                                    </div>
-                                    <button
-                                        class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full hover:bg-green-700 btn-amount"
-                                        data-id="{{ $chantier->id }}">Modifier Montant
-                                    </button>
-                                </div>
-                                <hr>
-
-                                <!-- Section tâches -->
-                                <div class="form-group" id="options" data-id="{{ $chantier->id }}">
-                                    <p>Tâches Réalisées : </p>
-                                    @if ($chantier->parameters->count())
-                                        @foreach ($chantier->parameters as $parameter)
-                                            <label class="form-control @if ($parameter->pivot->completed === 1) green @endif">
-                                                <input type="checkbox" name="{{ $parameter->label }}"
-                                                    value="{{ $parameter->label }}" data-id="{{ $parameter->id }}"
-                                                    {{ $parameter->pivot->completed == 1 ? 'checked' : '' }}>
-                                                {{ $parameter->label }}
-                                            </label>
-                                        @endforeach
-                                    @else
-                                        <p>Il n'y a pas de paramètres associés à ce chantier.</p>
-                                    @endif
-                                </div>
-                                <hr>
-
-                                <!-- Section type/couleur -->
-                                <div class="relative inline-block w-48 form-group">
-                                    <label>Type : </label>
-                                    @csrf
-                                    <select name="color" data-id="{{ $chantier->id }}"
-                                        class="block px-4 py-2 pr-8 border border-gray-300 rounded-md shadow-sm colorSelect focus:outline-none focus:ring-0">
-                                        @php
-                                            $typeOptions = [
-                                                'green' => 'ROP',
-                                                'yellow' => 'SYSTEME ELECTRONIQUE',
-                                                'red' => 'MAINTENANCE',
-                                                'purple' => 'LAN',
-                                                'blue' => 'RACCO',
-                                                'gray' => 'FON',
-                                                'orange' => 'Vie',
-                                            ];
+                                            switch ($chantier->states->status) {
+                                                case 'pendingArchiving':
+                                                    $colorClass = 'bg-orange-500 hover:bg-orange-700';
+                                                    break;
+                                                case 'billable':
+                                                case 'partiallyBilled':
+                                                    $colorClass = $isDisabled
+                                                        ? 'bg-gray-500 enabled:hover:bg-gray-700'
+                                                        : 'bg-gray-500 hover:bg-gray-700';
+                                                    break;
+                                                default:
+                                                    $colorClass = 'bg-green-500 hover:bg-green-700';
+                                            }
                                         @endphp
 
-                                        @foreach ($typeOptions as $color => $label)
-                                            <option value="{{ $color }}"
-                                                {{ $chantier->color == $color ? 'selected' : '' }}
-                                                class="{{ $chantier->color == $color ? 'text-white' : '' }} bg-{{ $color }}-500 text-white">
-                                                {{ $label }}
-                                            </option>
+                                        <button
+                                            class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white rounded-full invoiceStateBtn {{ $colorClass }}"
+                                            data-id="{{ $chantier->id }}"
+                                            data-status="{{ $chantier->states->status }}"
+                                            @if ($isDisabled) disabled @endif>
+                                            {{ $chantier->states->label }}
+                                        </button>
+
+                                        <div class="my-2 stateContainer" data-id="{{ $chantier->id }}"
+                                            {{ $existRequestedAt ? '' : 'hidden' }}>
+                                            <p class="flex pt-2">
+                                                <span class='requestedAtTitle' data-id="{{ $chantier->id }}">
+                                                    Facture demandée le :
+                                                </span>
+                                                <strong>
+                                                    <span class='requestedAtDate formattedDate'
+                                                        data-id="{{ $chantier->id }}">{{ $existRequestedAt ? $chantier->invoices->requested_at : '' }}
+                                                    </span>
+                                                </strong>
+                                                <button class="cursor-pointer invoiceReturnStateBtn ms-3"
+                                                    data-id="{{ $chantier->id }}"
+                                                    data-status="{{ $chantier->states->status }}"
+                                                    @if (!$isReturnable) disabled @endif>
+                                                    <img src={{ $isReturnable ? '/front/images/return-icon.svg' : '/front/images/return-icon-disabled.svg' }}
+                                                        alt='icône retour {{ $isReturnable ? '' : 'désactivée' }}'>
+                                                </button>
+                                            </p>
+
+                                            <p class="flex pb-2 invoiceContainer" data-id="{{ $chantier->id }}">
+                                                <label for="invoiceNumber" class="font-thin me-2">Facture n° :</label>
+                                                <input class='invoiceInputNumber text-[14px]'
+                                                    data-id="{{ $chantier->id }}"
+                                                    data-status="{{ $chantier->states->status }}" type='text'
+                                                    name="invoiceNumber"
+                                                    value="{{ $existFilledAt ? $chantier->invoices->number : '' }}"
+                                                    @if (!$isDisabled) disabled @endif>
+                                                <button class="mx-4 invoiceValidateBtn" data-id="{{ $chantier->id }}"
+                                                    data-status="{{ $chantier->states->status }}"
+                                                    @if (!$isDisabled) disabled @endif>
+                                                    <img src='/front/images/{{ $isDisabled ? 'validate-icon.svg' : 'validate-icon-disabled.svg' }}'
+                                                        alt='icône validation {{ $isDisabled ? '' : 'désactivée' }}'>
+                                                </button>
+                                                <button class="invoiceDeleteBtn" data-id="{{ $chantier->id }}"
+                                                    data-status="{{ $chantier->states->status }}"
+                                                    @if (!$isDisabled) disabled @endif>
+                                                    <img src='/front/images/{{ $isDisabled ? 'trashbin-icon.svg' : 'trashbin-icon-disabled.svg' }}'
+                                                        alt='icône poubelle {{ $isDisabled ? '' : 'désactivée' }}'>
+                                                </button>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <hr>
+
+                                    <!-- Section heures -->
+                                    <div>
+                                        <p>Heure Prévue :</p>
+                                        <input class="hour input_admin" type="text" name="hours"
+                                            value="{{ $chantier->hours }}">
+                                        <button
+                                            class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full btn-hour hover:bg-green-700"
+                                            data-id="{{ $chantier->id }}">Modifier Temps
+                                        </button>
+                                    </div>
+                                    <hr>
+
+                                    <!-- Section techniciens disponibles -->
+                                    <p class="mt-4">Techniciens Disponibles : </p>
+                                    @csrf
+                                    <select multiple="multiple" name="user_id[]"
+                                        class="block w-full rounded-md selected-users font-2xl">
+                                        @foreach ($users as $user)
+                                            @if (!$chantier->users->contains($user) && $user->email != null)
+                                                <option value="{{ $user->id }}" class="text-2xl">
+                                                    {{ $user->name }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     </select>
-                                </div>
-                                <hr>
-
-                                <!-- Section étape -->
-                                @php
-                                    $stage = $chantier->stages;
-                                    $color = $colors[$stage->code];
-                                @endphp
-
-                                <div class="flex items-center gap-2 my-4">
-                                    <span data-id="{{ $chantier->id }}"
-                                        class="modal-stage-indicator w-3 h-3 rounded-full border border-dark {{ $color }}"></span>
-                                    <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">
-                                        {{ $stage->label }}</p>
-                                </div>
-                                <menu id='staging-menu' class="flex items-center gap-2">
                                     <button
-                                        class="staging-backward-btn px-4 py-2 font-bold text-white bg-orange-500 rounded-3 hover:bg-orange-700"
-                                        data-id="{{ $chantier->id }}" data-direction="backward"
-                                        data-next-stage="{{ $prevStage[$stage->code] }}"
-                                        data-current-stage="{{ $stage->code }}">
-                                        Revenir à l'étape précédente
+                                        class="px-4 py-2 mt-2 font-bold text-white bg-green-500 rounded-full btn-assign hover:bg-green-700"
+                                        form="chantierForm_{{ $chantier->id }}">Ajouter Technicien
                                     </button>
-                                    <button
-                                        class="staging-forward-btn px-4 py-2 font-bold text-white bg-green-500 rounded-3 hover:bg-green-700"
-                                        data-id="{{ $chantier->id }}" data-direction="forward"
-                                        data-next-stage="{{ $nextStage[$stage->code] }}"
-                                        data-current-stage="{{ $stage->code }}">
-                                        Passer à l'étape suivante
-                                    </button>
-                                </menu>
-                                <hr>
+                                    <hr>
 
-                                <!-- Section observations -->
-                                <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
-                                <textarea name="observations" cols="15" rows="5" class="block w-full mt-1 rounded-md observations">{{ $chantier->observation }}</textarea>
-                                <button
-                                    class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full btn-observation hover:bg-green-700"
-                                    data-id="{{ $chantier->id }}">Ajouter Observation
-                                </button>
-                                <hr>
+                                    <!-- Section techniciens affectés -->
+                                    <p class="mt-4 listeTeck">Liste des techniciens affectés : </p>
+                                    <ul class="ulListeTeck">
+                                        @foreach ($chantier->users as $user)
+                                            <li class="d-flex assignedUser">
+                                                <p>{{ $user->name }}</p>
+                                                <button class="deleteAssignedUser" data-id-user="{{ $user->id }}"
+                                                    data-name-user="{{ $user->name }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16"
+                                                        height="16" fill="currentColor" class="bi bi-trash"
+                                                        viewBox="0 0 16 16">
+                                                        <path
+                                                            d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+                                                        <path
+                                                            d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+                                                    </svg>
+                                                </button>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                    <hr>
 
-                                <!-- Bouton supprimer -->
-                                <div class="mt-4 modal-buttons">
-                                    @csrf
-                                    @method('DELETE')
+                                    <!-- Section montants -->
+                                    <div class="form-group amounts" data-id="{{ $chantier->id }}">
+                                        <label>Montant matériel :</label>
+                                        <div class="montant">
+                                            <input type="float" class="form-control amount" name="materialamount"
+                                                value="{{ $chantier->materialamount }}">
+                                            <p>€</p>
+                                        </div>
+
+                                        <label>Montant Service :</label>
+                                        <div class="montant">
+                                            <input type="float" class="form-control amount" name="serviceamount"
+                                                value="{{ $chantier->serviceamount }}">
+                                            <p>€</p>
+                                        </div>
+                                        <button
+                                            class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full hover:bg-green-700 btn-amount"
+                                            data-id="{{ $chantier->id }}">Modifier Montant
+                                        </button>
+                                    </div>
+                                    <hr>
+
+                                    <!-- Section tâches -->
+                                    <div class="form-group" id="options" data-id="{{ $chantier->id }}">
+                                        <p>Tâches Réalisées : </p>
+                                        @if ($chantier->parameters->count())
+                                            @foreach ($chantier->parameters as $parameter)
+                                                <label
+                                                    class="form-control @if ($parameter->pivot->completed === 1) green @endif">
+                                                    <input type="checkbox" name="{{ $parameter->label }}"
+                                                        value="{{ $parameter->label }}"
+                                                        data-id="{{ $parameter->id }}"
+                                                        {{ $parameter->pivot->completed == 1 ? 'checked' : '' }}>
+                                                    {{ $parameter->label }}
+                                                </label>
+                                            @endforeach
+                                        @else
+                                            <p>Il n'y a pas de paramètres associés à ce chantier.</p>
+                                        @endif
+                                    </div>
+                                    <hr>
+
+                                    <!-- Section type/couleur -->
+                                    <div class="relative inline-block w-48 form-group">
+                                        <label>Type : </label>
+                                        @csrf
+                                        <select name="color" data-id="{{ $chantier->id }}"
+                                            class="block px-4 py-2 pr-8 border border-gray-300 rounded-md shadow-sm colorSelect focus:outline-none focus:ring-0">
+                                            @php
+                                                $typeOptions = [
+                                                    'green' => 'ROP',
+                                                    'yellow' => 'SYSTEME ELECTRONIQUE',
+                                                    'red' => 'MAINTENANCE',
+                                                    'purple' => 'LAN',
+                                                    'blue' => 'RACCO',
+                                                    'gray' => 'FON',
+                                                    'orange' => 'Vie',
+                                                ];
+                                            @endphp
+
+                                            @foreach ($typeOptions as $color => $label)
+                                                <option value="{{ $color }}"
+                                                    {{ $chantier->color == $color ? 'selected' : '' }}
+                                                    class="{{ $chantier->color == $color ? 'text-white' : '' }} bg-{{ $color }}-500 text-white">
+                                                    {{ $label }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <hr>
+
+                                    <!-- Section étape -->
+                                    @php
+                                        $stage = $chantier->stages;
+                                        $color = $colors[$stage->code];
+                                    @endphp
+
+                                    <div class="flex items-center gap-2 my-4">
+                                        <span data-id="{{ $chantier->id }}"
+                                            class="modal-stage-indicator w-3 h-3 rounded-full border border-dark {{ $color }}"></span>
+                                        <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">
+                                            {{ $stage->label }}</p>
+                                    </div>
+                                    <menu id='staging-menu' class="flex items-center gap-2">
+                                        <button
+                                            class="staging-backward-btn px-4 py-2 font-bold text-white bg-orange-500 rounded-3 hover:bg-orange-700"
+                                            data-id="{{ $chantier->id }}" data-direction="backward"
+                                            data-next-stage="{{ $prevStage[$stage->code] }}"
+                                            data-current-stage="{{ $stage->code }}">
+                                            Revenir à l'étape précédente
+                                        </button>
+                                        <button
+                                            class="staging-forward-btn px-4 py-2 font-bold text-white bg-green-500 rounded-3 hover:bg-green-700"
+                                            data-id="{{ $chantier->id }}" data-direction="forward"
+                                            data-next-stage="{{ $nextStage[$stage->code] }}"
+                                            data-current-stage="{{ $stage->code }}">
+                                            Passer à l'étape suivante
+                                        </button>
+                                    </menu>
+                                    <hr>
+
+                                    <!-- Section observations -->
+                                    <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
+                                    <textarea name="observations" cols="15" rows="5" class="block w-full mt-1 rounded-md observations">{{ $chantier->observation }}</textarea>
                                     <button
-                                        class="px-4 py-2 font-bold text-white bg-red-500 rounded-full delete-btn hover:bg-red-700"
-                                        data-id="{{ $chantier->id }}"
-                                        data-url="{{ route('chantier.destroy', ['idChantier' => $chantier->id, 'idUser' => auth()->user()->id]) }}">
-                                        Supprimer
+                                        class="px-4 py-2 mx-auto mt-2 font-bold text-center text-white bg-green-500 rounded-full btn-observation hover:bg-green-700"
+                                        data-id="{{ $chantier->id }}">Ajouter Observation
                                     </button>
+                                    <hr>
+
+                                    <!-- Bouton supprimer -->
+                                    <div class="mt-4 modal-buttons">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            class="px-4 py-2 font-bold text-white bg-red-500 rounded-full delete-btn hover:bg-red-700"
+                                            data-id="{{ $chantier->id }}"
+                                            data-url="{{ route('chantier.destroy', ['idChantier' => $chantier->id, 'idUser' => auth()->user()->id]) }}">
+                                            Supprimer
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endif
 
                         <!-- Modal d'informations du chantier -->
                         <div id="chantierModalInfo_{{ $chantier->id }}" class="modalCh modalInfo">
@@ -606,36 +613,6 @@
                             center: 'title',
                             right: 'dayGridMonth,listWeek',
                         },
-                        customButtons: {
-                            showAstreintes: {
-                                text: 'Astreintes',
-                                click: function() {
-                                    const events = this.calendar.getEvents();
-                                    const astreintes = events.filter(event => event
-                                        .extendedProps
-                                        .isAstreinte);
-                                    astreintes.forEach(event => {
-                                        event.setProp('display', event.getProp(
-                                                'display') === 'none' ? 'block' :
-                                            'none');
-                                    });
-                                }
-                            },
-                            showCustomEvents: {
-                                text: 'Évènements',
-                                click: function() {
-                                    const events = this.calendar.getEvents();
-                                    const customEvents = events.filter(event => event
-                                        .extendedProps
-                                        .isCustomEvent);
-                                    customEvents.forEach(event => {
-                                        event.setProp('display', event.getProp(
-                                                'display') === 'none' ? 'block' :
-                                            'none');
-                                    });
-                                }
-                            }
-                        },
                         buttonText: {
                             today: 'Aujourd\'hui',
                             month: 'Mois',
@@ -777,55 +754,51 @@
                 },
 
                 handleEventReceive(info) {
-                    try {
-                        // Vérification des données essentielles
-                        if (!info.draggedEl || !info.event) {
-                            console.error('Éléments manquants pour le drag & drop');
-                            return;
-                        }
-
-                        const id = Utils.createUUID();
-                        const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
-
-                        if (!id_chantier) {
-                            console.error('ID du chantier manquant');
-                            return;
-                        }
-
-                        // Récupération de la couleur de l'élément dragué
-                        const draggedElDiv = info.draggedEl.querySelector('div');
-                        if (!draggedElDiv) {
-                            console.error('Div de couleur non trouvé');
-                            return;
-                        }
-
-                        // Récupération de la couleur du stage
-                        const stageIndicator = draggedElDiv.querySelector('.stage-indicator');
-                        const stageColor = Utils.stageColor(info.draggedEl.getAttribute('data-stage'));
-
-                        const draggedElClass = draggedElDiv.className;
-                        const colorRegex = /bg-(\w+)-500/;
-                        const match = draggedElClass.match(colorRegex);
-                        const colorClass = match ? match[0] : 'bg-gray-500';
-
-                        // Configuration de l'événement
-                        info.event.setProp('classNames', [
-                            'idChantierEvent' + id_chantier,
-                            colorClass,
-                            'cursor-pointer'
-                        ]);
-
-                        // Ajout des propriétés étendues
-                        info.event.setExtendedProp('data-id', id);
-                        info.event.setExtendedProp('isWorksite', true);
-                        info.event.setExtendedProp('id_chantier', id_chantier);
-                        info.event.setExtendedProp('stage_color', stageColor);
-
-                        // Appel au backend
-                        @this.eventAdd(info.event, id, id_chantier);
-                    } catch (error) {
-                        console.error('Erreur lors de la réception de l\'évènement:', error);
+                    // Vérification des données essentielles
+                    if (!info.draggedEl || !info.event) {
+                        console.error('Éléments manquants pour le drag & drop');
+                        return;
                     }
+
+                    const id = Utils.createUUID();
+                    const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
+
+                    if (!id_chantier) {
+                        console.error('ID du chantier manquant');
+                        return;
+                    }
+
+                    // Récupération de la couleur de l'élément dragué
+                    const draggedElDiv = info.draggedEl.querySelector('div');
+                    if (!draggedElDiv) {
+                        console.error('Div de couleur non trouvé');
+                        return;
+                    }
+
+                    // Récupération de la couleur du stage
+                    const stageIndicator = draggedElDiv.querySelector('.stage-indicator');
+                    const stageColor = Utils.stageColor(info.draggedEl.getAttribute('data-stage'));
+
+                    const draggedElClass = draggedElDiv.className;
+                    const colorRegex = /bg-(\w+)-500/;
+                    const match = draggedElClass.match(colorRegex);
+                    const colorClass = match ? match[0] : 'bg-gray-500';
+
+                    // Configuration de l'événement
+                    info.event.setProp('classNames', [
+                        'idChantierEvent' + id_chantier,
+                        colorClass,
+                        'cursor-pointer'
+                    ]);
+
+                    // Ajout des propriétés étendues
+                    info.event.setExtendedProp('data-id', id);
+                    info.event.setExtendedProp('isWorksite', true);
+                    info.event.setExtendedProp('id_chantier', id_chantier);
+                    info.event.setExtendedProp('stage_color', stageColor);
+
+                    // Appel au backend
+                    @this.eventAdd(info.event, id, id_chantier);
                 },
 
                 handleEventClick(info) {
@@ -1123,19 +1096,19 @@
                             </div>
                             <div class="flex justify-end gap-2">
                                 ${event ? `
-                                                                                                                                                                                                    <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
-                                                                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
-                                                                                                                                                                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                                                                                                                                                                                            </svg>
-                                                                                                                                                                                                        <span>Supprimer</span>
-                                                                                                                                                                                        </button>
-                                                                                                                                                                                                    <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
-                                                                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
-                                                                                                                                                                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
-                                                                                                                                                                                            </svg>
-                                                                                                                                                                                                        <span>Mettre à jour</span>
-                                                                                                                                                                                        </button>
-                                                                                                                                                                                    ` : ''}
+                                                                                                                                                                                                            <button id="deleteAstreinte" class="btn btn-danger btn-sm d-flex align-items-center" title="Supprimer complètement l'astreinte">
+                                                                                                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                                                                                                                                                                                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                                                                                                                                                                    </svg>
+                                                                                                                                                                                                                <span>Supprimer</span>
+                                                                                                                                                                                                </button>
+                                                                                                                                                                                                            <button id="updateAstreinte" class="btn btn-primary btn-sm d-flex align-items-center" title="Mettre à jour">
+                                                                                                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil me-1" viewBox="0 0 16 16">
+                                                                                                                                                                                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                                                                                                                                                                                    </svg>
+                                                                                                                                                                                                                <span>Mettre à jour</span>
+                                                                                                                                                                                                </button>
+                                                                                                                                                                                            ` : ''}
                                 <button id="cancelAstreinte" class="btn btn-secondary btn-sm d-flex align-items-center" title="Annuler">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
@@ -1143,13 +1116,13 @@
                                     <span>Annuler</span>
                                 </button>
                                 ${!event ? `
-                                                                                                                                                                                                    <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
-                                                                                                                                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
-                                                                                                                                                                                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-                                                                                                                                                                                            </svg>
-                                                                                                                                                                                                        <span>Enregistrer</span>
-                                                                                                                                                                                        </button>
-                                                                                                                                                                                    ` : ''}
+                                                                                                                                                                                                            <button id="saveAstreinte" class="btn btn-success btn-sm d-flex align-items-center" title="Enregistrer">
+                                                                                                                                                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check me-1" viewBox="0 0 16 16">
+                                                                                                                                                                                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                                                                                                                                                                                    </svg>
+                                                                                                                                                                                                                <span>Enregistrer</span>
+                                                                                                                                                                                                </button>
+                                                                                                                                                                                            ` : ''}
                             </div>
                         </div>
                     `;
