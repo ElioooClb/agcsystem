@@ -520,7 +520,6 @@
                                 start: event.date,
                                 title: Utils.generateAstreinteTitle(event.user.acronyme),
                                 classNames: [
-                                    'bg-red-500',
                                     'border border-dark',
                                     'oncall-duty',
                                 ],
@@ -1551,7 +1550,7 @@
                     switch (indicator) {
                         case 'astreinte':
                             const emojiSpan = document.createElement('span');
-                            emojiSpan.textContent = '🚨';
+                            emojiSpan.textContent = '🎧';
                             emojiSpan.style.flexShrink = '0';
                             emojiSpan.style.width = '16px';
                             indicatorContainer.appendChild(emojiSpan);

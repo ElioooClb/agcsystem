@@ -227,7 +227,7 @@ class Calendar extends Component
 
     foreach ($oncall_duty as $ocd) {
       $ocd->allDay = true;
-      $ocd->backgroundColor = '#f97316';
+      $ocd->backgroundColor = '#BB0B0B';
     }
 
     $customEvents = $this->getEvents();
