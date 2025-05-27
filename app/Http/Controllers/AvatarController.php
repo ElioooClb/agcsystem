@@ -15,7 +15,7 @@ class AvatarController extends Controller
 
         $user = Auth::user();
         dump($user);
-        dump($request->avatar);
+        dd($request->avatar);
         if ($request->hasFile('avatar')) {
             // Delete old avatar if exists
             if ($user->avatar) {
@@ -30,7 +30,7 @@ class AvatarController extends Controller
             $request->avatar->storeAs('public/avatars', $avatarName);
 
             // Update user avatar in database
-            $user->avatar = $avatarName;
+            $user->avatar = $avatarName ?? "storage/avatars/default-avatar.svg";
             $user->save();
 
             return redirect()->back()->withStatus('Avatar mis à jour avec succès !');

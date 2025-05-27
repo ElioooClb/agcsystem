@@ -143,6 +143,6 @@ Route::middleware('auth')->group(function () {
 
     // Avatar
     Route::post('/avatar', [AvatarController::class, 'store'])->name('avatar.store');
-    Route::delete('/avatar/{avatar}', [AvatarController::class, 'destroy'])->name('avatar.destroy');
+    Route::delete('/avatar', [AvatarController::class, 'destroy'])->name('avatar.destroy');
 });
 require __DIR__ . '/auth.php';

@@ -520,7 +520,7 @@
                                 start: event.date,
                                 title: Utils.generateAstreinteTitle(event.user.acronyme),
                                 classNames: [
-                                    'bg-orange-500',
+                                    'bg-red-500',
                                     'border border-dark',
                                     'oncall-duty',
                                 ],
