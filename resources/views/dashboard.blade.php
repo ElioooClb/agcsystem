@@ -8,7 +8,7 @@
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
-                    @if (Auth::user()->role_id === 1)
+                    @if (Auth::user()->role_id === 1) {{-- Admin --}}
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="card">
@@ -68,7 +68,6 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                         <div class='row'>
                             @if (Auth::user()->fonction === 'Président' || Auth::user()->fonction === 'Associé')
@@ -77,8 +76,7 @@
                                         <div class="card-body">
                                             <h5 class="card-title">Pilotage</h5>
                                             <p class="card-text">Piloter avec l'affichage de données.</p>
-                                            <a href="{{ route('chantier.statistiques') }}"
-                                                class="btn btn-primary">Accéder</a>
+                                            <a href="{{ route('chantier.statistiques') }}" class="btn btn-primary">Accéder</a>
                                         </div>
                                     </div>
                                 </div>
@@ -93,28 +91,69 @@
                                 </div>
                             @endif
                         </div>
-                    @else
+                    @elseif (Auth::user()->role_id === 4) {{-- Superintendant --}}
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Mes heures</h5>
+                                    <p class="card-text">Gérer vos heures de travail.</p>
+                                    <a href="{{ route('time.shows', Auth::user()) }}" class="btn btn-primary">Accéder</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Mes chantiers</h5>
+                                    <p class="card-text">Voir les chantiers qui vous sont assignés. En construction...</p>
+                                    <a href="#" class="btn btn-primary">Accéder</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @elseif (Auth::user()->role_id === 2) {{-- Utilisateur ou Superintendant --}}
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="card">
                                     <div class="card-body">
                                         <h5 class="card-title">Mes heures</h5>
-                                        <p class="card-text">With supporting text below as a natural lead-in to
-                                            additional content.</p>
-                                        <a href="#" class="btn btn-primary">Go somewhere</a>
+                                        <p class="card-text">Gérer vos heures de travail.</p>
+                                        <a href="{{ route('time.shows', Auth::user()) }}" class="btn btn-primary">Accéder</a>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Special title treatment</h5>
-                                        <p class="card-text">With supporting text below as a natural lead-in to
-                                            additional content.</p>
-                                        <a href="#" class="btn btn-primary">Go somewhere</a>
+                                        <h5 class="card-title">Mes chantiers</h5>
+                                        <p class="card-text">Voir les chantiers qui vous sont assignés. En construction...</p>
+                                        <a href="#" class="btn btn-primary">Accéder</a>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    @elseif (Auth::user()->role_id === 3) {{-- Demo --}}
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Messages</h5>
+                                        <p class="card-text">Gérer les messages de démonstration.</p>
+                                        <a href="{{ route('message.index') }}" class="btn btn-primary">Accéder</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Paramètres</h5>
+                                        <p class="card-text">Configurer les paramètres de démonstration.</p>
+                                        <a href="{{ route('parameters.manage') }}" class="btn btn-primary">Accéder</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>

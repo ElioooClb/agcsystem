@@ -51,7 +51,7 @@
     "src": "node_modules/@fortawesome/fontawesome-free/webfonts/fa-v4compatibility.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-a2a0b103.css",
+    "file": "assets/app-74546a1f.css",
     "isEntry": true,
     "src": "resources/css/app.css"
   },
@@ -110,7 +110,7 @@
     "src": "resources/js/heures/adminDeclaration.js"
   },
   "resources/js/heures/chantier.js": {
-    "file": "assets/chantier-6c1a186a.js",
+    "file": "assets/chantier-c42238b6.js",
     "imports": [
       "_flashAlert-c8019654.js",
       "_sweetalert2.esm.all-509645c6.js"
@@ -136,6 +136,11 @@
     "file": "assets/scheduleModalHandler-49bf1d1f.js",
     "isEntry": true,
     "src": "resources/js/heures/scheduleModalHandler.js"
+  },
+  "resources/js/heures/worksiteStaging.js": {
+    "file": "assets/worksiteStaging-db365442.js",
+    "isEntry": true,
+    "src": "resources/js/heures/worksiteStaging.js"
   },
   "resources/js/heures/worksiteState.js": {
     "file": "assets/worksiteState-5598f0da.js",

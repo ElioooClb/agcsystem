@@ -45,6 +45,35 @@ class Chantier extends Model
         });
     }
 
+    public function type()
+    {
+        $color = $this->color;
+        switch ($color) {
+            case 'green':
+                return 'ROP';
+            case 'yellow':
+                return 'SYSTEME ELECTRONIQUE';
+            case 'red':
+                return 'MAINTENANCE';
+            case 'purple':
+                return 'LAN';
+            case 'blue':
+                return 'RACCO';
+            case 'gray':
+                return 'FON';
+            case 'orange':
+                return 'VIE';
+        }
+    }
+    /**
+     * This function call for the state table dependencies of the chantier
+     * @return BelongsTo
+     */
+    public function stages(): BelongsTo
+    {
+        return $this->belongsTo(State::class, 'stage_state', 'code');
+    }
+
     /**
      * This function call for the user table dependencies of the chantier
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
@@ -111,7 +140,6 @@ class Chantier extends Model
         return 'idAff_' . $this->id;
     }
 
-    // Début [SPECGT6] - Ajout des loadouts et des paramètres aux chantiers
     public function parameters(): BelongsToMany
     {
         return $this->belongsToMany(Parameter::class)->withPivot('completed');
@@ -121,5 +149,4 @@ class Chantier extends Model
     {
         return $this->belongsTo(Loadout::class, 'loadout_id');
     }
-    // Fin [SPECGT6] - Ajout des loadouts et des paramètres aux chantiers
 }

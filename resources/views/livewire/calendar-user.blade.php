@@ -18,7 +18,7 @@
                     @if (!$archivedWorkSites->contains($chantier))
                         <menu class="calendarListingWorksites">
                             <li data-id-chantier="{{ $chantier->id }}" data-event='@json(['title' => $chantier->title])'
-                                class="dropEvent bg-{{ $chantier->color }}-500">
+                                class="dropEvent bg-{{ $chantier->color }}-500 w-full p-1 mb-1 cursor-pointer">
                                 {{ $chantier->title }}
                             </li>
                         </menu>
@@ -121,6 +121,22 @@
                                 </label>
                             </div>
                             <hr>
+                            {{-- Stage Chantier --}}
+                            @php
+                                $stage = $chantier->stages;
+                                $colors = [
+                                    'STAGE_1A' => 'bg-danger',
+                                    'STAGE_1B' => 'bg-warning',
+                                    'STAGE_1C' => 'bg-success',
+                                ];
+                            @endphp
+                            <div class="flex items-center gap-2 my-4">
+                                <span data-id="{{ $chantier->id }}"
+                                    class="modal-stage-indicator w-3 h-3 rounded-full border border-dark {{ $colors[$stage->code] }}"></span>
+                                <p data-id={{ $chantier->id }} class="text-2xl m-0 stage-label">
+                                    {{ $stage->label }}</p>
+                            </div>
+                            <hr>
                             {{-- Observation(s) Chantier --}}
                             <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
                             @if ($chantier->observation)
@@ -150,20 +166,43 @@
 @push('scripts')
     <script>
         document.addEventListener('livewire:load', function() {
+            const events = JSON.parse(@this.events);
+
+            // Séparation des events
+            const publicHolidays = events.filter(e => e.state === 5);
+            const chantierEvents = events.filter(e => e.id_chantier !== undefined && chantierIds.includes(e
+                .id_chantier));
+
             // Load events asynchronously
-            Promise.all(JSON.parse(@this.events).filter(event => chantierIds.includes(event.id_chantier)).map(
-                event => {
-                    const idChantier = event.id_chantier;
-                    return findChantierById(idChantier).then(chantier => {
-                        return {
-                            ...event,
-                            // Dynamically set background color based on chantier color
-                            classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' +
-                                idChantier
-                            ],
-                        };
-                    });
-                })).then(eventsData => {
+            Promise.all([
+                ...publicHolidays.map(event => ({
+                    ...event,
+                    start: event.date,
+                    id_chantier: event.chantier_id,
+                    chantier: {
+                        id: event.chantier_id,
+                        title: '🎉 Jour férié 🎉',
+                        color: 'gray',
+                    },
+                    title: '🎉 Jour férié 🎉',
+                    classNames: [
+                        'bg-pink-500',
+                        'idChantierEvent' + event.chantier_id,
+                        'border border-dark',
+                        'public-holiday',
+                    ],
+                    isWorksite: false,
+                })),
+                ...chantierEvents.map(event => {
+                    const chantier = event.chantier;
+                    const idChantier = chantier.id;
+                    return {
+                        ...event,
+                        classNames: ['bg-' + chantier.color + '-500', 'idChantierEvent' + idChantier],
+                        isWorksite: true,
+                    };
+                })
+            ]).then(eventsData => {
 
                 // Get calendar and draggable elements
                 const calendarEl = document.getElementById('calendar');
@@ -206,97 +245,139 @@
                     // Set time zone to Paris
                     timeZone: 'Europe/paris',
 
+                    eventDidMount: function(info) {
+                        if (info.event.extendedProps.isWorksite) {
+                            const stage = info.event.extendedProps.chantier?.stage_state;
+                            const colors = {
+                                STAGE_1A: 'bg-danger',
+                                STAGE_1B: 'bg-warning',
+                                STAGE_1C: 'bg-success',
+                            };
+                            const color = colors[stage] || 'bg-gray-300';
+                            const id = info.event.extendedProps.chantier?.id || '';
+
+                            // Ajoute du padding à droite pour faire de la place au span
+                            info.el.style.position = 'relative';
+                            info.el.style.paddingRight = '1.5rem';
+
+                            const indicator = document.createElement('span');
+                            indicator.className =
+                                `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
+                            indicator.setAttribute('data-id', id);
+
+                            // Positionne le span à droite avec absolute
+                            indicator.style.position = 'absolute';
+                            indicator.style.top = '50%';
+                            indicator.style.right = '4px';
+                            indicator.style.transform = 'translateY(-50%)';
+
+                            info.el.appendChild(indicator);
+                        }
+                    },
+
                     // Event resize handler
                     eventResize: info => {
-                        // Handle event resize
-                        // Update event on the backend
-                        if (info.event['extendedProps']['data-id'] != null) {
-                            const id = info.event['extendedProps']['data-id'];
-                            @this.eventChange(id, info.event);
-                        } else {
-                            const id = info.event.id;
-                            @this.eventChange(id, info.event);
+                        if (info.event.extendedProps.isWorksite) {
+                            // Handle event resize
+                            // Update event on the backend
+                            if (info.event['extendedProps']['data-id'] != null) {
+                                const id = info.event['extendedProps']['data-id'];
+                                @this.eventChange(id, info.event);
+                            } else {
+                                const id = info.event.id;
+                                @this.eventChange(id, info.event);
+                            }
                         }
                     },
 
                     // Event drop handler
                     eventDrop: info => {
-                        // Handle event drop
-                        // Update event on the backend
-                        if (info.event['extendedProps']['data-id'] != null) {
-                            const id = info.event['extendedProps']['data-id'];
-                            @this.eventChange(id, info.event);
-                        } else {
-                            const id = info.event.id;
-                            @this.eventChange(id, info.event);
+                        if (info.event.extendedProps.isWorksite) {
+                            // Handle event drop
+                            // Update event on the backend
+                            if (info.event['extendedProps']['data-id'] != null) {
+                                const id = info.event['extendedProps']['data-id'];
+                                @this.eventChange(id, info.event);
+                            } else {
+                                const id = info.event.id;
+                                @this.eventChange(id, info.event);
+                            }
                         }
                     },
 
                     // Event receive handler
                     eventReceive: info => {
-                        // Handle event receive (when a new event is dropped onto the calendar)
-                        // Generate unique ID for the event
-                        const id = create_UUID();
-                        // Retrieve chantier ID
-                        const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
-                        // Extract color class from dragged element
-                        const draggedElClass = info.draggedEl.className;
-                        const colorRegex = /bg-(\w+)-500/;
-                        const match = draggedElClass.match(colorRegex);
-                        const colorClass = match[0];
+                        if (info.event.extendedProps.isWorksite) {
+                            // Handle event receive (when a new event is dropped onto the calendar)
+                            // Generate unique ID for the event
+                            const id = create_UUID();
+                            // Retrieve chantier ID
+                            const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
+                            // Extract color class from dragged element
+                            const draggedElClass = info.draggedEl.className;
+                            const colorRegex = /bg-(\w+)-500/;
+                            const match = draggedElClass.match(colorRegex);
+                            const colorClass = match[0];
 
-                        // Set event properties
-                        info.event.setProp('classNames', ['idChantierEvent' + id_chantier,
-                            colorClass
-                        ]);
-                        info.event.setExtendedProp('data-id', id);
+                            // Set event properties
+                            info.event.setProp('classNames', ['idChantierEvent' + id_chantier,
+                                colorClass
+                            ]);
+                            info.event.setExtendedProp('data-id', id);
 
-                        // Add the event on the backend
-                        @this.eventAdd(info.event, id, id_chantier);
+                            // Add the event on the backend
+                            @this.eventAdd(info.event, id, id_chantier);
+                        }
                     },
 
                     // Event click handler
                     eventClick: info => {
-                        // Handle event click
-                        // Retrieve event and chantier IDs
-                        var id = info.event.id;
-                        var id_chantier = info.event['extendedProps']['id_chantier'];
-                        // If chantier ID is not available in event props, extract from class name
-                        if (id_chantier == null || id_chantier == undefined || id_chantier ==
-                            '') {
-                            const eventClass = info.event.classNames.find(className => className
-                                .startsWith('idChantierEvent'));
-                            const regex = /idChantierEvent(\d+)/;
-                            const match = eventClass.match(regex);
-                            id_chantier = match[1];
-                            id = info.event['extendedProps']['data-id'];
-                        }
-                        // Show modal for event information
-                        var modalInfo = document.getElementById('chantierModalInfo_' +
-                            id_chantier);
-                        window.onclick = function(event) {
-                            // Close modal if clicked outside of it
-                            if (event.target == modalInfo) {
-                                modalInfo.style.display = "none";
+                        if (info.event.extendedProps.isWorksite) {
+                            // Handle event click
+                            // Retrieve event and chantier IDs
+                            var id = info.event.id;
+                            var id_chantier = info.event['extendedProps']['id_chantier'];
+                            // If chantier ID is not available in event props, extract from class name
+                            if (id_chantier == null || id_chantier == undefined ||
+                                id_chantier ==
+                                '') {
+                                const eventClass = info.event.classNames.find(className =>
+                                    className
+                                    .startsWith('idChantierEvent'));
+                                const regex = /idChantierEvent(\d+)/;
+                                const match = eventClass.match(regex);
+                                id_chantier = match[1];
+                                id = info.event['extendedProps']['data-id'];
                             }
-                        };
-                        var span = modalInfo.getElementsByClassName("close")[0];
-                        // Close modal on click of close button
-                        span.onclick = function() {
-                            modalInfo.style.display = "none";
-                        };
-                        modalInfo.style.display = "block";
+                            // Show modal for event information
+                            var modalInfo = document.getElementById('chantierModalInfo_' +
+                                id_chantier);
+                            window.onclick = function(event) {
+                                // Close modal if clicked outside of it
+                                if (event.target == modalInfo) {
+                                    modalInfo.style.display = "none";
+                                }
+                            };
+                            var span = modalInfo.getElementsByClassName("close")[0];
+                            // Close modal on click of close button
+                            span.onclick = function() {
+                                modalInfo.style.display = "none";
+                            };
+                            modalInfo.style.display = "block";
 
-                        // Delete event on click of delete button
-                        var deleteEvent = document.querySelector("#deleteEvent_" + id_chantier);
-                        deleteEvent.onclick = function() {
-                            if (confirm("Voulez-vous vraiment supprimer cet événement ?")) {
-                                info.event.remove();
-                                // Remove event from backend
-                                @this.eventRemove(id);
-                                modalInfo.style.display = "none";
-                            }
-                        };
+                            // Delete event on click of delete button
+                            var deleteEvent = document.querySelector("#deleteEvent_" +
+                                id_chantier);
+                            deleteEvent.onclick = function() {
+                                if (confirm(
+                                        "Voulez-vous vraiment supprimer cet événement ?")) {
+                                    info.event.remove();
+                                    // Remove event from backend
+                                    @this.eventRemove(id);
+                                    modalInfo.style.display = "none";
+                                }
+                            };
+                        }
                     },
                 });
                 // Render the calendar

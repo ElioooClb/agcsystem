@@ -22,6 +22,7 @@
                                     <table id="example" class="table table-hover display pb-30">
                                         <thead>
                                             <tr>
+                                                <th>Avatar</th>
                                                 <th>Nom</th>
                                                 <th>Mail</th>
                                                 <th>Fonction</th>
@@ -33,6 +34,7 @@
                                         </thead>
                                         <tfoot>
                                             <tr>
+                                                <th>Avatar</th>
                                                 <th>Nom</th>
                                                 <th>Mail</th>
                                                 <th>Fonction</th>
@@ -46,6 +48,9 @@
                                             @foreach ($users as $user)
                                                 @if ($user->email != null)
                                                     <tr>
+                                                        <td class="flex justify-center">
+                                                            <x-user-avatar :user="$user" size="sm" />
+                                                        </td>
                                                         <td>{{ $user->name }}</td>
                                                         <td>{{ $user->email }}</td>
                                                         <td>{{ $user->fonction }}</td>

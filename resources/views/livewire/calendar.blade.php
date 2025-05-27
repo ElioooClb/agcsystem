@@ -1,6 +1,7 @@
 {{-- Planning Chantier côté Administrateur  --}}
-@if (Auth::user()->role_id === 1)
-    @include('livewire.calendar-admin')
+@if (Auth::user()->role_id === 1 || Auth::user()->role_id === 4)
+    {{-- Planning Chantier côté Administrateur --}}
+    @include('livewire.calendar-admin-v2')
 {{-- Planning Côté Utilisateur --}}
 @elseif (Auth::user()->role_id === 2)
     @include('livewire.calendar-user')

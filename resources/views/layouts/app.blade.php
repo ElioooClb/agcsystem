@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'GTSystem') }}</title>
+    <title>{{ config('app.name', 'GTEMP') }}</title>
 
     <!-- Fonts -->
     <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.datatables.net/rss.xml">
@@ -38,8 +38,6 @@
         href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
         <link rel="stylesheet"
         href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css">
-
-        {{-- <link rel="stylesheet" href="{{asset('front/css/bootstrap.css')}}"> --}}
         <link rel="stylesheet" href="{{asset('front/css/style.css')}}">
 </head>
 
@@ -83,15 +81,6 @@
     <script src="{{asset('front/js/data_table/switchery.min.js')}}"></script>
     <script src="{{asset('front/js/data_table/dropdown-bootstrap-extended.js')}}"></script>
     <script src="{{asset('front/js/data_table/init.js')}}"></script>
-
-    {{-- <script src="{{asset('front/js/plugins/jquery-3.3.1.min.js')}}"></script>
-    <script src="{{asset('front/js/plugins/bootstrap.bundle.min.js')}}"></script>
-    <script src="{{asset('front/js/plugins/perfect-scrollbar.min.js')}}"></script>
-    <script src="{{asset('front/js/scripts/script.min.js')}}"></script>
-    <script src="{{asset('front/js/scripts/sidebar.compact.script.min.js')}}"></script>
-    <script src="{{asset('front/js/scripts/dashboard.v1.script.js')}}"></script>
-    <script src="{{asset('front/js/scripts/customizer.script.min.js')}}"></script> --}}
-
     @stack('scripts')
     @stack('table')
     @stack('scriptsHeures')

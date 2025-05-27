@@ -15,6 +15,9 @@ use App\Http\Controllers\{
     LoadoutController,
     ManageController,
     ParameterController,
+    StateController,
+    CustomEventController,
+    AvatarController,
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -42,6 +45,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     /** Planning admnistrateur */
@@ -72,6 +76,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/handle-invoice', [InvoiceController::class, 'handleInvoice']);
     Route::delete('/delete-invoice', [InvoiceController::class, 'delete']);
     Route::post('/recovery-invoice', [InvoiceController::class, 'recovery']);
+
+    Route::post('/handle-stage', [StateController::class, 'handleStage']);
 
     /** Gestion des statistiques */
     Route::get('/voir-les-statistiques', [ChantierController::class, 'statistiques'])->name('chantier.statistiques');
@@ -129,5 +135,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/modifier-parameter/{idChantier}/{idParameter}/{checked}', [ChantierController::class, 'updateParameter'])->name('chantier.updateParameter');
     // Fin [SPECGT6] - Service de gestion des paramètres
     Route::post('/users/coefProd', [UserController::class, 'patchCoef'])->name('users.coefProd');
+
+    // Routes pour les événements personnalisés
+    Route::post('/custom-events', [CustomEventController::class, 'store'])->name('custom-events.store');
+    Route::put('/custom-events/{customEvent}', [CustomEventController::class, 'update'])->name('custom-events.update');
+    Route::delete('/custom-events/{customEvent}', [CustomEventController::class, 'destroy'])->name('custom-events.destroy');
+
+    // Avatar
+    Route::post('/avatar', [AvatarController::class, 'store'])->name('avatar.store');
+    Route::delete('/avatar', [AvatarController::class, 'destroy'])->name('avatar.destroy');
 });
 require __DIR__ . '/auth.php';

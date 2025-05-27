@@ -130,8 +130,6 @@ class StatisticsService
         // Calculate the potential hours (working days * 7 hours * users coefficients)
         $potentialHours = (int) round($workingDays * 7 * $coef);
 
-        Log::info('User list : ' . $this->users);
-
         // Substract the hours where the user is not available
         foreach ($this->users as $user) {
             if ($user->coef_prod > 0) {

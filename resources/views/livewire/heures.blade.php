@@ -109,6 +109,7 @@
                     </div>
                 </div>
             </div>
+            <div id="worksiteModal"></div>
         </div>
     </div>
 </div>
@@ -148,6 +149,9 @@
                             isWorksiteEvent: true,
                             originalTitle: event.title,
                             editable: true,
+                            extendedProps: {
+                                chantier: chantier
+                            },
                         };
                     });
                 })).then(eventsData => {
@@ -231,7 +235,7 @@
                                             true, true);
                                     } else if (time.unbillable) {
                                         createHoursInfo(time, convertToTimeFormat(time
-                                                .hours_day,) +
+                                                .hours_day, ) +
                                             ' Intervention non facturée', '#9c23a1',
                                             3,
                                             true, true);
@@ -287,7 +291,6 @@
                         cellHeaderElement.classList.add("bg-slate-200");
                         cellHeaderElement.classList.add('fc-tooltips');
                     },
-                    // Fin [SPECGT25] - Modification de l'affichage des heures pour intégrer les astreintes
                     viewDidMount: function(arg) {
                         if (arg.view.type === 'listWeek') {
                             calendar.getEvents().forEach(event => {
@@ -396,7 +399,34 @@
                                         passengerHours),
                                 allowHTML: true
                             });
-                        }
+                        };
+                        if (info.event.extendedProps.isWorksiteEvent) {
+                            const stage = info.event.extendedProps.chantier?.stage_state;
+                            const colors = {
+                                STAGE_1A: 'bg-danger',
+                                STAGE_1B: 'bg-warning',
+                                STAGE_1C: 'bg-success',
+                            };
+                            const color = colors[stage] || 'bg-gray-300';
+                            const id = info.event.extendedProps.chantier?.id || '';
+
+                            // Ajoute du padding à droite pour faire de la place au span
+                            info.el.style.position = 'relative';
+                            info.el.style.paddingRight = '1.5rem';
+
+                            const indicator = document.createElement('span');
+                            indicator.className =
+                                `stage-indicator w-3 h-3 rounded-full border border-dark ${color}`;
+                            indicator.setAttribute('data-id', id);
+
+                            // Positionne le span à droite avec absolute
+                            indicator.style.position = 'absolute';
+                            indicator.style.top = '50%';
+                            indicator.style.right = '4px';
+                            indicator.style.transform = 'translateY(-50%)';
+
+                            info.el.appendChild(indicator);
+                        };
                     },
                 });
                 calendar.render();
@@ -444,8 +474,6 @@
 
             deleteButton.addEventListener("click", function(event) {
                 event.preventDefault();
-
-                // Add a confirmation alert before deleting the time entry
                 window.confirmationAlert('Êtes-vous sûr de vouloir supprimer cette heure ?')
                     .then((result) => {
                         if (result) {
@@ -531,17 +559,21 @@
                 event.preventDefault();
 
                 const dhours = document.getElementById('dHours');
+                const nhours = document.getElementById('nHours');
+                const phours = document.getElementById('pHours');
                 const label = document.querySelector('label[for="dHours"]');
                 const select = document.getElementById('hoursSelect');
                 const note = document.getElementById('note');
                 const checkedNote = note.value.trim();
 
-                if ((select.value === '0' || select.value === '3') && dhours.value === '00:00' &&
-                    checkedNote === '') {
-                    const btn = document.getElementById('validate');
+                const isHoursDefined = (dhours.value !== '00:00' || nhours.value !== '00:00' || phours.value !== '00:00');
+                const isNoteDefined = (checkedNote !== '');
+                const isSelectDefined = (select.value === '0' || select.value === '3');
+
+                if (!isHoursDefined && !isNoteDefined && isSelectDefined) {
                     window.flashAlert('error', 'Veuillez renseigner les heures ou une note pour valider.');
                     return;
-                }
+                };
 
                 // Get the selected value
                 selectEl.disabled = false;
@@ -700,7 +732,12 @@
             isCreation = false,
         }) {
             // Ajouter les heures
-            doms.dHours.value = event.extendedProps?.hours || '00:00';
+            const hasHours = event.extendedProps?.hours;
+            doms.dHours.value = hasHours ? event.extendedProps?.hours : '00:00';
+
+            // Handling the delete button
+            const deleteBtn = document.querySelector('#delete');
+            hasHours ? deleteBtn.classList.remove('hidden') : deleteBtn.classList.add('hidden');
 
             // Choix du select
             doms.selectSection.classList.remove('hidden');

@@ -154,7 +154,6 @@
                     'Une erreur est survenue. Contactez un administrateur pour nettoyer la base de données.');
             }
             const events = @json($events);
-            // console.log(events);
 
             // Calendar
             let weekendsVisible = false;

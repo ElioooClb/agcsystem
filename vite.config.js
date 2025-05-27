@@ -19,6 +19,7 @@ export default defineConfig({
                 "resources/js/parameters/manage.js",
                 'resources/js/users/coefProd.js',
                 'resources/js/chantier/statistics.js',
+                'resources/js/heures/worksiteStaging.js',
             ],
             resolve: {
                 alias: {
