@@ -24,5 +24,8 @@ class DatabaseSeeder extends Seeder
 
         // exécuter le seed email
         $this->call(EmailsSeeder::class);
+
+        // exécuter le seed tache_modele
+        $this->call(TacheModeleSeeder::class);
     }
 }
