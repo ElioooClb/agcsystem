@@ -29,6 +29,13 @@ class ChantierController extends Controller
 
     public function __construct(private WorkSiteStatesService $workSiteStatesService, private EmailService $emailService) {}
 
+    public function jour(Request $request)
+    {
+        $date = $request->input('realisation_date', Carbon::tomorrow()->toDateString());
+        $chantiers = Chantier::whereDate('realisation_date', $date)->get();
+
+        return view('livewire.jour', compact('chantiers', 'date'));
+    }
     public function create()
     {
         $users = User::all();
@@ -38,7 +45,7 @@ class ChantierController extends Controller
             ['users' => $users, 'loadouts' => $loadouts]
         );
     }
-    
+
     /**
      * Store a newly created resource in storage.
      * [SPECGT9] - Définition de l'état initial du chantier fais dans la base de donnée par défaut
@@ -423,7 +430,7 @@ class ChantierController extends Controller
      * @version 1 - 2021-09-07 [SPECMBA06]
      * @return \Illuminate\Contracts\View\View
      */
-    public function statistiques() 
+    public function statistiques()
     {
         return view('chantier.statistics');
     }

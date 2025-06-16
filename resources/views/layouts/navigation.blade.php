@@ -11,26 +11,31 @@
                 </div>
                 <!-- menu pour admin et technicien -->
                 @if (Auth::user()->role_id === 1 || Auth::user()->role_id === 2 || Auth::user()->role_id === 4)
-                    <!-- Navigation Links -->
-                    <div class="space-x-8 nav-hiden sm:-my-px sm:ml-10 sm:flex nav_max">
-                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                            Mon Tableau de Bord
-                        </x-nav-link>
-                        <x-nav-link :href="route('planning.index', Auth::user())">
-                            Planning
-                        </x-nav-link>
-                        <x-nav-link :href="route('time.shows', Auth::user())">
-                            Déclaration d'heures
-                        </x-nav-link>
-                        {{-- DEBUT - [SPECGT31] --}}
-                        <button type="button" id="returnBtn" class="btn btn-primary">
-                            Retour
-                        </button>
-                        {{-- FIN - [SPECGT31] --}}
-                    </div>
+                <!-- Navigation Links -->
+                <div class="space-x-8 nav-hiden sm:-my-px sm:ml-10 sm:flex nav_max">
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        Mon Tableau de Bord
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('planning.index', Auth::user())">
+                        Planning
+                    </x-nav-link>
+                    <x-nav-link :href="route('planning.jour')" :active="request()->routeIs('planning.jour')">
+                        Vue du jour
+                    </x-nav-link>
+
+                    <x-nav-link :href="route('time.shows', Auth::user())">
+                        Déclaration d'heures
+                    </x-nav-link>
+                    {{-- DEBUT - [SPECGT31] --}}
+                    <button type="button" id="returnBtn" class="btn btn-primary">
+                        Retour
+                    </button>
+                    {{-- FIN - [SPECGT31] --}}
+                </div>
             </div>
             <!-- menu pour le mode demo de la tv -->
-        @elseif(Auth::user()->role_id === 3)
+            @elseif(Auth::user()->role_id === 3)
             <x-nav-link :href="route('planning.index', Auth::user())" style="margin-top: 15px; margin-right: 60px; margin-left: 60px; ">
                 Planning
             </x-nav-link>

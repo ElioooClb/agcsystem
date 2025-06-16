@@ -141,6 +141,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/custom-events/{customEvent}', [CustomEventController::class, 'update'])->name('custom-events.update');
     Route::delete('/custom-events/{customEvent}', [CustomEventController::class, 'destroy'])->name('custom-events.destroy');
 
+    // Routes pour l'affichage du planning
+    Route::get('/planning/jour', [ChantierController::class, 'jour'])->name('planning.jour');
+
     // Avatar
     Route::post('/avatar', [AvatarController::class, 'store'])->name('avatar.store');
     Route::delete('/avatar', [AvatarController::class, 'destroy'])->name('avatar.destroy');

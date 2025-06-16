@@ -26,7 +26,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 
     <!-- Scripts -->
@@ -34,11 +34,11 @@
     <script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script
         src="https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js"></script>
-        <link rel="stylesheet"
+    <link rel="stylesheet"
         href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-        <link rel="stylesheet"
+    <link rel="stylesheet"
         href="https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css">
-        <link rel="stylesheet" href="{{asset('front/css/style.css')}}">
+    <link rel="stylesheet" href="{{asset('front/css/style.css')}}">
 </head>
 
 <body class="font-sans antialiased">
@@ -56,7 +56,13 @@
 
         <!-- Page Content -->
         <main class="corps">
-            {{ $slot }}
+            {{-- Si une section 'content' est définie, on l'affiche --}}
+            @hasSection('content')
+            @yield('content')
+            @else
+            {{-- Sinon, on affiche le slot (cas des composants Blade) --}}
+            {{ $slot ?? '' }}
+            @endif
         </main>
 
         <footer>
@@ -87,4 +93,5 @@
     @stack('stats')
     @stack('scriptsHeuresTekos')
 </body>
+
 </html>
