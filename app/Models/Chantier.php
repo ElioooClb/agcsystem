@@ -23,7 +23,7 @@ class Chantier extends Model
     protected $table = 'chantiers';
     protected $guarded = ['id', 'created_at', 'updated_at'];
     protected $fillable = ['title', 'hours', 'serviceamount', 'revised_hours', 'realisation_date'];
-
+    protected $dates = ['realisation_date', 'created_at', 'updated_at'];
     /**
      * This function listens for the CRUD operations on the invoice table
      * Listens if the state of the work site leaves the initial state and creates or updates an invoice
@@ -148,5 +148,9 @@ class Chantier extends Model
     public function loadout()
     {
         return $this->belongsTo(Loadout::class, 'loadout_id');
+    }
+    public function taches()
+    {
+        return $this->hasMany(ChantierTache::class);
     }
 }

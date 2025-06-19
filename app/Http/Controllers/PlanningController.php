@@ -10,11 +10,12 @@ class PlanningController extends Controller
 {
     public function jour(Request $request)
     {
-        // Récupère la date demandée, sinon demain par défaut
-        $date = $request->input('date', Carbon::tomorrow()->toDateString());
+        $date = $request->input('realisation_date', Carbon::tomorrow()->toDateString());
 
-        // Filtrage des chantiers par date (à adapter selon ton schéma)
-        $chantiers = Chantier::whereDate('date', $date)->get();
+        $chantiers = Chantier::with(['events', 'taches']) // si 'taches' utilisé dans la vue
+            ->whereDate('created_at', '<=', $date)
+            ->whereDate('realisation_date', '>=', $date)
+            ->get();
 
         return view('livewire.jour', compact('chantiers', 'date'));
     }

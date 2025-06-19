@@ -24,117 +24,118 @@
 
             <menu class="calendarListingWorksites">
                 @php
-                    // Définition des variables communes
-                    $colors = [
-                        'STAGE_1A' => 'bg-danger',
-                        'STAGE_1B' => 'bg-warning',
-                        'STAGE_1C' => 'bg-success',
-                    ];
+                // Définition des variables communes
+                $colors = [
+                'STAGE_1A' => 'bg-danger',
+                'STAGE_1B' => 'bg-warning',
+                'STAGE_1C' => 'bg-success',
+                ];
 
-                    $prevStage = [
-                        'STAGE_1A' => 'STAGE_1A',
-                        'STAGE_1B' => 'STAGE_1A',
-                        'STAGE_1C' => 'STAGE_1B',
-                    ];
+                $prevStage = [
+                'STAGE_1A' => 'STAGE_1A',
+                'STAGE_1B' => 'STAGE_1A',
+                'STAGE_1C' => 'STAGE_1B',
+                ];
 
-                    $nextStage = [
-                        'STAGE_1A' => 'STAGE_1B',
-                        'STAGE_1B' => 'STAGE_1C',
-                        'STAGE_1C' => 'STAGE_1C',
-                    ];
+                $nextStage = [
+                'STAGE_1A' => 'STAGE_1B',
+                'STAGE_1B' => 'STAGE_1C',
+                'STAGE_1C' => 'STAGE_1C',
+                ];
                 @endphp
 
                 @foreach ($chantiers as $chantier)
-                    @if (!collect($archivedWorkSites)->contains($chantier))
-                        <!-- Élément du chantier dans la liste -->
-                        <li data-id-chantier="{{ $chantier->id }}" data-event='@json(['title' => $chantier->title])'
-                            data-stage="{{ $chantier->stage_state }}" class="menu-item dropEvent mb-3 p-0">
-                            <div
-                                class="bg-{{ $chantier->color }}-500 relative rounded-lg w-full p-2 mb-0 cursor-pointer">
-                                {{ $chantier->title }}
-                                <span data-id={{ $chantier->id }}* data-stage="{{ $chantier->stage_state }}"
-                                    class="stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
-                                </span>
-                            </div>
-                        </li>
+                @if (!collect($archivedWorkSites)->contains($chantier))
+                <!-- Élément du chantier dans la liste -->
+                <li data-id-chantier="{{ $chantier->id }}" data-event='@json(["title" => $chantier->title])'
+                    data-stage="{{ $chantier->stage_state }}" class="menu-item dropEvent mb-3 p-0">
 
-                        @csrf
-                        <!-- Modal d'édition du chantier -->
-                        {{-- none --}}
+                    <div
+                        class="bg-{{ $chantier->color }}-500 relative rounded-lg w-full p-2 mb-0 cursor-pointer">
+                        {{ $chantier->title }}
+                        <span data-id={{ $chantier->id }}* data-stage="{{ $chantier->stage_state }}"
+                            class="stage-indicator absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-dark {{ $colors[$chantier->stage_state] ?? 'bg-gray-300' }}">
+                        </span>
+                    </div>
+                </li>
 
-                        <!-- Modal d'informations du chantier -->
-                        <div id="chantierModalInfo_{{ $chantier->id }}" class="modalCh modalInfo">
-                            <div class="p-6 bg-white rounded-lg shadow-lg modalCh-content">
-                                <span class="absolute top-0 right-0 p-4 cursor-pointer close">&times;</span>
-                                <h3 class="mb-4 text-2xl font-bold title_info">Informations sur le chantier
-                                    "{{ $chantier->title }}"</h3>
+                @csrf
+                <!-- Modal d'édition du chantier -->
+                {{-- none --}}
 
-                                <p class="idaff">IdAff_{{ $chantier->id }}</p>
-                                <hr>
-                                <p class="hourInfo">Heure Prévue : {{ $chantier->hours }} h</p>
-                                <hr>
+                <!-- Modal d'informations du chantier -->
+                <div id="chantierModalInfo_{{ $chantier->id }}" class="modalCh modalInfo">
+                    <div class="p-6 bg-white rounded-lg shadow-lg modalCh-content">
+                        <span class="absolute top-0 right-0 p-4 cursor-pointer close">&times;</span>
+                        <h3 class="mb-4 text-2xl font-bold title_info">Informations sur le chantier
+                            "{{ $chantier->title }}"</h3>
 
-                                <!-- Liste des techniciens avec heures -->
-                                <div class="listeteckos">
-                                    <p class="mt-4 listeTeck">Liste des techniciens affectés : </p>
-                                    <ul class="ulListeTeck">
-                                        @foreach ($chantier->users as $user)
-                                            <li class="d-flex assignedUser">
-                                                {{ $user->name }},
-                                                {{ $chantier->userHours[$user->id] ?? '0' }}h
-                                            </li>
-                                        @endforeach
-                                        <li class="my-2">
-                                            Total : {{ $chantier->userHours ? array_sum($chantier->userHours) : '0' }}h
-                                        </li>
-                                    </ul>
-                                </div>
-                                <hr>
+                        <p class="idaff">IdAff_{{ $chantier->id }}</p>
+                        <hr>
+                        <p class="hourInfo">Heure Prévue : {{ $chantier->hours }} h</p>
+                        <hr>
 
-                                <!-- Affichage des montants -->
-                                <div class="form-group amounts" data-id="{{ $chantier->id }}">
-                                    <p class="text_decoration">Montant :</p>
-                                    <p class="amountMaterial">Montant Matériel : {{ $chantier->materialamount }} €</p>
-                                    <p class="amountService">Montant Service : {{ $chantier->serviceamount }} €</p>
-                                </div>
-                                <hr>
-
-                                <!-- Affichage des tâches -->
-                                <div class="form-group" id="options" data-id="{{ $chantier->id }}">
-                                    <p>Tâches Réalisées : </p>
-                                    @if ($chantier->parameters->count())
-                                        @foreach ($chantier->parameters as $parameter)
-                                            <label
-                                                class="form-control @if ($parameter->pivot->completed === 1) green @endif">
-                                                <input type="checkbox" name="{{ $parameter->label }}"
-                                                    value="{{ $parameter->label }}"
-                                                    {{ $parameter->pivot->completed == 1 ? 'checked' : '' }} disabled>
-                                                {{ $parameter->label }}
-                                            </label>
-                                        @endforeach
-                                    @else
-                                        <p>Il n'y a pas de paramètres associés à ce chantier.</p>
-                                    @endif
-                                </div>
-                                <hr>
-
-                                <!-- Affichage des observations -->
-                                <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
-                                <p class="obs">{{ $chantier->observation ?: 'Aucune observation' }}</p>
-                                <hr>
-
-                                <!-- Bouton supprimer -->
-                                <div class="mt-4 modal-buttons">
-                                    <button id="deleteEvent_{{ $chantier->id }}"
-                                        class="px-4 py-2 font-bold text-white bg-red-500 rounded-full hover:bg-red-700"
-                                        data-id="{{ $chantier->id }}"
-                                        data-url="{{ route('chantier.destroy', ['idChantier' => $chantier->id]) }}">
-                                        Supprimer
-                                    </button>
-                                </div>
-                            </div>
+                        <!-- Liste des techniciens avec heures -->
+                        <div class="listeteckos">
+                            <p class="mt-4 listeTeck">Liste des techniciens affectés : </p>
+                            <ul class="ulListeTeck">
+                                @foreach ($chantier->users as $user)
+                                <li class="d-flex assignedUser">
+                                    {{ $user->name }},
+                                    {{ $chantier->userHours[$user->id] ?? '0' }}h
+                                </li>
+                                @endforeach
+                                <li class="my-2">
+                                    Total : {{ $chantier->userHours ? array_sum($chantier->userHours) : '0' }}h
+                                </li>
+                            </ul>
                         </div>
-                    @endif
+                        <hr>
+
+                        <!-- Affichage des montants -->
+                        <div class="form-group amounts" data-id="{{ $chantier->id }}">
+                            <p class="text_decoration">Montant :</p>
+                            <p class="amountMaterial">Montant Matériel : {{ $chantier->materialamount }} €</p>
+                            <p class="amountService">Montant Service : {{ $chantier->serviceamount }} €</p>
+                        </div>
+                        <hr>
+
+                        <!-- Affichage des tâches -->
+                        <div class="form-group" id="options" data-id="{{ $chantier->id }}">
+                            <p>Tâches Réalisées : </p>
+                            @if ($chantier->parameters->count())
+                            @foreach ($chantier->parameters as $parameter)
+                            <label
+                                class="form-control @if ($parameter->pivot->completed === 1) green @endif">
+                                <input type="checkbox" name="{{ $parameter->label }}"
+                                    value="{{ $parameter->label }}"
+                                    {{ $parameter->pivot->completed == 1 ? 'checked' : '' }} disabled>
+                                {{ $parameter->label }}
+                            </label>
+                            @endforeach
+                            @else
+                            <p>Il n'y a pas de paramètres associés à ce chantier.</p>
+                            @endif
+                        </div>
+                        <hr>
+
+                        <!-- Affichage des observations -->
+                        <p data-id-="{{ $chantier->id }} " class="mt-4 text-2xl">Observations : </p>
+                        <p class="obs">{{ $chantier->observation ?: 'Aucune observation' }}</p>
+                        <hr>
+
+                        <!-- Bouton supprimer -->
+                        <div class="mt-4 modal-buttons">
+                            <button id="deleteEvent_{{ $chantier->id }}"
+                                class="px-4 py-2 font-bold text-white bg-red-500 rounded-full hover:bg-red-700"
+                                data-id="{{ $chantier->id }}"
+                                data-url="{{ route('chantier.destroy', ['idChantier' => $chantier->id]) }}">
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endif
                 @endforeach
             </menu>
         </div>
@@ -144,171 +145,171 @@
 </div>
 
 @push('scripts')
-    <script>
-        document.addEventListener('livewire:load', function() {
-            const WorksiteCalendar = {
-                calendar: null,
-                currentEvent: null,
+<script>
+    document.addEventListener('livewire:load', function() {
+        const WorksiteCalendar = {
+            calendar: null,
+            currentEvent: null,
 
-                async init() {
-                    this.initDraggable();
-                    await this.loadEvents();
-                    this.renderAstreintesButton();
-                },
+            async init() {
+                this.initDraggable();
+                await this.loadEvents();
+                this.renderAstreintesButton();
+            },
 
-                initDraggable() {
-                    const draggableEl = document.getElementById('events');
-                    new Draggable(draggableEl, {
-                        itemSelector: '.dropEvent'
-                    });
-                },
+            initDraggable() {
+                const draggableEl = document.getElementById('events');
+                new Draggable(draggableEl, {
+                    itemSelector: '.dropEvent'
+                });
+            },
 
-                async loadEvents() {
-                    const eventsData = await Promise.all(JSON.parse(@this.events).map(this.processEvent));
-                    this.renderCalendar(eventsData);
-                },
+            async loadEvents() {
+                const eventsData = await Promise.all(JSON.parse(@this.events).map(this.processEvent));
+                this.renderCalendar(eventsData);
+            },
 
-                processEvent(event) {
-                    // Cas 1 : Autres events
-                    if (event.chantier_id !== undefined) {
-                        // Astreinte
-                        if (event.oncall_duty === 1) {
-                            return {
-                                ...event,
-                                start: event.date,
-                                title: Utils.generateAstreinteTitle(event.user.acronyme),
-                                classNames: [
-                                    'border border-dark',
-                                    'oncall-duty',
-                                ],
-                                isWorksite: false,
-                                isAstreinte: true,
-                                allDay: true,
-                                display: 'block',
-                                userAcronyme: event.user.acronyme,
-                            };
-                        }
-
-                        // Jour férié
-                        if (event.state === 5) {
-                            return {
-                                ...event,
-                                start: event.date,
-                                id_chantier: event.chantier_id,
-                                chantier: {
-                                    id: event.chantier_id,
-                                    title: '🎉 Jour férié 🎉',
-                                    color: 'gray',
-                                },
-                                title: '🎉 Jour férié 🎉',
-                                classNames: [
-                                    'public-holiday',
-                                    'idChantierEvent' + event.chantier_id,
-                                ],
-                                isWorksite: false,
-                                display: 'background',
-                                color: 'rgba(34, 197, 94, 0.3)',
-                                backgroundColor: 'rgba(34, 197, 94, 0.3)',
-                                borderColor: 'rgba(34, 197, 94, 0.3)',
-                                textColor: '#000000',
-                            };
-                        }
-                    }
-
-                    // Cas 2 : Custom Events
-                    if (event.isCustomEvent) {
+            processEvent(event) {
+                // Cas 1 : Autres events
+                if (event.chantier_id !== undefined) {
+                    // Astreinte
+                    if (event.oncall_duty === 1) {
                         return {
                             ...event,
+                            start: event.date,
+                            title: Utils.generateAstreinteTitle(event.user.acronyme),
                             classNames: [
                                 'border border-dark',
-                                'custom-event',
+                                'oncall-duty',
                             ],
                             isWorksite: false,
-                            isCustomEvent: true,
-                            editable: true,
-                            display: 'block'
+                            isAstreinte: true,
+                            allDay: true,
+                            display: 'block',
+                            userAcronyme: event.user.acronyme,
                         };
                     }
 
-                    // Cas 3 : Event chantier (a déjà id_chantier)
-                    if (event.id_chantier) {
-                        const chantier = event.chantier;
-                        const idChantier = chantier.id;
-                        const stage = chantier.stage_state;
+                    // Jour férié
+                    if (event.state === 5) {
                         return {
                             ...event,
+                            start: event.date,
+                            id_chantier: event.chantier_id,
+                            chantier: {
+                                id: event.chantier_id,
+                                title: '🎉 Jour férié 🎉',
+                                color: 'gray',
+                            },
+                            title: '🎉 Jour férié 🎉',
                             classNames: [
-                                'bg-' + chantier.color + '-500',
-                                'idChantierEvent' + idChantier
+                                'public-holiday',
+                                'idChantierEvent' + event.chantier_id,
                             ],
-                            stage_color: Utils.stageColor(stage),
-                            isWorksite: true,
+                            isWorksite: false,
+                            display: 'background',
+                            color: 'rgba(34, 197, 94, 0.3)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.3)',
+                            borderColor: 'rgba(34, 197, 94, 0.3)',
+                            textColor: '#000000',
                         };
                     }
-                },
+                }
 
-                renderCalendar(eventsData) {
-                    const Calendar = window.Calendar;
-                    const calendarEl = document.getElementById('calendar');
-
-                    this.calendar = new Calendar(calendarEl, {
-                        plugins: [
-                            dayGridPlugin,
-                            listPlugin,
-                            timeGridPlugin,
-                            multiMonthPlugin,
-                            interactionPlugin
+                // Cas 2 : Custom Events
+                if (event.isCustomEvent) {
+                    return {
+                        ...event,
+                        classNames: [
+                            'border border-dark',
+                            'custom-event',
                         ],
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,listWeek',
-                        },
-                        buttonText: {
-                            today: 'Aujourd\'hui',
-                            month: 'Mois',
-                            week: 'Semaine',
-                            day: 'Jour',
-                            list: 'Liste de la semaine',
-                        },
-                        hiddenDays: [6, 0],
-                        events: eventsData,
-                        eventContent: this.handleEventContent,
+                        isWorksite: false,
+                        isCustomEvent: true,
                         editable: true,
-                        selectable: false,
-                        locale: 'fr',
-                        timeZone: 'Europe/paris',
-                        firstDay: 1,
-                        height: 'full',
-                        eventResize: this.handleEventResize,
-                        eventDrop: this.handleEventDrop,
-                        eventReceive: this.handleEventReceive,
-                        eventClick: this.handleEventClick,
-                        dateClick: this.handleDateClick,
-                        eventDidMount: this.handleEventDidMount,
-                    });
+                        display: 'block'
+                    };
+                }
 
-                    this.calendar.render();
-                },
+                // Cas 3 : Event chantier (a déjà id_chantier)
+                if (event.id_chantier) {
+                    const chantier = event.chantier;
+                    const idChantier = chantier.id;
+                    const stage = chantier.stage_state;
+                    return {
+                        ...event,
+                        classNames: [
+                            'bg-' + chantier.color + '-500',
+                            'idChantierEvent' + idChantier
+                        ],
+                        stage_color: Utils.stageColor(stage),
+                        isWorksite: true,
+                    };
+                }
+            },
 
-                renderAstreintesButton() {
-                    // Ajouter les checkboxes après le rendu du calendrier
-                    const headerLeft = document.querySelector(
-                        '.fc-header-toolbar .fc-toolbar-chunk:first-child');
-                    const checkboxContainer = document.createElement('div');
-                    checkboxContainer.className = 'fc-button-group';
-                    checkboxContainer.innerHTML = `
+            renderCalendar(eventsData) {
+                const Calendar = window.Calendar;
+                const calendarEl = document.getElementById('calendar');
+
+                this.calendar = new Calendar(calendarEl, {
+                    plugins: [
+                        dayGridPlugin,
+                        listPlugin,
+                        timeGridPlugin,
+                        multiMonthPlugin,
+                        interactionPlugin
+                    ],
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,listWeek',
+                    },
+                    buttonText: {
+                        today: 'Aujourd\'hui',
+                        month: 'Mois',
+                        week: 'Semaine',
+                        day: 'Jour',
+                        list: 'Liste de la semaine',
+                    },
+                    hiddenDays: [6, 0],
+                    events: eventsData,
+                    eventContent: this.handleEventContent,
+                    editable: true,
+                    selectable: false,
+                    locale: 'fr',
+                    timeZone: 'Europe/paris',
+                    firstDay: 1,
+                    height: 'full',
+                    eventResize: this.handleEventResize,
+                    eventDrop: this.handleEventDrop,
+                    eventReceive: this.handleEventReceive,
+                    eventClick: this.handleEventClick,
+                    dateClick: this.handleDateClick,
+                    eventDidMount: this.handleEventDidMount,
+                });
+
+                this.calendar.render();
+            },
+
+            renderAstreintesButton() {
+                // Ajouter les checkboxes après le rendu du calendrier
+                const headerLeft = document.querySelector(
+                    '.fc-header-toolbar .fc-toolbar-chunk:first-child');
+                const checkboxContainer = document.createElement('div');
+                checkboxContainer.className = 'fc-button-group';
+                checkboxContainer.innerHTML = `
                         <label class="fc-button fc-button-primary me-2" style="background-color: #2c3e50; color: #e2e8f0; display: flex; align-items: center; gap: 8px;">
                             <input type="checkbox" id="showAstreintes" hidden checked>
                             <span class="loader hidden"></span>
                             <span>Astreintes</span>
                         </label>
                     `;
-                    headerLeft.appendChild(checkboxContainer);
+                headerLeft.appendChild(checkboxContainer);
 
-                    // Ajouter le style pour le loader
-                    const loaderStyle = document.createElement('style');
-                    loaderStyle.textContent = `
+                // Ajouter le style pour le loader
+                const loaderStyle = document.createElement('style');
+                loaderStyle.textContent = `
                         .loader {
                             display: inline-block;
                             width: 16px;
@@ -327,322 +328,329 @@
                             display: none !important;
                         }
                     `;
-                    document.head.appendChild(loaderStyle);
+                document.head.appendChild(loaderStyle);
 
-                    // Gestionnaires d'événements pour les checkboxes
-                    document.getElementById('showAstreintes').addEventListener('change', function(e) {
-                        const button = e.target.parentElement;
-                        const loader = button.querySelector('.loader');
-                        const text = button.querySelector('span:not(.loader)');
-                        loader.classList.remove('hidden');
+                // Gestionnaires d'événements pour les checkboxes
+                document.getElementById('showAstreintes').addEventListener('change', function(e) {
+                    const button = e.target.parentElement;
+                    const loader = button.querySelector('.loader');
+                    const text = button.querySelector('span:not(.loader)');
+                    loader.classList.remove('hidden');
 
-                        const events = WorksiteCalendar.calendar.getEvents();
-                        const astreintes = events.filter(event => event.extendedProps.isAstreinte);
+                    const events = WorksiteCalendar.calendar.getEvents();
+                    const astreintes = events.filter(event => event.extendedProps.isAstreinte);
 
-                        // setTimeout(() => {
-                        FilterHandler.showAstreintes(button, astreintes);
-                        loader.classList.add('hidden');
-                        // }, 1);
-                    });
-                },
+                    // setTimeout(() => {
+                    FilterHandler.showAstreintes(button, astreintes);
+                    loader.classList.add('hidden');
+                    // }, 1);
+                });
+            },
 
-                handleEventDidMount(info) {
-                    if (info.event.classNames.includes('public-holiday')) {
-                        info.el.style.opacity = '1';
-                    };
-                },
+            handleEventDidMount(info) {
+                if (info.event.classNames.includes('public-holiday')) {
+                    info.el.style.opacity = '1';
+                };
+            },
 
-                handleEventContent(info) {
-                    if (info.event.extendedProps.isWorksite) {
-                        const stageColor = info.event.extendedProps.stage_color || 'bg-gray-300';
-                        const id = info.event.extendedProps.chantier?.id || info.event.extendedProps
-                            .id_chantier || '';
-                        return ContentHandler.generateSmiley({
-                            title: info.event.title,
-                            indicator: 'worksite',
-                            indicatorColorClass: stageColor,
-                            indicatorDataId: id,
-                        });
-                    } else if (info.event.extendedProps.isAstreinte) {
-                        return ContentHandler.generateSmiley({
-                            title: info.event.title,
-                            indicator: 'astreinte',
-                        });
-                    } else if (info.event.extendedProps.isCustomEvent) {
-                        return ContentHandler.generateSmiley({
-                            title: info.event.title,
-                            indicator: 'custom-event',
-                        });
-                    } else {
-                        // Retourne le contenu par défaut pour les autres types d'événements
-                        return {
-                            html: `<div class="px-2 py-1">${info.event.title}</div>`
-                        };
-                    }
-                },
-
-                handleEventResize(info) {
-                    if (!info.event.extendedProps.isWorksite) return;
-                    const id = info.event['extendedProps']['data-id'] != null ?
-                        info.event['extendedProps']['data-id'] :
-                        info.event.id;
-                    @this.eventChange(id, info.event);
-                },
-
-                handleEventDrop(info) {
-                    const id = info.event['extendedProps']['data-id'] || info.event.id;
+            handleEventContent(info) {
+                if (info.event.extendedProps.isWorksite) {
                     const stageColor = info.event.extendedProps.stage_color || 'bg-gray-300';
+                    const id = info.event.extendedProps.chantier?.id || info.event.extendedProps
+                        .id_chantier || '';
+                    return ContentHandler.generateSmiley({
+                        title: info.event.title,
+                        indicator: 'worksite',
+                        indicatorColorClass: stageColor,
+                        indicatorDataId: id,
+                    });
+                } else if (info.event.extendedProps.isAstreinte) {
+                    return ContentHandler.generateSmiley({
+                        title: info.event.title,
+                        indicator: 'astreinte',
+                    });
+                } else if (info.event.extendedProps.isCustomEvent) {
+                    return ContentHandler.generateSmiley({
+                        title: info.event.title,
+                        indicator: 'custom-event',
+                    });
+                } else {
+                    // Retourne le contenu par défaut pour les autres types d'événements
+                    return {
+                        html: `<div class="px-2 py-1">${info.event.title}</div>`
+                    };
+                }
+            },
 
-                    // Mise à jour de l'indicateur de stage
-                    const eventEl = info.el;
-                    if (eventEl) {
-                        const indicator = eventEl.querySelector('.stage-indicator-events');
-                        if (indicator) {
-                            indicator.className =
-                                `stage-indicator stage-indicator-events w-3 h-3 rounded-full border border-dark ${stageColor}`;
-                        }
+            handleEventResize(info) {
+                if (!info.event.extendedProps.isWorksite) return;
+                const id = info.event['extendedProps']['data-id'] != null ?
+                    info.event['extendedProps']['data-id'] :
+                    info.event.id;
+                @this.eventChange(id, info.event);
+            },
+
+            handleEventDrop(info) {
+                const id = info.event.extendedProps['data-id'] || info.event.id;
+                const stageColor = info.event.extendedProps.stage_color || 'bg-gray-300';
+
+                const eventEl = info.el;
+                if (eventEl) {
+                    const indicator = eventEl.querySelector('.stage-indicator-events');
+                    if (indicator) {
+                        indicator.className =
+                            `stage-indicator stage-indicator-events w-3 h-3 rounded-full border border-dark ${stageColor}`;
                     }
+                }
 
-                    @this.eventChange(id, info.event);
-                },
+                const safeEvent = typeof info.event.toPlainObject === 'function' ?
+                    info.event.toPlainObject() : {
+                        id: info.event.id,
+                        start: info.event.startStr,
+                        title: info.event.title,
+                        ...info.event.extendedProps,
+                    };
 
-                handleEventReceive(info) {
-                    // Vérification des données essentielles
-                    if (!info.draggedEl || !info.event) {
-                        console.error('Éléments manquants pour le drag & drop');
-                        return;
-                    }
+                @this.eventChange(id, safeEvent);
+            },
 
-                    const id = Utils.createUUID();
-                    const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
+            handleEventReceive(info) {
+                // Vérification des données essentielles
+                if (!info.draggedEl || !info.event) {
+                    console.error('Éléments manquants pour le drag & drop');
+                    return;
+                }
 
+                const id = Utils.createUUID();
+                const id_chantier = info.draggedEl.getAttribute('data-id-chantier');
+
+                if (!id_chantier) {
+                    console.error('ID du chantier manquant');
+                    return;
+                }
+
+                // Récupération de la couleur de l'élément dragué
+                const draggedElDiv = info.draggedEl.querySelector('div');
+                if (!draggedElDiv) {
+                    console.error('Div de couleur non trouvé');
+                    return;
+                }
+
+                // Récupération de la couleur du stage
+                const stageIndicator = draggedElDiv.querySelector('.stage-indicator');
+                const stageColor = Utils.stageColor(info.draggedEl.getAttribute('data-stage'));
+
+                const draggedElClass = draggedElDiv.className;
+                const colorRegex = /bg-(\w+)-500/;
+                const match = draggedElClass.match(colorRegex);
+                const colorClass = match ? match[0] : 'bg-gray-500';
+
+                // Configuration de l'événement
+                info.event.setProp('classNames', [
+                    'idChantierEvent' + id_chantier,
+                    colorClass,
+                    'cursor-pointer'
+                ]);
+
+                // Ajout des propriétés étendues
+                info.event.setExtendedProp('data-id', id);
+                info.event.setExtendedProp('isWorksite', true);
+                info.event.setExtendedProp('id_chantier', id_chantier);
+                info.event.setExtendedProp('stage_color', stageColor);
+
+                // Appel au backend
+                @this.eventAdd(info.event, id, id_chantier);
+            },
+
+            handleEventClick(info) {
+                if (info.event.extendedProps.isAstreinte) {
+                    ModalHandler.showAstreinteInfo(null, info.event);
+                } else if (info.event.extendedProps.isCustomEvent) {
+                    ModalHandler.showCustomEventInfo(info.event);
+                } else if (info.event.extendedProps.isWorksite) {
+                    let id = info.event.id;
+                    let id_chantier = info.event['extendedProps']['id_chantier'];
+
+                    // Récupération de l'id_chantier et id pour les événements créés par drag and drop
                     if (!id_chantier) {
-                        console.error('ID du chantier manquant');
-                        return;
+                        // Récupération de la classe de l'événement
+                        const eventClass = info.event.classNames.find(className =>
+                            className.startsWith('idChantierEvent')
+                        );
+
+                        // Expression régulière pour rechercher le nombre dans la classe
+                        const regex = /idChantierEvent(\d+)/;
+                        const match = eventClass.match(regex);
+
+                        // Récupération de l'id chantier
+                        id_chantier = match[1];
+                        id = info.event['extendedProps']['data-id'];
                     }
+                    ModalHandler.showChantierInfo(id, id_chantier, info);
+                }
+            },
 
-                    // Récupération de la couleur de l'élément dragué
-                    const draggedElDiv = info.draggedEl.querySelector('div');
-                    if (!draggedElDiv) {
-                        console.error('Div de couleur non trouvé');
-                        return;
-                    }
+            handleDateClick(info) {
+                ModalHandler.showChoiceInfo(info);
+            },
 
-                    // Récupération de la couleur du stage
-                    const stageIndicator = draggedElDiv.querySelector('.stage-indicator');
-                    const stageColor = Utils.stageColor(info.draggedEl.getAttribute('data-stage'));
+            updateStageIndicators(chantierId, stageColor) {
+                // Récupère tous les événements du calendrier
+                const events = this.calendar.getEvents();
 
-                    const draggedElClass = draggedElDiv.className;
-                    const colorRegex = /bg-(\w+)-500/;
-                    const match = draggedElClass.match(colorRegex);
-                    const colorClass = match ? match[0] : 'bg-gray-500';
+                // Filtre les événements du chantier spécifique
+                const chantierEvents = events.filter(event => {
+                    const eventChantierId = event.extendedProps.chantier?.id || event
+                        .extendedProps
+                        .id_chantier;
+                    return eventChantierId == chantierId;
+                });
 
-                    // Configuration de l'événement
-                    info.event.setProp('classNames', [
-                        'idChantierEvent' + id_chantier,
-                        colorClass,
-                        'cursor-pointer'
-                    ]);
-
-                    // Ajout des propriétés étendues
-                    info.event.setExtendedProp('data-id', id);
-                    info.event.setExtendedProp('isWorksite', true);
-                    info.event.setExtendedProp('id_chantier', id_chantier);
-                    info.event.setExtendedProp('stage_color', stageColor);
-
-                    // Appel au backend
-                    @this.eventAdd(info.event, id, id_chantier);
-                },
-
-                handleEventClick(info) {
-                    if (info.event.extendedProps.isAstreinte) {
-                        ModalHandler.showAstreinteInfo(null, info.event);
-                    } else if (info.event.extendedProps.isCustomEvent) {
-                        ModalHandler.showCustomEventInfo(info.event);
-                    } else if (info.event.extendedProps.isWorksite) {
-                        let id = info.event.id;
-                        let id_chantier = info.event['extendedProps']['id_chantier'];
-
-                        // Récupération de l'id_chantier et id pour les événements créés par drag and drop
-                        if (!id_chantier) {
-                            // Récupération de la classe de l'événement
-                            const eventClass = info.event.classNames.find(className =>
-                                className.startsWith('idChantierEvent')
-                            );
-
-                            // Expression régulière pour rechercher le nombre dans la classe
-                            const regex = /idChantierEvent(\d+)/;
-                            const match = eventClass.match(regex);
-
-                            // Récupération de l'id chantier
-                            id_chantier = match[1];
-                            id = info.event['extendedProps']['data-id'];
-                        }
-                        ModalHandler.showChantierInfo(id, id_chantier, info);
-                    }
-                },
-
-                handleDateClick(info) {
-                    ModalHandler.showChoiceInfo(info);
-                },
-
-                updateStageIndicators(chantierId, stageColor) {
-                    // Récupère tous les événements du calendrier
-                    const events = this.calendar.getEvents();
-
-                    // Filtre les événements du chantier spécifique
-                    const chantierEvents = events.filter(event => {
-                        const eventChantierId = event.extendedProps.chantier?.id || event
-                            .extendedProps
-                            .id_chantier;
-                        return eventChantierId == chantierId;
+                // Met à jour la couleur du stage pour chaque événement
+                WorksiteCalendar.calendar.batchRendering(() => {
+                    chantierEvents.forEach(event => {
+                        event.setExtendedProp('stage_color', stageColor);
                     });
+                });
+            },
+        };
 
-                    // Met à jour la couleur du stage pour chaque événement
-                    WorksiteCalendar.calendar.batchRendering(() => {
-                        chantierEvents.forEach(event => {
-                            event.setExtendedProp('stage_color', stageColor);
-                        });
-                    });
-                },
-            };
+        const SearchModule = {
+            init() {
+                this.initIdSearch();
+            },
 
-            const SearchModule = {
-                init() {
-                    this.initIdSearch();
-                },
+            initIdSearch() {
+                document.getElementById('searchInput').addEventListener('keypress', this.handleIdSearch);
+                document.getElementById('resetButton').addEventListener('click', this.resetIdSearch);
+            },
 
-                initIdSearch() {
-                    document.getElementById('searchInput').addEventListener('keypress', this.handleIdSearch);
-                    document.getElementById('resetButton').addEventListener('click', this.resetIdSearch);
-                },
-
-                handleIdSearch(event) {
-                    // Check if the pressed key is 'Enter'
-                    if (event.key === 'Enter') {
-                        console.log("enter");
-                        // Get the search input value and convert it to uppercase
-                        let filter = this.value.toUpperCase();
-                        // Get the list of worksites
-                        let chantierList = document.getElementById('events');
-                        console.log(chantierList);
-                        chantierList.classList.remove('hidden');
-                        // Get all the list items in the worksites list
-                        let chantiers = chantierList.getElementsByTagName('li');
-                        let matchFound = false;
-
-                        // Get the archived work sites
-                        let archivedWorkSites = @json($archivedWorkSites->pluck('id')->toArray());
-
-                        // Loop through each list item
-                        for (let i = 0; i < chantiers.length; i++) {
-                            // Get the worksite id from the data-id-chantier attribute
-                            let chantierId = chantiers[i].getAttribute('data-id-chantier');
-                            // Check if the worksite id exists
-                            if (chantierId) {
-                                // Check if the worksite id matches the search input value
-                                if (chantierId === filter) {
-                                    // If it matches, display the list item
-                                    chantiers[i].style.display = '';
-                                    matchFound = true;
-                                } else {
-                                    // If it doesn't match, hide the list item
-                                    chantiers[i].style.display = 'none';
-                                }
-                            }
-                        }
-
-                        // Check if the worksite is archived
-                        if (archivedWorkSites.includes(parseInt(filter))) {
-                            // Add a pop-up message to inform the user that the worksite is archived
-                            alert('Le chantier ' + filter + ' est archivé.');
-                            // Change the no match message
-                            document.getElementById('noMatchMessage').textContent = 'Le chantier ' + filter +
-                                ' est archivé.';
-                        } else {
-                            // Reset the no match message
-                            document.getElementById('noMatchMessage').textContent = 'Aucun chantier trouvé.';
-                        }
-
-                        // If no match is found, display the error message
-                        if (!matchFound) {
-                            document.getElementById('noMatchMessage').classList.remove('hidden');
-                        } else {
-                            document.getElementById('noMatchMessage').classList.add('hidden');
-                        }
-                    }
-                },
-
-                resetIdSearch() {
-                    // Clear the search input field
-                    document.getElementById('searchInput').value = '';
+            handleIdSearch(event) {
+                // Check if the pressed key is 'Enter'
+                if (event.key === 'Enter') {
+                    console.log("enter");
+                    // Get the search input value and convert it to uppercase
+                    let filter = this.value.toUpperCase();
+                    // Get the list of worksites
+                    let chantierList = document.getElementById('events');
+                    console.log(chantierList);
+                    chantierList.classList.remove('hidden');
                     // Get all the list items in the worksites list
-                    let chantiers = document.getElementById('events').getElementsByTagName('li');
+                    let chantiers = chantierList.getElementsByTagName('li');
+                    let matchFound = false;
+
+                    // Get the archived work sites
+                    let archivedWorkSites = @json($archivedWorkSites - > pluck('id') - > toArray());
+
                     // Loop through each list item
                     for (let i = 0; i < chantiers.length; i++) {
-                        // Display the list item
-                        chantiers[i].style.display = '';
-                        document.getElementById('events').classList.add('hidden');
+                        // Get the worksite id from the data-id-chantier attribute
+                        let chantierId = chantiers[i].getAttribute('data-id-chantier');
+                        // Check if the worksite id exists
+                        if (chantierId) {
+                            // Check if the worksite id matches the search input value
+                            if (chantierId === filter) {
+                                // If it matches, display the list item
+                                chantiers[i].style.display = '';
+                                matchFound = true;
+                            } else {
+                                // If it doesn't match, hide the list item
+                                chantiers[i].style.display = 'none';
+                            }
+                        }
                     }
-                    // Hide the no match message
-                    document.getElementById('noMatchMessage').classList.add('hidden');
-                },
-            };
 
-            const FilterHandler = {
-                showAstreintes(element, astreintes) {
-                    const isChecked = element.querySelector('input').checked;
+                    // Check if the worksite is archived
+                    if (archivedWorkSites.includes(parseInt(filter))) {
+                        // Add a pop-up message to inform the user that the worksite is archived
+                        alert('Le chantier ' + filter + ' est archivé.');
+                        // Change the no match message
+                        document.getElementById('noMatchMessage').textContent = 'Le chantier ' + filter +
+                            ' est archivé.';
+                    } else {
+                        // Reset the no match message
+                        document.getElementById('noMatchMessage').textContent = 'Aucun chantier trouvé.';
+                    }
 
-                    // Utiliser batchRendering pour optimiser les performances
-                    WorksiteCalendar.calendar.batchRendering(() => {
-                        astreintes.forEach(event => {
-                            event.setProp('display', isChecked ? 'block' : 'none');
-                        });
+                    // If no match is found, display the error message
+                    if (!matchFound) {
+                        document.getElementById('noMatchMessage').classList.remove('hidden');
+                    } else {
+                        document.getElementById('noMatchMessage').classList.add('hidden');
+                    }
+                }
+            },
+
+            resetIdSearch() {
+                // Clear the search input field
+                document.getElementById('searchInput').value = '';
+                // Get all the list items in the worksites list
+                let chantiers = document.getElementById('events').getElementsByTagName('li');
+                // Loop through each list item
+                for (let i = 0; i < chantiers.length; i++) {
+                    // Display the list item
+                    chantiers[i].style.display = '';
+                    document.getElementById('events').classList.add('hidden');
+                }
+                // Hide the no match message
+                document.getElementById('noMatchMessage').classList.add('hidden');
+            },
+        };
+
+        const FilterHandler = {
+            showAstreintes(element, astreintes) {
+                const isChecked = element.querySelector('input').checked;
+
+                // Utiliser batchRendering pour optimiser les performances
+                WorksiteCalendar.calendar.batchRendering(() => {
+                    astreintes.forEach(event => {
+                        event.setProp('display', isChecked ? 'block' : 'none');
                     });
+                });
 
-                    element.style.backgroundColor = isChecked ? '#2c3e50' : '#e2e8f0';
-                    element.style.color = isChecked ? 'white' : '#2c3e50';
-                },
-            };
+                element.style.backgroundColor = isChecked ? '#2c3e50' : '#e2e8f0';
+                element.style.color = isChecked ? 'white' : '#2c3e50';
+            },
+        };
 
-            const ModalHandler = {
-                showChantierInfo(id, id_chantier, info) {
-                    // Récupération de l'élément modal info
-                    const modalInfo = document.getElementById('chantierModalInfo_' + id_chantier);
+        const ModalHandler = {
+            showChantierInfo(id, id_chantier, info) {
+                // Récupération de l'élément modal info
+                const modalInfo = document.getElementById('chantierModalInfo_' + id_chantier);
 
-                    // Fermeture de la modal si on clique en dehors
-                    window.onclick = function(event) {
-                        if (event.target == modalInfo) {
-                            modalInfo.style.display = "none";
-                        }
-                    };
-
-                    // Get the <span> element that closes the modal
-                    const span = modalInfo.getElementsByClassName("close")[0];
-                    // Fermeture de la modal quand clique de la croix
-                    span.onclick = function() {
+                // Fermeture de la modal si on clique en dehors
+                window.onclick = function(event) {
+                    if (event.target == modalInfo) {
                         modalInfo.style.display = "none";
-                    };
+                    }
+                };
 
-                    modalInfo.style.display = "block";
+                // Get the <span> element that closes the modal
+                const span = modalInfo.getElementsByClassName("close")[0];
+                // Fermeture de la modal quand clique de la croix
+                span.onclick = function() {
+                    modalInfo.style.display = "none";
+                };
 
-                    // Suppression de l'événement
-                    const deleteEvent = document.querySelector("#deleteEvent_" + id_chantier);
-                    deleteEvent.onclick = function() {
-                        if (confirm("Voulez-vous vraiment supprimer cet évènement ?")) {
-                            info.event.remove();
-                            @this.eventRemove(id);
-                            modalInfo.style.display = "none";
-                        }
-                    };
-                },
+                modalInfo.style.display = "block";
 
-                showAstreinteInfo(date = null, event = null) {
-                    // Créer une modal pour ajouter une astreinte
-                    const modal = document.createElement('dialog');
-                    modal.id = "showAstreinte";
-                    modal.className = 'p-6 bg-white rounded-lg shadow';
-                    modal.innerHTML = `
+                // Suppression de l'événement
+                const deleteEvent = document.querySelector("#deleteEvent_" + id_chantier);
+                deleteEvent.onclick = function() {
+                    if (confirm("Voulez-vous vraiment supprimer cet évènement ?")) {
+                        info.event.remove();
+                        @this.eventRemove(id);
+                        modalInfo.style.display = "none";
+                    }
+                };
+            },
+
+            showAstreinteInfo(date = null, event = null) {
+                // Créer une modal pour ajouter une astreinte
+                const modal = document.createElement('dialog');
+                modal.id = "showAstreinte";
+                modal.className = 'p-6 bg-white rounded-lg shadow';
+                modal.innerHTML = `
                         <div class="w-full w-auto">
                             <h3 class="mb-4 text-xl font-bold">${event ? 'Gérer l\'astreinte' : 'Ajouter une astreinte'}</h3>
                             <p class="mb-4 text-sm text-gray-600">L'astreinte sera créée pour toute la semaine (du lundi au vendredi) à partir de la date sélectionnée.</p>
@@ -690,76 +698,76 @@
                             </div>
                         </div>
                     `;
-                    document.body.appendChild(modal);
+                document.body.appendChild(modal);
 
-                    // Ajouter le style pour l'overlay
-                    const style = document.createElement('style');
-                    style.textContent = `
+                // Ajouter le style pour l'overlay
+                const style = document.createElement('style');
+                style.textContent = `
                         dialog::backdrop {
                             background-color: rgba(0, 0, 0, 0.5);
                         }
                     `;
-                    document.head.appendChild(style);
+                document.head.appendChild(style);
 
-                    // Si une date est fournie, on la formate et on la définit dans l'input
-                    if (date) {
-                        const formattedDate = date.toISOString().split('T')[0];
-                        document.getElementById('astreinteDate').value = formattedDate;
-                    }
+                // Si une date est fournie, on la formate et on la définit dans l'input
+                if (date) {
+                    const formattedDate = date.toISOString().split('T')[0];
+                    document.getElementById('astreinteDate').value = formattedDate;
+                }
 
-                    // Si c'est une astreinte existante, on remplit les champs
-                    if (event) {
-                        const eventDate = event.start.toISOString().split('T')[0];
-                        document.getElementById('astreinteDate').value = eventDate;
-                        document.getElementById('astreinteUser').value = event.extendedProps.user_id;
-                    }
+                // Si c'est une astreinte existante, on remplit les champs
+                if (event) {
+                    const eventDate = event.start.toISOString().split('T')[0];
+                    document.getElementById('astreinteDate').value = eventDate;
+                    document.getElementById('astreinteUser').value = event.extendedProps.user_id;
+                }
 
-                    // Afficher la modale
-                    modal.showModal();
+                // Afficher la modale
+                modal.showModal();
 
-                    // Gestionnaire pour fermer la modal (bouton Annuler)
-                    document.getElementById('cancelAstreinte').onclick = () => modal.close();
+                // Gestionnaire pour fermer la modal (bouton Annuler)
+                document.getElementById('cancelAstreinte').onclick = () => modal.close();
 
-                    // Gestionnaire pour supprimer l'astreinte
-                    if (event) {
-                        document.getElementById('deleteAstreinte').onclick = function() {
-                            if (confirm("Voulez-vous vraiment supprimer cette astreinte ?")) {
-                                @this.deleteAstreinte(event.id);
-                                ContentHandler.deleteAstreinteWeekly(event.start);
-                                ModalHandler.closeAndRemoveModal(modal);
-                            }
-                        };
-
-                        // Gestionnaire pour mettre à jour l'astreinte
-                        document.getElementById('updateAstreinte').onclick = function() {
-                            const userId = document.getElementById('astreinteUser').value;
-                            @this.updateAstreinte(event.id, userId);
-                            ModalHandler.closeAndRemoveModal(modal);
-                        };
-                    }
-
-                    // Gestionnaire pour le clic en dehors de la modale
-                    modal.addEventListener('click', (e) => {
-                        const rect = modal.getBoundingClientRect();
-                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
-                            rect.left <= e.clientX && e.clientX <= rect.right);
-                        if (!isInDialog) {
+                // Gestionnaire pour supprimer l'astreinte
+                if (event) {
+                    document.getElementById('deleteAstreinte').onclick = function() {
+                        if (confirm("Voulez-vous vraiment supprimer cette astreinte ?")) {
+                            @this.deleteAstreinte(event.id);
+                            ContentHandler.deleteAstreinteWeekly(event.start);
                             ModalHandler.closeAndRemoveModal(modal);
                         }
-                    });
+                    };
 
-                    // Nettoyer la modale après sa fermeture
-                    modal.addEventListener('close', () => {
+                    // Gestionnaire pour mettre à jour l'astreinte
+                    document.getElementById('updateAstreinte').onclick = function() {
+                        const userId = document.getElementById('astreinteUser').value;
+                        @this.updateAstreinte(event.id, userId);
                         ModalHandler.closeAndRemoveModal(modal);
-                    });
-                },
+                    };
+                }
 
-                showChoiceInfo(info) {
-                    // Créer une modal pour choisir le type d'événement
-                    const modal = document.createElement('dialog');
-                    modal.id = "showChoiceModal";
-                    modal.className = 'p-6 bg-white rounded-lg shadow';
-                    modal.innerHTML = `
+                // Gestionnaire pour le clic en dehors de la modale
+                modal.addEventListener('click', (e) => {
+                    const rect = modal.getBoundingClientRect();
+                    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                        rect.left <= e.clientX && e.clientX <= rect.right);
+                    if (!isInDialog) {
+                        ModalHandler.closeAndRemoveModal(modal);
+                    }
+                });
+
+                // Nettoyer la modale après sa fermeture
+                modal.addEventListener('close', () => {
+                    ModalHandler.closeAndRemoveModal(modal);
+                });
+            },
+
+            showChoiceInfo(info) {
+                // Créer une modal pour choisir le type d'événement
+                const modal = document.createElement('dialog');
+                modal.id = "showChoiceModal";
+                modal.className = 'p-6 bg-white rounded-lg shadow';
+                modal.innerHTML = `
                         <div class="w-full w-auto">
                             <h3 class="mb-4 text-xl font-bold">Ajouter un évènement</h3>
                             <div class="mb-4">
@@ -813,138 +821,138 @@
                             </div>
                         </div>
                     `;
-                    document.body.appendChild(modal);
+                document.body.appendChild(modal);
 
-                    // Ajouter le style pour l'overlay
-                    const style = document.createElement('style');
-                    style.textContent = `
+                // Ajouter le style pour l'overlay
+                const style = document.createElement('style');
+                style.textContent = `
                         dialog::backdrop {
                             background-color: rgba(0, 0, 0, 0.5);
                         }
                     `;
-                    document.head.appendChild(style);
+                document.head.appendChild(style);
 
-                    // Afficher la modale
-                    modal.showModal();
+                // Afficher la modale
+                modal.showModal();
 
-                    // Si une date est fournie, on la formate et on la définit dans l'input
-                    if (info.date) {
-                        const formattedDate = info.date.toISOString().split('T')[0];
-                        document.getElementById('astreinteDate').value = formattedDate;
-                    }
+                // Si une date est fournie, on la formate et on la définit dans l'input
+                if (info.date) {
+                    const formattedDate = info.date.toISOString().split('T')[0];
+                    document.getElementById('astreinteDate').value = formattedDate;
+                }
 
-                    // Gestionnaire pour le type d'événement
-                    const eventTypeSelect = document.getElementById('eventType');
-                    const customEventFields = document.getElementById('customEventFields');
-                    const astreinteFields = document.getElementById('astreinteFields');
+                // Gestionnaire pour le type d'événement
+                const eventTypeSelect = document.getElementById('eventType');
+                const customEventFields = document.getElementById('customEventFields');
+                const astreinteFields = document.getElementById('astreinteFields');
 
-                    eventTypeSelect.addEventListener('change', (e) => {
-                        const isAstreinte = e.target.value === 'astreinte';
-                        customEventFields.classList.toggle('hidden', isAstreinte);
-                        astreinteFields.classList.toggle('hidden', !isAstreinte);
-                    });
+                eventTypeSelect.addEventListener('change', (e) => {
+                    const isAstreinte = e.target.value === 'astreinte';
+                    customEventFields.classList.toggle('hidden', isAstreinte);
+                    astreinteFields.classList.toggle('hidden', !isAstreinte);
+                });
 
-                    // Afficher le formulaire correspondant au type sélectionné
-                    eventTypeSelect.dispatchEvent(new Event('change'));
+                // Afficher le formulaire correspondant au type sélectionné
+                eventTypeSelect.dispatchEvent(new Event('change'));
 
-                    // Gestionnaire pour fermer la modal (bouton Annuler)
-                    document.getElementById('cancelEvent').onclick = () => ModalHandler.closeAndRemoveModal(
-                        modal);
+                // Gestionnaire pour fermer la modal (bouton Annuler)
+                document.getElementById('cancelEvent').onclick = () => ModalHandler.closeAndRemoveModal(
+                    modal);
 
-                    // Gestionnaire pour sauvegarder l'événement
-                    document.getElementById('saveEvent').onclick = function() {
-                        const eventType = eventTypeSelect.value;
-                        const date = info.date.toISOString().split('T')[0];
+                // Gestionnaire pour sauvegarder l'événement
+                document.getElementById('saveEvent').onclick = function() {
+                    const eventType = eventTypeSelect.value;
+                    const date = info.date.toISOString().split('T')[0];
 
-                        if (eventType === 'astreinte') {
-                            const astreinteDate = document.getElementById('astreinteDate').value;
-                            const select = document.getElementById('astreinteUser');
-                            const userId = select.value;
-                            const selectedOption = select.options[select.selectedIndex];
-                            const userAcronyme = selectedOption.dataset.acronyme;
+                    if (eventType === 'astreinte') {
+                        const astreinteDate = document.getElementById('astreinteDate').value;
+                        const select = document.getElementById('astreinteUser');
+                        const userId = select.value;
+                        const selectedOption = select.options[select.selectedIndex];
+                        const userAcronyme = selectedOption.dataset.acronyme;
 
-                            // Ajouter l'astreinte au calendrier (backend)
-                            @this.addAstreinte(astreinteDate, userId);
+                        // Ajouter l'astreinte au calendrier (backend)
+                        @this.addAstreinte(astreinteDate, userId);
 
-                            // Créer un événement pour chaque jour de la semaine
-                            const startDate = moment(astreinteDate).startOf('isoWeek');
-                            const endDate = moment(astreinteDate).endOf('isoWeek');
+                        // Créer un événement pour chaque jour de la semaine
+                        const startDate = moment(astreinteDate).startOf('isoWeek');
+                        const endDate = moment(astreinteDate).endOf('isoWeek');
 
-                            // Boucle sur chaque jour de la semaine
-                            for (let date = startDate; date.isSameOrBefore(endDate); date.add(1, 'days')) {
-                                const event = {
-                                    id: Utils.createUUID(),
-                                    start: date.format('YYYY-MM-DD'),
-                                    end: date.format('YYYY-MM-DD'),
-                                    title: Utils.generateAstreinteTitle(userAcronyme),
-                                    color: '#f97316',
-                                    extendedProps: {
-                                        isAstreinte: true,
-                                        user_id: userId,
-                                        userAcronyme: userAcronyme
-                                    }
-                                };
-                                WorksiteCalendar.calendar.addEvent(event);
-                            }
-                            ModalHandler.closeAndRemoveModal(modal);
-                        } else {
-                            const title = document.getElementById('customEventTitle').value;
-                            const description = document.getElementById('customEventDescription').value;
-                            const backgroundColor = document.getElementById('customEventColor').value;
-
-                            if (!title) {
-                                Utils.flashMe('warning', 'Veuillez saisir un titre');
-                                return;
-                            }
-
-                            // Calcul de la couleur de texte en fonction de la luminosité de la couleur de fond
-                            const rgb = Utils.hexToRgb(backgroundColor);
-                            const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-                            const textColor = brightness > 128 ? '#000000' : '#ffffff';
-
-                            // Ajouter l'événement personnalisé au calendrier (backend)
-                            @this.addCustomEvent(date, title, backgroundColor, textColor, description);
-
-                            // Ajouter l'événement personnalisé au calendrier
-                            const customEvent = {
+                        // Boucle sur chaque jour de la semaine
+                        for (let date = startDate; date.isSameOrBefore(endDate); date.add(1, 'days')) {
+                            const event = {
                                 id: Utils.createUUID(),
-                                title: title,
-                                start: date,
-                                end: date,
-                                backgroundColor: backgroundColor,
-                                textColor: textColor,
+                                start: date.format('YYYY-MM-DD'),
+                                end: date.format('YYYY-MM-DD'),
+                                title: Utils.generateAstreinteTitle(userAcronyme),
+                                color: '#f97316',
                                 extendedProps: {
-                                    isCustomEvent: true,
-                                    description: description
+                                    isAstreinte: true,
+                                    user_id: userId,
+                                    userAcronyme: userAcronyme
                                 }
                             };
-                            WorksiteCalendar.calendar.addEvent(customEvent);
-                            ModalHandler.closeAndRemoveModal(modal);
+                            WorksiteCalendar.calendar.addEvent(event);
                         }
-                    };
-
-                    // Gestionnaire pour le clic en dehors de la modale
-                    modal.addEventListener('click', (e) => {
-                        const rect = modal.getBoundingClientRect();
-                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
-                            rect.left <= e.clientX && e.clientX <= rect.right);
-                        if (!isInDialog) {
-                            ModalHandler.closeAndRemoveModal(modal);
-                        }
-                    });
-
-                    // Nettoyer la modale après sa fermeture
-                    modal.addEventListener('close', () => {
                         ModalHandler.closeAndRemoveModal(modal);
-                    });
-                },
+                    } else {
+                        const title = document.getElementById('customEventTitle').value;
+                        const description = document.getElementById('customEventDescription').value;
+                        const backgroundColor = document.getElementById('customEventColor').value;
 
-                showCustomEventInfo(event) {
-                    // Créer une modal pour éditer l'événement personnalisé
-                    const modal = document.createElement('dialog');
-                    modal.id = "showCustomEventModal";
-                    modal.className = 'p-6 bg-white rounded-lg shadow';
-                    modal.innerHTML = `
+                        if (!title) {
+                            Utils.flashMe('warning', 'Veuillez saisir un titre');
+                            return;
+                        }
+
+                        // Calcul de la couleur de texte en fonction de la luminosité de la couleur de fond
+                        const rgb = Utils.hexToRgb(backgroundColor);
+                        const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+                        const textColor = brightness > 128 ? '#000000' : '#ffffff';
+
+                        // Ajouter l'événement personnalisé au calendrier (backend)
+                        @this.addCustomEvent(date, title, backgroundColor, textColor, description);
+
+                        // Ajouter l'événement personnalisé au calendrier
+                        const customEvent = {
+                            id: Utils.createUUID(),
+                            title: title,
+                            start: date,
+                            end: date,
+                            backgroundColor: backgroundColor,
+                            textColor: textColor,
+                            extendedProps: {
+                                isCustomEvent: true,
+                                description: description
+                            }
+                        };
+                        WorksiteCalendar.calendar.addEvent(customEvent);
+                        ModalHandler.closeAndRemoveModal(modal);
+                    }
+                };
+
+                // Gestionnaire pour le clic en dehors de la modale
+                modal.addEventListener('click', (e) => {
+                    const rect = modal.getBoundingClientRect();
+                    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                        rect.left <= e.clientX && e.clientX <= rect.right);
+                    if (!isInDialog) {
+                        ModalHandler.closeAndRemoveModal(modal);
+                    }
+                });
+
+                // Nettoyer la modale après sa fermeture
+                modal.addEventListener('close', () => {
+                    ModalHandler.closeAndRemoveModal(modal);
+                });
+            },
+
+            showCustomEventInfo(event) {
+                // Créer une modal pour éditer l'événement personnalisé
+                const modal = document.createElement('dialog');
+                modal.id = "showCustomEventModal";
+                modal.className = 'p-6 bg-white rounded-lg shadow';
+                modal.innerHTML = `
                         <div class="w-full w-auto">
                             <h3 class="mb-4 text-xl font-bold">Modifier l'évènement</h3>
                             <div class="mb-4">
@@ -982,224 +990,224 @@
                             </div>
                         </div>
                     `;
-                    document.body.appendChild(modal);
+                document.body.appendChild(modal);
 
-                    // Ajouter le style pour l'overlay
-                    const style = document.createElement('style');
-                    style.textContent = `
+                // Ajouter le style pour l'overlay
+                const style = document.createElement('style');
+                style.textContent = `
                         dialog::backdrop {
                             background-color: rgba(0, 0, 0, 0.5);
                         }
                     `;
-                    document.head.appendChild(style);
+                document.head.appendChild(style);
 
-                    // Afficher la modale
-                    modal.showModal();
+                // Afficher la modale
+                modal.showModal();
 
-                    // Gestionnaire pour fermer la modal (bouton Annuler)
-                    document.getElementById('cancelCustomEvent').onclick = () => ModalHandler
-                        .closeAndRemoveModal(modal);
+                // Gestionnaire pour fermer la modal (bouton Annuler)
+                document.getElementById('cancelCustomEvent').onclick = () => ModalHandler
+                    .closeAndRemoveModal(modal);
 
-                    // Gestionnaire pour supprimer l'événement
-                    document.getElementById('deleteCustomEvent').onclick = function() {
-                        if (confirm("Voulez-vous vraiment supprimer cet évènement ?")) {
-                            const eventId = event.id.replace('custom_', '');
-                            @this.deleteCustomEvent(eventId);
-                            event.remove();
-                            ModalHandler.closeAndRemoveModal(modal);
-                        }
-                    };
-
-                    // Gestionnaire pour mettre à jour l'événement
-                    document.getElementById('updateCustomEvent').onclick = function() {
-                        const title = document.getElementById('customEventTitle').value;
-                        const description = document.getElementById('customEventDescription').value;
-                        const backgroundColor = document.getElementById('customEventColor').value;
-
-                        if (!title) {
-                            Utils.flashMe('warning', 'Veuillez saisir un titre');
-                            return;
-                        }
-
+                // Gestionnaire pour supprimer l'événement
+                document.getElementById('deleteCustomEvent').onclick = function() {
+                    if (confirm("Voulez-vous vraiment supprimer cet évènement ?")) {
                         const eventId = event.id.replace('custom_', '');
-                        @this.updateCustomEvent(eventId, title, backgroundColor, description);
-
-                        // Mettre à jour l'événement dans le calendrier
-                        event.setProp('title', title);
-                        event.setProp('backgroundColor', backgroundColor);
-                        event.setProp('borderColor', backgroundColor);
-                        event.setExtendedProp('description', description);
+                        @this.deleteCustomEvent(eventId);
+                        event.remove();
                         ModalHandler.closeAndRemoveModal(modal);
-                    };
+                    }
+                };
 
-                    // Gestionnaire pour le clic en dehors de la modale
-                    modal.addEventListener('click', (e) => {
-                        const rect = modal.getBoundingClientRect();
-                        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
-                            rect.left <= e.clientX && e.clientX <= rect.right);
-                        if (!isInDialog) {
-                            ModalHandler.closeAndRemoveModal(modal);
-                        }
-                    });
+                // Gestionnaire pour mettre à jour l'événement
+                document.getElementById('updateCustomEvent').onclick = function() {
+                    const title = document.getElementById('customEventTitle').value;
+                    const description = document.getElementById('customEventDescription').value;
+                    const backgroundColor = document.getElementById('customEventColor').value;
 
-                    // Nettoyer la modale après sa fermeture
-                    modal.addEventListener('close', () => {
+                    if (!title) {
+                        Utils.flashMe('warning', 'Veuillez saisir un titre');
+                        return;
+                    }
+
+                    const eventId = event.id.replace('custom_', '');
+                    @this.updateCustomEvent(eventId, title, backgroundColor, description);
+
+                    // Mettre à jour l'événement dans le calendrier
+                    event.setProp('title', title);
+                    event.setProp('backgroundColor', backgroundColor);
+                    event.setProp('borderColor', backgroundColor);
+                    event.setExtendedProp('description', description);
+                    ModalHandler.closeAndRemoveModal(modal);
+                };
+
+                // Gestionnaire pour le clic en dehors de la modale
+                modal.addEventListener('click', (e) => {
+                    const rect = modal.getBoundingClientRect();
+                    const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.bottom &&
+                        rect.left <= e.clientX && e.clientX <= rect.right);
+                    if (!isInDialog) {
                         ModalHandler.closeAndRemoveModal(modal);
-                    });
-                },
+                    }
+                });
 
-                closeAndRemoveModal(modal) {
-                    modal.close();
-                    modal.remove();
-                }
-            };
+                // Nettoyer la modale après sa fermeture
+                modal.addEventListener('close', () => {
+                    ModalHandler.closeAndRemoveModal(modal);
+                });
+            },
 
-            const ContentHandler = {
-                generateSmiley({
-                    title,
-                    indicator,
-                    indicatorColorClass = undefined,
-                    indicatorDataId = undefined,
-                }) {
-                    const container = document.createElement('div');
-                    container.style.display = 'flex';
-                    container.style.justifyContent = 'center';
-                    container.style.alignItems = 'center';
-                    container.style.gap = '8px';
-                    container.style.width = '100%';
-                    container.classList.add('px-2', 'py-1');
+            closeAndRemoveModal(modal) {
+                modal.close();
+                modal.remove();
+            }
+        };
 
-                    const text = document.createElement('div');
-                    text.textContent = title;
-                    text.style.flex = '1';
-                    text.style.overflow = 'hidden';
-                    text.style.textOverflow = 'ellipsis';
-                    text.style.whiteSpace = 'nowrap';
-                    container.appendChild(text);
+        const ContentHandler = {
+            generateSmiley({
+                title,
+                indicator,
+                indicatorColorClass = undefined,
+                indicatorDataId = undefined,
+            }) {
+                const container = document.createElement('div');
+                container.style.display = 'flex';
+                container.style.justifyContent = 'center';
+                container.style.alignItems = 'center';
+                container.style.gap = '8px';
+                container.style.width = '100%';
+                container.classList.add('px-2', 'py-1');
 
-                    const indicatorContainer = document.createElement('div');
-                    indicatorContainer.style.width = '16px';
-                    indicatorContainer.style.display = 'flex';
-                    indicatorContainer.style.justifyContent = 'center';
-                    indicatorContainer.style.alignItems = 'center';
-                    indicatorContainer.style.flexShrink = '0';
+                const text = document.createElement('div');
+                text.textContent = title;
+                text.style.flex = '1';
+                text.style.overflow = 'hidden';
+                text.style.textOverflow = 'ellipsis';
+                text.style.whiteSpace = 'nowrap';
+                container.appendChild(text);
 
-                    switch (indicator) {
-                        case 'astreinte':
-                            const emojiSpan = document.createElement('span');
-                            emojiSpan.textContent = '🎧';
-                            emojiSpan.style.flexShrink = '0';
-                            emojiSpan.style.width = '16px';
-                            indicatorContainer.appendChild(emojiSpan);
-                            break;
-                        case 'worksite':
-                            const circle = document.createElement('span');
-                            circle.className =
-                                `stage-indicator stage-indicator-events w-3 h-3 rounded-full border border-dark
+                const indicatorContainer = document.createElement('div');
+                indicatorContainer.style.width = '16px';
+                indicatorContainer.style.display = 'flex';
+                indicatorContainer.style.justifyContent = 'center';
+                indicatorContainer.style.alignItems = 'center';
+                indicatorContainer.style.flexShrink = '0';
+
+                switch (indicator) {
+                    case 'astreinte':
+                        const emojiSpan = document.createElement('span');
+                        emojiSpan.textContent = '🎧';
+                        emojiSpan.style.flexShrink = '0';
+                        emojiSpan.style.width = '16px';
+                        indicatorContainer.appendChild(emojiSpan);
+                        break;
+                    case 'worksite':
+                        const circle = document.createElement('span');
+                        circle.className =
+                            `stage-indicator stage-indicator-events w-3 h-3 rounded-full border border-dark
                                 ${indicatorColorClass || 'bg-gray-300'}`;
-                            if (indicatorDataId) circle.setAttribute('data-id', indicatorDataId);
-                            indicatorContainer.appendChild(circle);
-                            break;
-                        case 'custom-event':
-                            const customEventSpan = document.createElement('span');
-                            customEventSpan.textContent = '📅';
-                            customEventSpan.style.flexShrink = '0';
-                            customEventSpan.style.width = '16px';
-                            indicatorContainer.appendChild(customEventSpan);
-                            break;
-                        default:
-                            break;
-                    }
-                    container.appendChild(indicatorContainer);
-                    return {
-                        domNodes: [container]
-                    };
-                },
-
-                deleteAstreinteWeekly(event) {
-                    const calendar = WorksiteCalendar.calendar;
-                    const startOfWeek = Utils.getMonday(event.start);
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setDate(endOfWeek.getDate() + 6);
-
-                    const eventsToRemove = calendar.getEvents().filter(e =>
-                        e.title === event.title &&
-                        e.start >= startOfWeek.toDate() &&
-                        e.start <= endOfWeek.toDate()
-                    );
-
-                    calendar.batchRendering(() => {
-                        eventsToRemove.forEach(e => e.remove());
-                    });
+                        if (indicatorDataId) circle.setAttribute('data-id', indicatorDataId);
+                        indicatorContainer.appendChild(circle);
+                        break;
+                    case 'custom-event':
+                        const customEventSpan = document.createElement('span');
+                        customEventSpan.textContent = '📅';
+                        customEventSpan.style.flexShrink = '0';
+                        customEventSpan.style.width = '16px';
+                        indicatorContainer.appendChild(customEventSpan);
+                        break;
+                    default:
+                        break;
                 }
+                container.appendChild(indicatorContainer);
+                return {
+                    domNodes: [container]
+                };
+            },
 
-            };
+            deleteAstreinteWeekly(event) {
+                const calendar = WorksiteCalendar.calendar;
+                const startOfWeek = Utils.getMonday(event.start);
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(endOfWeek.getDate() + 6);
 
-            const Utils = {
-                createUUID() {
-                    let dt = new Date().getTime();
-                    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-                        let r = (dt + Math.random() * 16) % 16 | 0;
-                        dt = Math.floor(dt / 16);
-                        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-                    });
-                    return uuid;
-                },
+                const eventsToRemove = calendar.getEvents().filter(e =>
+                    e.title === event.title &&
+                    e.start >= startOfWeek.toDate() &&
+                    e.start <= endOfWeek.toDate()
+                );
 
-                flashMe(icon, msg) {
-                    window.flashAlert(icon, msg);
-                },
+                calendar.batchRendering(() => {
+                    eventsToRemove.forEach(e => e.remove());
+                });
+            }
 
-                stageColor(stage) {
-                    switch (stage) {
-                        case 'STAGE_1A':
-                            return 'bg-danger';
-                        case 'STAGE_1B':
-                            return 'bg-warning';
-                        case 'STAGE_1C':
-                            return 'bg-success';
-                        default:
-                            return 'bg-gray-300';
-                    }
-                },
+        };
 
-                hexToRgb(hex) {
-                    // Supprimer le # si présent
-                    hex = hex.replace('#', '');
+        const Utils = {
+            createUUID() {
+                let dt = new Date().getTime();
+                const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                    let r = (dt + Math.random() * 16) % 16 | 0;
+                    dt = Math.floor(dt / 16);
+                    return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                });
+                return uuid;
+            },
 
-                    // Convertir en RGB
-                    const r = parseInt(hex.substring(0, 2), 16);
-                    const g = parseInt(hex.substring(2, 4), 16);
-                    const b = parseInt(hex.substring(4, 6), 16);
+            flashMe(icon, msg) {
+                window.flashAlert(icon, msg);
+            },
 
-                    return {
-                        r,
-                        g,
-                        b
-                    };
-                },
+            stageColor(stage) {
+                switch (stage) {
+                    case 'STAGE_1A':
+                        return 'bg-danger';
+                    case 'STAGE_1B':
+                        return 'bg-warning';
+                    case 'STAGE_1C':
+                        return 'bg-success';
+                    default:
+                        return 'bg-gray-300';
+                }
+            },
 
-                generateAstreinteTitle(userAcronyme) {
-                    return 'Astreinte ' + userAcronyme;
-                },
+            hexToRgb(hex) {
+                // Supprimer le # si présent
+                hex = hex.replace('#', '');
 
-                getMonday(date) {
-                    const d = new Date(date);
-                    const day = d.getDay();
-                    const diff = (day === 0 ? -6 : 1 - day);
-                    d.setDate(d.getDate() + diff);
-                    return d;
-                },
-            };
+                // Convertir en RGB
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
 
-            // Expose la méthode au niveau global pour qu'elle soit accessible depuis worksiteStaging.js
-            window.WorksiteCalendar = WorksiteCalendar;
+                return {
+                    r,
+                    g,
+                    b
+                };
+            },
 
-            // Initialisation des modules
-            WorksiteCalendar.init();
-            SearchModule.init();
-        });
-    </script>
+            generateAstreinteTitle(userAcronyme) {
+                return 'Astreinte ' + userAcronyme;
+            },
 
-    @vite('resources/js/heures/chantier.js')
+            getMonday(date) {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = (day === 0 ? -6 : 1 - day);
+                d.setDate(d.getDate() + diff);
+                return d;
+            },
+        };
+
+        // Expose la méthode au niveau global pour qu'elle soit accessible depuis worksiteStaging.js
+        window.WorksiteCalendar = WorksiteCalendar;
+
+        // Initialisation des modules
+        WorksiteCalendar.init();
+        SearchModule.init();
+    });
+</script>
+
+@vite('resources/js/heures/chantier.js')
 @endpush

@@ -32,7 +32,10 @@ class ChantierController extends Controller
     public function jour(Request $request)
     {
         $date = $request->input('realisation_date', Carbon::tomorrow()->toDateString());
-        $chantiers = Chantier::whereDate('realisation_date', $date)->get();
+
+        $chantiers = Chantier::with(['events', 'taches'])
+            ->whereDate('realisation_date', '=', $date)
+            ->get();
 
         return view('livewire.jour', compact('chantiers', 'date'));
     }
@@ -57,13 +60,13 @@ class ChantierController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',
+            'title' => ['required', 'string', 'min:1'],
             'materialamount' => ['required', 'numeric', 'min:0'], // Ajout de la validation du montant matériel supérieux à 1, commentaire à supprimer
             'serviceamount' => ['required', 'numeric', 'min:1'], // Ajout de la validation du montant service supérieux à 1, commentaire à supprimer
             'hours' => ['required', 'numeric', 'min:1'], // Ajout de la validation des heures supérieures à 1, commentaire à supprimer
         ]);
         $chantier = new Chantier;
-        $chantier->title = $request->input('title');
+        $chantier->title = $request->input('title', 'Sans titre');
         $chantier->hours = $request->input('hours'); // Valeur par défaut à null en bd si la valeur est nulle pas besoin de condition - Commentaire à supprimer
         $chantier->materialamount = $request->input('materialamount');
         $chantier->serviceamount = $request->input('serviceamount');

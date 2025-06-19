@@ -22,20 +22,8 @@ use App\Http\Controllers\{
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-/**page de connexion */
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/login');
 });
 
 Route::get('/dashboard', function () {
@@ -50,6 +38,7 @@ Route::middleware('auth')->group(function () {
 
     /** Planning admnistrateur */
     Route::get('/Planning/{user}', [ChantierController::class, 'planning'])->name('planning.index');
+    Route::get('/planning', [ChantierController::class, 'index'])->name('planning');
 
     /** Gestion des utilisateurs administrateur */
     Route::get('/gestion-des-utilisateurs', [UserController::class, 'index'])->name('users.index');

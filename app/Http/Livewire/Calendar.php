@@ -20,24 +20,23 @@ class Calendar extends Component
 
   public function eventChange($id, $event)
   {
-    $e = Event::find($id);
-    $e->start = $event['start'];
-    if (Arr::exists($event, 'end')) {
-      $e->end = $event['end'];
-    }
-    $e->save();
-  }
+    $chantier = Chantier::where('id', intval($id))->first();
+    // Remplace "uuid" par le nom réel de ta colonne
 
+    if ($chantier) {
+      $chantier->realisation_date = Carbon::parse($event['start'])->toDateString();
+      $chantier->save();
+    }
+  }
   public function eventAdd($event, $id, $id_chantier)
   {
-    $event = new Event([
+    $newEvent = new \App\Models\Event([
       'id' => $id,
-      'title' => $event['title'],
-      'start' => $event['start'],
-      'id_chantier' => $id_chantier
+      'title' => $event['title'] ?? 'Sans titre', // Sécurisé avec fallback
+      'start' => $event['start'] ?? now()->toDateString(),
+      'id_chantier' => $id_chantier,
     ]);
-
-    $event->save();
+    $newEvent->save();
   }
 
   public function eventRemove($id)
