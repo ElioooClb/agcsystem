@@ -39,15 +39,19 @@ class ChantierController extends Controller
 
         return view('livewire.jour', compact('chantiers', 'date'));
     }
-    public function create()
+    public function create(Request $request)
     {
         $users = User::all();
-        $loadouts = Loadout::with('parameters')->get(); // Inclure les paramètres
-        return view(
-            'chantier.create',
-            ['users' => $users, 'loadouts' => $loadouts]
-        );
+        $loadouts = Loadout::with('parameters')->get();
+        $realisation_date = $request->input('realisation_date');
+
+        return view('chantier.create', [
+            'users' => $users,
+            'loadouts' => $loadouts,
+            'realisation_date' => $realisation_date,
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -74,6 +78,7 @@ class ChantierController extends Controller
         $chantier->loadout_id = $request->input('loadout_id');
         // Fin [SPECGT6] - Ajout des loadouts aux chantiers et suppression des anciens paramètres
         $chantier->color = $request->input('color');
+        $chantier->realisation_date = $request->input('realisation_date');
         // DEBUT - [SPECGT3] Ajout du superviseur de chantier
         $chantier->supervisor_id = Auth()->user()->id;
         // FIN - [SPECGT3] Ajout du superviseur de chantier

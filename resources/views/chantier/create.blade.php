@@ -22,6 +22,11 @@
                                 <input type="text" class="form-control form_create" name="title" id="title"
                                     required>
                             </div>
+                            <div class="mb-3">
+                                <label for="realisation_date" class="form-label">Date de réalisation</label>
+                                <input type="date" class="form-control" id="realisation_date" name="realisation_date"
+                                    value="{{ old('realisation_date', $realisation_date ?? '') }}" required>
+                            </div>
                             {{-- Temps devis --}}
                             <div class="form-group">
                                 <label>Temps de travail prévu * :</label>
@@ -34,11 +39,11 @@
                             <select multiple="multiple" name="user_id[]"
                                 class="block w-full rounded-md selected-users font-2xl">
                                 @foreach ($users as $user)
-                                    @if ($user->email != null)
-                                        <option value="{{ $user->id }}" class="text-2xl">
-                                            {{ $user->name }}
-                                        </option>
-                                    @endif
+                                @if ($user->email != null)
+                                <option value="{{ $user->id }}" class="text-2xl">
+                                    {{ $user->name }}
+                                </option>
+                                @endif
                                 @endforeach
                             </select>
                             <button
@@ -75,12 +80,12 @@
                                 <select name="loadout_id" class="form-control form_create" required>
                                     <option class="text-md" value="" selected disabled>Veuillez sélectionner un modèle</option>
                                     @foreach ($loadouts as $loadout)
-                                        @php
-                                            $parameters = $loadout->parameters->pluck('label')->join(', ');
-                                        @endphp
-                                        <option class="text-md" value="{{ $loadout->id }}" title="{{ $parameters }}">
-                                            {{ $loadout->title }}
-                                        </option>
+                                    @php
+                                    $parameters = $loadout->parameters->pluck('label')->join(', ');
+                                    @endphp
+                                    <option class="text-md" value="{{ $loadout->id }}" title="{{ $parameters }}">
+                                        {{ $loadout->title }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
