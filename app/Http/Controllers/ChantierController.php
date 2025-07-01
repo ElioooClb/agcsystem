@@ -68,6 +68,8 @@ class ChantierController extends Controller
             'materialamount' => ['required', 'numeric', 'min:0'], // Ajout de la validation du montant matériel supérieux à 1, commentaire à supprimer
             'serviceamount' => ['required', 'numeric', 'min:1'], // Ajout de la validation du montant service supérieux à 1, commentaire à supprimer
             'hours' => ['required', 'numeric', 'min:1'], // Ajout de la validation des heures supérieures à 1, commentaire à supprimer
+            'taches' => 'nullable|array',
+            'taches.*' => 'nullable|string|max:255',
         ]);
         $chantier = new Chantier;
         $chantier->title = $request->input('title', 'Sans titre');

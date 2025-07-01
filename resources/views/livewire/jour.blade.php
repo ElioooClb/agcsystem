@@ -29,7 +29,7 @@
         <input type="date" name="realisation_date" value="{{ $date }}" class="form-control d-inline w-auto" onchange="this.form.submit()">
     </form>
     @auth
-    @if(auth()->user()->role === 'Admin') {{-- ou ->is_admin selon ta DB --}}
+    @if(auth()->user()->role->role === 'administrateur')
     <form method="GET" action="{{ route('chantier.create') }}" class="mb-4 d-flex gap-2 align-items-center">
         <input type="hidden" name="realisation_date" value="{{ $date }}">
         <button type="submit" class="btn btn-primary">
@@ -61,21 +61,19 @@
             </p>
 
             <div class="mb-2">
-                <strong class="block">Tâches :</strong>
-                @if($chantier->taches && $chantier->taches->isNotEmpty())
-                <ul class="list-disc list-inside text-sm text-gray-700">
-                    @foreach($chantier->taches as $tache)
+                <p><strong class="detail-infos">Tâches :</strong></p>
+                <ul class="detail-infos">
+                    @forelse ($chantier->taches as $tache)
                     <li>{{ $tache->libelle }}</li>
-                    @endforeach
+                    @empty
+                    <li class="text-sm text-gray-500 italic">Aucune tâche enregistrée.</li>
+                    @endforelse
                 </ul>
-                @else
-                <p class="text-sm text-gray-500 italic">Aucune tâche enregistrée.</p>
-                @endif
             </div>
 
             <div>
-                <strong class="block">Observations :</strong>
-                <p class="text-sm text-gray-700">{{ $chantier->observation ?? 'Aucune.' }}</p>
+                <p><strong class="detail-infos">Observations :</strong></p>
+                <p class="detail-infos">{{ $chantier->observation ?? 'Aucune.' }}</p>
             </div>
         </div>
         @empty

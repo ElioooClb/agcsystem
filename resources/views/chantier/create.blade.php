@@ -71,6 +71,19 @@
                                 <input type="float" class="form-control form_create" name="serviceamount"
                                     class="amount" required>
                             </div>
+                            {{-- Observation --}}
+                            <div class="mb-4">
+                                <label for="observation" class="form-label">Observation</label>
+                                <textarea name="observation" id="observation" class="form-control" rows="3">{{ old('observation') }}</textarea>
+                            </div>
+
+                            {{-- Tâches --}}
+                            <div class="mb-4">
+                                <label for="taches[]" class="form-label">Tâches</label>
+                                <input type="text" name="taches[]" class="form-control mb-2" placeholder="Tâche 1">
+                                <input type="text" name="taches[]" class="form-control mb-2" placeholder="Tâche 2">
+                                <input type="text" name="taches[]" class="form-control mb-2" placeholder="Tâche 3">
+                            </div>
                             <!-- fin [SPECGT7] -->
                             <hr>
                             {{-- Options Chantiers --}}
