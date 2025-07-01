@@ -20,9 +20,11 @@
                     <x-nav-link :href="route('planning.index', Auth::user())">
                         Planning
                     </x-nav-link>
+                    @if(in_array(Auth::user()->role_id, [1, 3, 4]))
                     <x-nav-link :href="route('planning.jour')" :active="request()->routeIs('planning.jour')">
                         Vue du jour
                     </x-nav-link>
+                    @endif
 
                     <x-nav-link :href="route('time.shows', Auth::user())">
                         Déclaration d'heures
