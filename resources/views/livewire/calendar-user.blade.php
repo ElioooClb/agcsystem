@@ -539,8 +539,6 @@
                     let chantiers = chantierList.getElementsByTagName('li');
                     let matchFound = false;
 
-                    // Get the archived work sites
-                    let archivedWorkSites = @json($archivedWorkSites - > pluck('id') - > toArray());
 
                     // Loop through each list item
                     for (let i = 0; i < chantiers.length; i++) {

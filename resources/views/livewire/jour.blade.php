@@ -28,12 +28,17 @@
     <form method="GET" action="{{ route('planning.jour') }}" class="mb-4">
         <input type="date" name="realisation_date" value="{{ $date }}" class="form-control d-inline w-auto" onchange="this.form.submit()">
     </form>
+    @auth
+    @if(auth()->user()->role === 'Admin') {{-- ou ->is_admin selon ta DB --}}
     <form method="GET" action="{{ route('chantier.create') }}" class="mb-4 d-flex gap-2 align-items-center">
         <input type="hidden" name="realisation_date" value="{{ $date }}">
         <button type="submit" class="btn btn-primary">
             ➕ Créer un chantier à cette date
         </button>
     </form>
+    @endif
+    @endauth
+
 
     <!-- Nouvelle grille de cartes Tailwind -->
     <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
